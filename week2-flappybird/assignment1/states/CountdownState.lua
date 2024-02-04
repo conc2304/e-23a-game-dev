@@ -38,7 +38,7 @@ function CountdownState:update(dt)
             -- then pass that along to the play state
             if self.prevPlayState ~= nil then
                 -- If self.prevPlayState is not nil, pass it to the change method
-                gStateMachine:change('play', self.prevPlayState)
+                gStateMachine:change('play', { prevPlayState = self.prevPlayState })
             else
                 -- If self.prevPlayState is nil, call change without self.prevPlayState
                 gStateMachine:change('play')
