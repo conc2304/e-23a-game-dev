@@ -1,8 +1,10 @@
 PauseState = Class { __inclueds = BaseState }
 
 
-function PauseState:init()
+PAUSE_IMAGE = love.graphics.newImage('pause-icon.png')
 
+function PauseState:init()
+  -- Do nothing
 end
 
 function PauseState:update(dt)
@@ -15,7 +17,9 @@ end
 
 function PauseState:render()
   love.graphics.setFont(hugeFont)
-  love.graphics.printf("Pause", 0, 120, VIRTUAL_WIDTH, 'center')
+  love.graphics.printf("Pause", 0, 150, VIRTUAL_WIDTH, 'center')
+  local scale = 0.75
+  love.graphics.draw(PAUSE_IMAGE, VIRTUAL_WIDTH / 2 - ((PAUSE_IMAGE:getWidth() * scale) / 2), 80, 0, scale, scale)
 end
 
 function PauseState:enter(prevPlayState)
@@ -29,6 +33,6 @@ function PauseState:enter(prevPlayState)
 end
 
 function PauseState:exit()
-  -- sounds['music']:play()
+  sounds['music']:play()
   sounds['pauseExit']:play()
 end

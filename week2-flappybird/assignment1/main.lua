@@ -96,11 +96,6 @@ function love.load()
         ['music'] = love.audio.newSource('marios_way.mp3', 'static')
     }
 
-    -- BRONZE_IMAGE = love.graphics.newImage('medal-bronze.png')
-    -- SILVER_IMAGE = love.graphics.newImage('medal-silver.png')
-    -- GOLD_IMAGE = love.graphics.newImage('medal-gold.png')
-    -- LOSING_IMAGE = love.graphics.newImage('medal-losing.png')
-
     -- kick off music
     sounds['music']:setLooping(true)
     sounds['music']:play()
@@ -167,8 +162,10 @@ end
 
 function love.update(dt)
     -- scroll our background and ground, looping back to 0 after a certain amount
-    backgroundScroll = (backgroundScroll + BACKGROUND_SCROLL_SPEED * dt) % BACKGROUND_LOOPING_POINT
-    groundScroll = (groundScroll + GROUND_SCROLL_SPEED * dt) % VIRTUAL_WIDTH
+    if scrolling then
+        backgroundScroll = (backgroundScroll + BACKGROUND_SCROLL_SPEED * dt) % BACKGROUND_LOOPING_POINT
+        groundScroll = (groundScroll + GROUND_SCROLL_SPEED * dt) % VIRTUAL_WIDTH
+    end
 
     gStateMachine:update(dt)
 
