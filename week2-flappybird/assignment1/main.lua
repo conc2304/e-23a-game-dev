@@ -96,6 +96,11 @@ function love.load()
         ['music'] = love.audio.newSource('marios_way.mp3', 'static')
     }
 
+    -- BRONZE_IMAGE = love.graphics.newImage('medal-bronze.png')
+    -- SILVER_IMAGE = love.graphics.newImage('medal-silver.png')
+    -- GOLD_IMAGE = love.graphics.newImage('medal-gold.png')
+    -- LOSING_IMAGE = love.graphics.newImage('medal-losing.png')
+
     -- kick off music
     sounds['music']:setLooping(true)
     sounds['music']:play()

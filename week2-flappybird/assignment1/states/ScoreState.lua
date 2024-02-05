@@ -8,7 +8,12 @@
     PlayState when they collide with a Pipe.
 ]]
 
-ScoreState = Class{__includes = BaseState}
+ScoreState = Class { __includes = BaseState }
+
+
+BRONZE_THRESHOLD = 3
+SILVER_THRESHOLD = 6
+GOLD_THRESHOLD = 9
 
 --[[
     When we enter the score state, we expect to receive the score
@@ -16,6 +21,8 @@ ScoreState = Class{__includes = BaseState}
 ]]
 function ScoreState:enter(params)
     self.score = params.score
+
+    self.medal = self:getMedalByScore(self.score)
 end
 
 function ScoreState:update(dt)
@@ -28,10 +35,69 @@ end
 function ScoreState:render()
     -- simply render the score to the middle of the screen
     love.graphics.setFont(flappyFont)
-    love.graphics.printf('Oof! You lost!', 0, 64, VIRTUAL_WIDTH, 'center')
+    love.graphics.printf('Oof! You lost!', 0, 50, VIRTUAL_WIDTH, 'center')
 
     love.graphics.setFont(mediumFont)
-    love.graphics.printf('Score: ' .. tostring(self.score), 0, 100, VIRTUAL_WIDTH, 'center')
+    love.graphics.printf('Score: ' .. tostring(self.score), 0, 85, VIRTUAL_WIDTH, 'center')
 
-    love.graphics.printf('Press Enter to Play Again!', 0, 160, VIRTUAL_WIDTH, 'center')
+    love.graphics.printf('Press Enter to Play Again!', 0, 200, VIRTUAL_WIDTH, 'center')
+
+    -- draw medal/achievement
+    self:renderAchievement(self.medal)
+end
+
+-- Get text based on the medal the player earned
+function ScoreState:getMessageByMedal(medal)
+    if medal == nil then
+        return "Losing Medal for you!"
+    elseif medal == 'bronze' then
+        return "Bronze Medal"
+    elseif medal == 'silver' then
+        return "Silver Medal!"
+    elseif medal == 'gold' then
+        return "Gold Medal Master!"
+    end
+end
+
+function ScoreState:getMedalByScore(score)
+    if score == nil or score >= BRONZE_THRESHOLD and score < SILVER_THRESHOLD then
+        return "bronze"
+    elseif score >= SILVER_THRESHOLD and score < GOLD_THRESHOLD then
+        return "silver"
+    elseif score >= GOLD_THRESHOLD then
+        return "gold"
+    end
+    return nil;
+end
+
+function ScoreState:renderAchievement(medal)
+    local medalImg = nil
+    if medal == 'bronze' then
+        medalImg = love.graphics.newImage('medal-bronze.png')
+    elseif medal == 'silver' then
+        medalImg = love.graphics.newImage('medal-silver.png')
+    elseif medal == 'gold' then
+        medalImg = love.graphics.newImage('medal-gold.png')
+    else
+        medalImg = love.graphics.newImage('medal-losing.png')
+    end
+
+    love.graphics.setFont(smallFont)
+    love.graphics.printf(self:getMessageByMedal(medal), 0, 180, VIRTUAL_WIDTH, 'center')
+
+    local scale = 0.75
+    love.graphics.draw(medalImg, VIRTUAL_WIDTH / 2 - ((medalImg:getWidth() * scale) / 2), 100, 0, scale,
+        scale)
+end
+
+function ScoreState:renderImageByMedal(medal)
+    if medal == 'bronze' then
+        return love.graphics.newImage('medal-bronze.png')
+    elseif medal == 'silver' then
+        return love.graphics.newImage('medal-silver.png')
+    elseif medal == 'gold' then
+        return love.graphics.newImage('medal-gold.png')
+    elseif medal == nil then
+        return love.graphics.newImage('medal-losing.png')
+    end
 end

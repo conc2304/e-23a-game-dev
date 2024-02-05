@@ -17,11 +17,16 @@ PIPE_HEIGHT = 288
 BIRD_WIDTH = 38
 BIRD_HEIGHT = 24
 
+
 function PlayState:init()
     self.bird = Bird()
     self.pipePairs = {}
     self.timer = 0
     self.score = 0
+    self.difficulty = 'easy'
+
+    local interval = self:getPipeIntervalRangeByDifficulty(self.difficulty)
+    self.newPipeSpawnInterval = math.random(interval['min'], interval['max'])
 
     -- initialize our last recorded Y value for a gap placement to base other gaps off of
     self.lastY = -PIPE_HEIGHT + math.random(80) + 20
@@ -36,6 +41,7 @@ function PlayState:update(dt)
             timer = self.timer,
             score = self.score,
             lastY = self.lastY,
+            difficulty = self.difficulty
         })
         -- if changing state then we don't need to do the rest
         return
@@ -44,20 +50,28 @@ function PlayState:update(dt)
     -- update timer for pipe spawning
     self.timer = self.timer + dt
 
+    -- generate new pipes at random intervals based on the difficulty
+
+
     -- spawn a new pipe pair every second and a half
-    if self.timer > 2 then
+    if self.timer > self.newPipeSpawnInterval then
+        -- if self.timer > 2 then
         -- modify the last Y coordinate we placed so pipe gaps aren't too far apart
         -- no higher than 10 pixels below the top edge of the screen,
         -- and no lower than a gap length (90 pixels) from the bottom
         local y = math.max(-PIPE_HEIGHT + 10,
-            math.min(self.lastY + math.random(-20, 20), VIRTUAL_HEIGHT - 90 - PIPE_HEIGHT))
+            math.min(self.lastY + math.random(-20, 20), VIRTUAL_HEIGHT - GAP_HEIGHT - PIPE_HEIGHT))
         self.lastY = y
 
         -- add a new pipe pair at the end of the screen at our new Y
-        table.insert(self.pipePairs, PipePair(y))
+        table.insert(self.pipePairs, PipePair(y, self.getDifficulty(self.score)))
 
         -- reset timer
         self.timer = 0
+
+        -- update the spawn interval at each new spawning of pipes
+        local interval = self:getPipeIntervalRangeByDifficulty(self.difficulty)
+        self.newPipeSpawnInterval = math.random(interval['min'], interval['max'])
     end
 
     -- for every pair of pipes..
@@ -122,6 +136,30 @@ function PlayState:render()
     love.graphics.setFont(flappyFont)
     love.graphics.print('Score: ' .. tostring(self.score), 8, 8)
 
+    -- determin and render when the user gets to next level
+    love.graphics.setFont(smallFont)
+    local pos = { x = 8, y = 8 + flappyFont:getHeight() }
+    if (self.score < GOLD_THRESHOLD) then
+        -- determine where the next medal is threshold is at
+        local medals = { BRONZE_THRESHOLD, SILVER_THRESHOLD, GOLD_THRESHOLD }
+        local medalThreshold = nil
+        table.sort(medals, function(a, b)
+            return a > b
+        end)
+        for _, threshold in ipairs(medals) do
+            if self.score < threshold then
+                medalThreshold = threshold
+            end
+        end
+
+        love.graphics.print('Next Medal at ' .. tostring(medalThreshold) .. 'pts', pos.x, pos.y)
+    else
+        love.graphics.print('Gold Medal Achieved', pos.x, pos.y)
+    end
+    love.graphics.setFont(smallFont)
+    self.difficulty = self:getDifficulty(self.score)
+    love.graphics.print('Diffuculty: ' .. self.difficulty, pos.x, pos.y + smallFont:getHeight())
+
     self.bird:render()
 end
 
@@ -146,4 +184,26 @@ end
 function PlayState:exit()
     -- stop scrolling for the death/score/pause screen
     scrolling = false
+end
+
+-- Set get the difficulty state based on their points in relation to medal thresholds
+function PlayState:getDifficulty(score)
+    if score == nil or score < SILVER_THRESHOLD then
+        return "easy"
+    elseif score >= SILVER_THRESHOLD and score < GOLD_THRESHOLD then
+        return "medium"
+    else
+        return "hard"
+    end
+end
+
+-- Based on current diffuclty set the random interval min and max for spawning new PipePairs
+function PlayState:getPipeIntervalRangeByDifficulty(difficulty)
+    local gapMultiplierMap = {
+        ['easy'] = { min = 3.5, max = 4.5 },
+        ['medium'] = { min = 3, max = 3.5 },
+        ['hard'] = { min = 2, max = 2.5 },
+    }
+
+    return gapMultiplierMap[difficulty]
 end
