@@ -70,6 +70,7 @@ function ScoreState:getMedalByScore(score)
     return nil;
 end
 
+-- Based on the medal achieved, render the medal image and corresponding text
 function ScoreState:renderAchievement(medal)
     local medalImg = nil
     if medal == 'bronze' then
@@ -88,16 +89,4 @@ function ScoreState:renderAchievement(medal)
     local scale = 0.75
     love.graphics.draw(medalImg, VIRTUAL_WIDTH / 2 - ((medalImg:getWidth() * scale) / 2), 100, 0, scale,
         scale)
-end
-
-function ScoreState:renderImageByMedal(medal)
-    if medal == 'bronze' then
-        return love.graphics.newImage('medal-bronze.png')
-    elseif medal == 'silver' then
-        return love.graphics.newImage('medal-silver.png')
-    elseif medal == 'gold' then
-        return love.graphics.newImage('medal-gold.png')
-    elseif medal == nil then
-        return love.graphics.newImage('medal-losing.png')
-    end
 end
