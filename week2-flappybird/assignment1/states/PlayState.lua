@@ -17,13 +17,12 @@ PIPE_HEIGHT = 288
 BIRD_WIDTH = 38
 BIRD_HEIGHT = 24
 
-
 function PlayState:init()
     self.bird = Bird()
     self.pipePairs = {}
     self.timer = 0
     self.score = 0
-    self.difficulty = 'easy'
+    self.difficulty = self.getDifficulty(self.score)
 
     local interval = self:getPipeIntervalRangeByDifficulty(self.difficulty)
     self.newPipeSpawnInterval = math.random(interval['min'], interval['max'])
@@ -47,12 +46,11 @@ function PlayState:update(dt)
         return
     end
 
+    self.difficulty = self:getDifficulty(self.score)
     -- update timer for pipe spawning
     self.timer = self.timer + dt
 
     -- generate new pipes at random intervals based on the difficulty
-
-
     -- spawn a new pipe pair every second and a half
     if self.timer > self.newPipeSpawnInterval then
         -- if self.timer > 2 then
@@ -64,7 +62,7 @@ function PlayState:update(dt)
         self.lastY = y
 
         -- add a new pipe pair at the end of the screen at our new Y
-        table.insert(self.pipePairs, PipePair(y, self.getDifficulty(self.score)))
+        table.insert(self.pipePairs, PipePair(y, self.difficulty))
 
         -- reset timer
         self.timer = 0
@@ -83,8 +81,11 @@ function PlayState:update(dt)
                 self.score = self.score + 1
                 pair.scored = true
                 sounds['score']:play()
+
+                -- if we scored see if we need to update the difficulty
             end
         end
+
 
         -- update position of pair
         pair:update(dt)
@@ -136,28 +137,12 @@ function PlayState:render()
     love.graphics.setFont(flappyFont)
     love.graphics.print('Score: ' .. tostring(self.score), 8, 8)
 
-    -- determin and render when the user gets to next level
+    -- determine and render when the user gets to next level
     love.graphics.setFont(smallFont)
     local pos = { x = 8, y = 8 + flappyFont:getHeight() }
-    if (self.score < GOLD_THRESHOLD) then
-        -- determine where the next medal is threshold is at
-        local medals = { BRONZE_THRESHOLD, SILVER_THRESHOLD, GOLD_THRESHOLD }
-        local medalThreshold = nil
-        table.sort(medals, function(a, b)
-            return a > b
-        end)
-        for _, threshold in ipairs(medals) do
-            if self.score < threshold then
-                medalThreshold = threshold
-            end
-        end
-
-        love.graphics.print('Next Medal at ' .. tostring(medalThreshold) .. 'pts', pos.x, pos.y)
-    else
-        love.graphics.print('Gold Medal Achieved', pos.x, pos.y)
-    end
-    love.graphics.setFont(smallFont)
-    self.difficulty = self:getDifficulty(self.score)
+    local statsMsg = self:getCurrentLevelStats(self.score)
+    love.graphics.print(statsMsg, pos.x, pos.y)
+    -- Display current difficulty setting
     love.graphics.print('Diffuculty: ' .. self.difficulty, pos.x, pos.y + smallFont:getHeight())
 
     self.bird:render()
@@ -200,10 +185,34 @@ end
 -- Based on current diffuclty set the random interval min and max for spawning new PipePairs
 function PlayState:getPipeIntervalRangeByDifficulty(difficulty)
     local gapMultiplierMap = {
-        ['easy'] = { min = 3.5, max = 4.5 },
-        ['medium'] = { min = 3, max = 3.5 },
-        ['hard'] = { min = 2, max = 2.5 },
+        ['easy'] = { min = 3, max = 4.5 },
+        ['medium'] = { min = 2.5, max = 3.5 },
+        ['hard'] = { min = 1.8, max = 2.25 },
     }
 
     return gapMultiplierMap[difficulty]
+end
+
+-- Based on the user's score display when they get their next medal
+function PlayState:getCurrentLevelStats(score)
+    if (score < GOLD_THRESHOLD) then
+        -- determine where the next medal's threshold is at
+        local medals = { BRONZE_THRESHOLD, SILVER_THRESHOLD, GOLD_THRESHOLD }
+        local medalThreshold = nil
+
+        -- make sure no matter what that the values are sorted ascending
+        -- regardless of how the data may come in
+        table.sort(medals, function(a, b)
+            return a > b
+        end)
+        for _, threshold in ipairs(medals) do
+            if score < threshold then
+                medalThreshold = threshold
+            end
+        end
+
+        return 'Next Medal at ' .. tostring(medalThreshold) .. 'pts'
+    else
+        return 'Gold Medal Achieved'
+    end
 end

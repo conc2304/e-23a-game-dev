@@ -10,7 +10,7 @@
 
 ScoreState = Class { __includes = BaseState }
 
-
+-- Medal Score Thresholds
 BRONZE_THRESHOLD = 3
 SILVER_THRESHOLD = 6
 GOLD_THRESHOLD = 9
@@ -59,6 +59,7 @@ function ScoreState:getMessageByMedal(medal)
     end
 end
 
+-- get the medal based on the score
 function ScoreState:getMedalByScore(score)
     if score == nil or score >= BRONZE_THRESHOLD and score < SILVER_THRESHOLD then
         return "bronze"
@@ -83,6 +84,7 @@ function ScoreState:renderAchievement(medal)
         medalImg = love.graphics.newImage('medal-losing.png')
     end
 
+    -- Render text and medal image
     love.graphics.setFont(smallFont)
     love.graphics.printf(self:getMessageByMedal(medal), 0, 180, VIRTUAL_WIDTH, 'center')
 

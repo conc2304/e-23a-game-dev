@@ -23,14 +23,15 @@ function PipePair:init(y, difficulty)
 
     -- y value is for the topmost pipe; gap is a vertical shift of the second lower pipe
     self.y = y
-
+    self.difficulty = difficulty;
     local gapRange = self:getGapSizeRangeByDifficulty(difficulty)
+    self.gapSize = math.random(GAP_HEIGHT * gapRange['min'], GAP_HEIGHT * gapRange['max'])
 
     -- instantiate two pipes that belong to this pair
     self.pipes = {
         ['upper'] = Pipe('top', self.y),
         ['lower'] = Pipe('bottom',
-            self.y + PIPE_HEIGHT + math.random(GAP_HEIGHT * gapRange['min'], GAP_HEIGHT * gapRange['max']))
+            self.y + PIPE_HEIGHT + self.gapSize)
     }
 
     -- whether this pipe pair is ready to be removed from the scene
@@ -58,9 +59,9 @@ end
 -- Based on current diffuclty set the random gap size min and max for spawning new PipePairs
 function PipePair:getGapSizeRangeByDifficulty(difficulty)
     local gapMultiplierMap = {
-        ['easy'] = { min = 1.4, max = 1.6 },
-        ['medium'] = { min = 1, max = 1 },
-        ['hard'] = { min = 0.75, max = 0.75 },
+        ['easy'] = { min = 1.3, max = 1.6 },
+        ['medium'] = { min = 1, max = 1.25 },
+        ['hard'] = { min = 0.75, max = 1 },
     }
 
     return gapMultiplierMap[difficulty]
