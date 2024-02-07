@@ -26,7 +26,7 @@ function GenerateQuads(atlas, tilewidth, tileheight)
         for x = 0, sheetWidth - 1 do
             spritesheet[sheetCounter] =
                 love.graphics.newQuad(x * tilewidth, y * tileheight, tilewidth,
-                tileheight, atlas:getDimensions())
+                    tileheight, atlas:getDimensions())
             sheetCounter = sheetCounter + 1
         end
     end
@@ -41,11 +41,11 @@ end
 ]]
 function table.slice(tbl, first, last, step)
     local sliced = {}
-  
+
     for i = first or 1, last or #tbl, step or 1 do
-      sliced[#sliced+1] = tbl[i]
+        sliced[#sliced + 1] = tbl[i]
     end
-  
+
     return sliced
 end
 
