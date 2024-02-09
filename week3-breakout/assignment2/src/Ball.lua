@@ -13,17 +13,27 @@
     for visual variety.
 ]]
 
-Ball = Class{}
+Ball = Class {}
+
+BALL_DEFAULT_SCALE = 1;
+BALL_SMALL_SCALE = 0.5
+BALL_LARGE_SCALE = 1.5
+
+BALL_INITIAL_SIZE = 8
+
+
 
 function Ball:init(skin)
     -- simple positional and dimensional variables
-    self.width = 8
-    self.height = 8
+    self.width = BALL_INITIAL_SIZE
+    self.height = BALL_INITIAL_SIZE
 
     -- these variables are for keeping track of our velocity on both the
     -- X and Y axis, since the ball can move in two dimensions
     self.dy = 0
     self.dx = 0
+
+    self.scale = BALL_DEFAULT_SCALE
 
     -- this will effectively be the color of our ball, and we will index
     -- our table of Quads relating to the global block texture using this
@@ -35,20 +45,7 @@ end
     and returns true if the bounding boxes of this and the argument overlap.
 ]]
 function Ball:collides(target)
-    -- first, check to see if the left edge of either is farther to the right
-    -- than the right edge of the other
-    if self.x > target.x + target.width or target.x > self.x + self.width then
-        return false
-    end
-
-    -- then check to see if the bottom edge of either is higher than the top
-    -- edge of the other
-    if self.y > target.y + target.height or target.y > self.y + self.height then
-        return false
-    end 
-
-    -- if the above aren't true, they're overlapping
-    return true
+    return Collides(self, target)
 end
 
 --[[
@@ -89,5 +86,5 @@ function Ball:render()
     -- gTexture is our global texture for all blocks
     -- gBallFrames is a table of quads mapping to each individual ball skin in the texture
     love.graphics.draw(gTextures['main'], gFrames['balls'][self.skin],
-        self.x, self.y)
+        self.x, self.y, 0, self.scale, self.scale)
 end

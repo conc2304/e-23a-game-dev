@@ -10,6 +10,8 @@
     Helper functions for writing games.
 ]]
 
+ROW_HEIGHT = 16
+
 --[[
     Given an "atlas" (a texture with multiple sprites), as well as a
     width and a height for the tiles therein, split the texture into
@@ -26,7 +28,7 @@ function GenerateQuads(atlas, tilewidth, tileheight)
         for x = 0, sheetWidth - 1 do
             spritesheet[sheetCounter] =
                 love.graphics.newQuad(x * tilewidth, y * tileheight, tilewidth,
-                tileheight, atlas:getDimensions())
+                    tileheight, atlas:getDimensions())
             sheetCounter = sheetCounter + 1
         end
     end
@@ -41,11 +43,11 @@ end
 ]]
 function table.slice(tbl, first, last, step)
     local sliced = {}
-  
+
     for i = first or 1, last or #tbl, step or 1 do
-      sliced[#sliced+1] = tbl[i]
+        sliced[#sliced + 1] = tbl[i]
     end
-  
+
     return sliced
 end
 
@@ -124,4 +126,53 @@ function GenerateQuadsBalls(atlas)
     end
 
     return quads
+end
+
+function GenerateQuadPowerUps(atlas)
+    local h = 16
+    local w = 16
+    local powerUpsQty = 10
+    local powerUpRow = 12
+
+    local x = 0
+    local y = powerUpRow * ROW_HEIGHT
+
+    local quads = {}
+    local counter = 1
+
+
+    -- power ups are located on the 13th row of the atlas
+
+    for i = 0, powerUpsQty - 1 do
+        quads[counter] = love.graphics.newQuad(x, y, w, h, atlas:getDimensions())
+        x = x + w
+        counter = counter + 1
+    end
+
+    return quads
+end
+
+function Collides(a, target)
+    -- first, check to see if the left edge of either is farther to the right
+    -- than the right edge of the other
+    if a == nil or a.x == nil or a.y == nil or a.width == nil or a.height == nil then
+        print("Warning - Invalid Collision Object: a")
+        return
+    end
+    if target == nil or target.x == nil or target.y == nil or target.width == nil or target.height == nil then
+        print("Warning - Invalid Collision Object: target")
+        return
+    end
+    if a.x > target.x + target.width or target.x > a.x + a.width then
+        return false
+    end
+
+    -- then check to see if the bottom edge of either is higher than the top
+    -- edge of the other
+    if a.y > target.y + target.height or target.y > a.y + a.height then
+        return false
+    end
+
+    -- if the above aren't true, they're overlapping
+    return true
 end

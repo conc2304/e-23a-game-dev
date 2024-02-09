@@ -14,7 +14,7 @@
     Over screen if at 0 health or the Serve screen otherwise.
 ]]
 
-PlayState = Class{__includes = BaseState}
+PlayState = Class { __includes = BaseState }
 
 --[[
     We initialize what's in our PlayState via a state table that we pass between
@@ -25,15 +25,23 @@ function PlayState:enter(params)
     self.bricks = params.bricks
     self.health = params.health
     self.score = params.score
+    self.scoreMultiplier = params.scoreMultiplier or 1
     self.highScores = params.highScores
-    self.ball = params.ball
+    -- self.ball = params.ball
+    self.balls = params.balls
     self.level = params.level
+    self.powerUps = params.powerUps
 
     self.recoverPoints = 5000
 
     -- give ball random starting velocity
-    self.ball.dx = math.random(-200, 200)
-    self.ball.dy = math.random(-50, -60)
+    for _, ball in pairs(self.balls) do
+        if ball.inPlay == false then
+            ::continue::
+        end
+        ball.dx = math.random(-200, 200)
+        ball.dy = math.random(-50, -60)
+    end
 end
 
 function PlayState:update(dt)
@@ -52,144 +60,195 @@ function PlayState:update(dt)
 
     -- update positions based on velocity
     self.paddle:update(dt)
-    self.ball:update(dt)
-
-    if self.ball:collides(self.paddle) then
-        -- raise ball above paddle in case it goes below it, then reverse dy
-        self.ball.y = self.paddle.y - 8
-        self.ball.dy = -self.ball.dy
-
-        --
-        -- tweak angle of bounce based on where it hits the paddle
-        --
-
-        -- if we hit the paddle on its left side while moving left...
-        if self.ball.x < self.paddle.x + (self.paddle.width / 2) and self.paddle.dx < 0 then
-            self.ball.dx = -50 + -(8 * (self.paddle.x + self.paddle.width / 2 - self.ball.x))
-        
-        -- else if we hit the paddle on its right side while moving right...
-        elseif self.ball.x > self.paddle.x + (self.paddle.width / 2) and self.paddle.dx > 0 then
-            self.ball.dx = 50 + (8 * math.abs(self.paddle.x + self.paddle.width / 2 - self.ball.x))
+    for _, ball in pairs(self.balls) do
+        if ball.inPlay == false then
+            ::continue::
         end
 
-        gSounds['paddle-hit']:play()
+        ball:update(dt)
+    end
+
+    for _, ball in pairs(self.balls) do
+        if ball.inPlay == false then
+            ::continue::
+        end
+        if ball:collides(self.paddle) then
+            -- raise ball above paddle in case it goes below it, then reverse dy
+            ball.y = self.paddle.y - 8
+            ball.dy = -ball.dy
+
+            --
+            -- tweak angle of bounce based on where it hits the paddle
+            --
+
+            -- if we hit the paddle on its left side while moving left...
+            if ball.x < self.paddle.x + (self.paddle.width / 2) and self.paddle.dx < 0 then
+                ball.dx = -50 + -(8 * (self.paddle.x + self.paddle.width / 2 - ball.x))
+
+                -- else if we hit the paddle on its right side while moving right...
+            elseif ball.x > self.paddle.x + (self.paddle.width / 2) and self.paddle.dx > 0 then
+                ball.dx = 50 + (8 * math.abs(self.paddle.x + self.paddle.width / 2 - ball.x))
+            end
+
+            gSounds['paddle-hit']:play()
+        end
     end
 
     -- detect collision across all bricks with the ball
     for k, brick in pairs(self.bricks) do
-
         -- only check collision if we're in play
-        if brick.inPlay and self.ball:collides(brick) then
-
-            -- add to score
-            self.score = self.score + (brick.tier * 200 + brick.color * 25)
-
-            -- trigger the brick's hit function, which removes it from play
-            brick:hit()
-
-            -- if we have enough points, recover a point of health
-            if self.score > self.recoverPoints then
-                -- can't go above 3 health
-                self.health = math.min(3, self.health + 1)
-
-                -- multiply recover points by 2
-                self.recoverPoints = self.recoverPoints + math.min(100000, self.recoverPoints * 2)
-
-                -- play recover sound effect
-                gSounds['recover']:play()
+        for _, ball in pairs(self.balls) do
+            if ball.inPlay == false then
+                ::continue::
             end
 
-            -- go to our victory screen if there are no more bricks left
-            if self:checkVictory() then
-                gSounds['victory']:play()
+            if brick.inPlay and ball:collides(brick) then
+                -- add to score
+                self.score = self.score + (self.scoreMultiplier * (brick.tier * 200 + brick.color * 25))
 
-                gStateMachine:change('victory', {
-                    level = self.level,
-                    paddle = self.paddle,
-                    health = self.health,
-                    score = self.score,
-                    highScores = self.highScores,
-                    ball = self.ball,
-                    recoverPoints = self.recoverPoints
-                })
+                -- trigger the brick's hit function, which removes it from play
+                brick:hit()
+
+                -- if brick has just been taken out of play and it contains a power up,
+                -- release the powerup in the center of the brick
+                if brick.inPlay == false and brick.hasPowerUp == true then
+                    print("Init new Power Up")
+                    local brickCenterX = brick.x + (brick.height * 0.5)
+                    local brickCenterY = brick.y + (brick.width * 0.5)
+                    -- currently only power up available should be extra balls
+
+                    local p = PowerUp(brickCenterX, brickCenterY, PUP_EXTRA_BALL)
+
+                    table.insert(self.powerUps, p)
+                end
+
+                -- if we have enough points, recover a point of health
+                if self.score > self.recoverPoints then
+                    -- can't go above 3 health
+                    self.health = math.min(3, self.health + 1)
+
+                    -- multiply recover points by 2
+                    self.recoverPoints = self.recoverPoints + math.min(100000, self.recoverPoints * 2)
+
+                    -- play recover sound effect
+                    gSounds['recover']:play()
+                end
+
+                -- go to our victory screen if there are no more bricks left
+                if self:checkVictory() then
+                    gSounds['victory']:play()
+
+                    gStateMachine:change('victory', {
+                        level = self.level,
+                        paddle = self.paddle,
+                        health = self.health,
+                        score = self.score,
+                        highScores = self.highScores,
+                        balls = self.balls,
+                        recoverPoints = self.recoverPoints
+                    })
+                end
+
+                --
+                -- collision code for bricks
+                --
+                -- we check to see if the opposite side of our velocity is outside of the brick;
+                -- if it is, we trigger a collision on that side. else we're within the X + width of
+                -- the brick and should check to see if the top or bottom edge is outside of the brick,
+                -- colliding on the top or bottom accordingly
+                --
+
+                -- left edge; only check if we're moving right, and offset the check by a couple of pixels
+                -- so that flush corner hits register as Y flips, not X flips
+                for _, ball in pairs(self.balls) do
+                    if ball.inPlay == false then
+                        ::continue::
+                    end
+                    if ball.x + 2 < brick.x and ball.dx > 0 then
+                        -- flip x velocity and reset position outside of brick
+                        ball.dx = -ball.dx
+                        ball.x = brick.x - 8
+
+                        -- right edge; only check if we're moving left, , and offset the check by a couple of pixels
+                        -- so that flush corner hits register as Y flips, not X flips
+                    elseif ball.x + 6 > brick.x + brick.width and ball.dx < 0 then
+                        -- flip x velocity and reset position outside of brick
+                        ball.dx = -ball.dx
+                        ball.x = brick.x + 32
+
+                        -- top edge if no X collisions, always check
+                    elseif ball.y < brick.y then
+                        -- flip y velocity and reset position outside of brick
+                        ball.dy = -ball.dy
+                        ball.y = brick.y - 8
+
+                        -- bottom edge if no X collisions or top collision, last possibility
+                    else
+                        -- flip y velocity and reset position outside of brick
+                        ball.dy = -ball.dy
+                        ball.y = brick.y + 16
+                    end
+
+                    -- slightly scale the y velocity to speed up the game, capping at +- 150
+                    if math.abs(ball.dy) < 150 then
+                        ball.dy = ball.dy * 1.02
+                    end
+
+                    -- only allow colliding with one brick, for corners
+                    break
+                end
             end
+        end
+    end
 
-            --
-            -- collision code for bricks
-            --
-            -- we check to see if the opposite side of our velocity is outside of the brick;
-            -- if it is, we trigger a collision on that side. else we're within the X + width of
-            -- the brick and should check to see if the top or bottom edge is outside of the brick,
-            -- colliding on the top or bottom accordingly 
-            --
-
-            -- left edge; only check if we're moving right, and offset the check by a couple of pixels
-            -- so that flush corner hits register as Y flips, not X flips
-            if self.ball.x + 2 < brick.x and self.ball.dx > 0 then
-                
-                -- flip x velocity and reset position outside of brick
-                self.ball.dx = -self.ball.dx
-                self.ball.x = brick.x - 8
-            
-            -- right edge; only check if we're moving left, , and offset the check by a couple of pixels
-            -- so that flush corner hits register as Y flips, not X flips
-            elseif self.ball.x + 6 > brick.x + brick.width and self.ball.dx < 0 then
-                
-                -- flip x velocity and reset position outside of brick
-                self.ball.dx = -self.ball.dx
-                self.ball.x = brick.x + 32
-            
-            -- top edge if no X collisions, always check
-            elseif self.ball.y < brick.y then
-                
-                -- flip y velocity and reset position outside of brick
-                self.ball.dy = -self.ball.dy
-                self.ball.y = brick.y - 8
-            
-            -- bottom edge if no X collisions or top collision, last possibility
-            else
-                
-                -- flip y velocity and reset position outside of brick
-                self.ball.dy = -self.ball.dy
-                self.ball.y = brick.y + 16
-            end
-
-            -- slightly scale the y velocity to speed up the game, capping at +- 150
-            if math.abs(self.ball.dy) < 150 then
-                self.ball.dy = self.ball.dy * 1.02
-            end
-
-            -- only allow colliding with one brick, for corners
-            break
+    -- detect collision across all powerups
+    for _, powerUp in pairs(self.powerUps) do
+        if powerUp.inPlay and powerUp:collides(self.paddle) then
+            -- apply power up
+            print(tostring(powerUp.type))
+            print(tostring(powerUp.inPlay))
+            self.applyPowerUp(powerUp.type)
+            powerUp.inPlay = false
         end
     end
 
     -- if ball goes below bounds, revert to serve state and decrease health
-    if self.ball.y >= VIRTUAL_HEIGHT then
-        self.health = self.health - 1
-        gSounds['hurt']:play()
+    for _, ball in pairs(self.balls) do
+        if ball.inPlay == false then
+            ::continue::
+        end
+        if ball.y >= VIRTUAL_HEIGHT then
+            self.health = self.health - 1
+            gSounds['hurt']:play()
 
-        if self.health == 0 then
-            gStateMachine:change('game-over', {
-                score = self.score,
-                highScores = self.highScores
-            })
-        else
-            gStateMachine:change('serve', {
-                paddle = self.paddle,
-                bricks = self.bricks,
-                health = self.health,
-                score = self.score,
-                highScores = self.highScores,
-                level = self.level,
-                recoverPoints = self.recoverPoints
-            })
+            if self.health == 0 then
+                gStateMachine:change('game-over', {
+                    score = self.score,
+                    highScores = self.highScores
+                })
+            else
+                gStateMachine:change('serve', {
+                    paddle = self.paddle,
+                    bricks = self.bricks,
+                    health = self.health,
+                    score = self.score,
+                    highScores = self.highScores,
+                    level = self.level,
+                    recoverPoints = self.recoverPoints
+                })
+            end
         end
     end
 
     -- for rendering particle systems
-    for k, brick in pairs(self.bricks) do
+    for _, brick in pairs(self.bricks) do
         brick:update(dt)
+    end
+
+    for _, powerUp in pairs(self.powerUps) do
+        if powerUp.inPlay == true then
+            powerUp:update(dt)
+        end
     end
 
     if love.keyboard.wasPressed('escape') then
@@ -209,7 +268,16 @@ function PlayState:render()
     end
 
     self.paddle:render()
-    self.ball:render()
+    for _, ball in pairs(self.balls) do
+        if ball.inPlay == false then
+            ::continue::
+        end
+        ball:render()
+    end
+
+    for _, powerUp in pairs(self.powerUps) do
+        powerUp:render()
+    end
 
     renderScore(self.score)
     renderHealth(self.health)
@@ -225,8 +293,58 @@ function PlayState:checkVictory()
     for k, brick in pairs(self.bricks) do
         if brick.inPlay then
             return false
-        end 
+        end
     end
 
     return true
+end
+
+function PlayState:applyPowerUp(type)
+    print("Apply PowerUp :" .. tostring(type))
+
+    if type == PUP_HALF_POINTS then
+        self.scoreMultiplier = math.min(0.01, self.scoreMultiplier * 0.5)
+    elseif type == PUP_DOUBLE_POINTS then
+        self.scoreMultiplier = self.scoreMultiplier * 2
+    elseif type == PUP_ADD_LIFE then
+        self.health = self.health + 1
+    elseif type == PUP_SUB_LIFE then
+        self.health = self.health - 1
+    elseif type == PUP_BALL_SPEED_FASTER then
+        for _, ball in pairs(self.balls) do
+            if ball.inPlay == true then
+                ball.dx = ball.dx * 1.25
+                ball.dy = ball.dy * 1.25
+            end
+        end
+    elseif type == PUP_BALL_SPEED_SLOWER then
+        for _, ball in pairs(self.balls) do
+            if ball.inPlay then
+                ball.dx = ball.dx * 0.75
+                ball.dy = ball.dy * 0.75
+            end
+        end
+    elseif type == PUP_TINY_BALL then
+        for _, ball in pairs(self.balls) do
+            if ball.inPlay == true then
+                ball.scale = BALL_SMALL_SCALE
+            end
+        end
+    elseif type == PUP_LARGE_BALL then
+        for _, ball in pairs(self.balls) do
+            if ball.inPlay then
+                self.ball.scale = BALL_LARGE_SCALE
+            end
+        end
+    elseif type == PUP_EXTRA_BALL then
+        print("Add Extra Ball")
+        local extraBall = Ball()
+        extraBall.skin = math.random(7)
+        extraBall.x = self.paddle.x + (self.paddle.width * 0.5)
+        extraBall.y = self.paddle.y - (self.paddle.hight - extraBall.height)
+        table.insert(self.balls, extraBall)
+
+        print("Num Balls: " .. tostring(#self.balls))
+    elseif type == PUP_KEY then
+    end
 end

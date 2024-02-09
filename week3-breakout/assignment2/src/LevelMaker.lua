@@ -18,12 +18,12 @@ SINGLE_PYRAMID = 2
 MULTI_PYRAMID = 3
 
 -- per-row patterns
-SOLID = 1           -- all colors the same in this row
-ALTERNATE = 2       -- alternate colors
-SKIP = 3            -- skip every other block
-NONE = 4            -- no blocks this row
+SOLID = 1     -- all colors the same in this row
+ALTERNATE = 2 -- alternate colors
+SKIP = 3      -- skip every other block
+NONE = 4      -- no blocks this row
 
-LevelMaker = Class{}
+LevelMaker = Class {}
 
 --[[
     Creates a table of Bricks to be returned to the main game, with different
@@ -47,6 +47,8 @@ function LevelMaker.createMap(level)
     -- highest color of the highest tier, no higher than 5
     local highestColor = math.min(5, level % 5 + 3)
 
+    local highestTierBrickCount = 0;
+
     -- lay out bricks such that they touch each other and fill the space
     for y = 1, numRows do
         -- whether we want to enable skipping for this row
@@ -54,13 +56,13 @@ function LevelMaker.createMap(level)
 
         -- whether we want to enable alternating colors for this row
         local alternatePattern = math.random(1, 2) == 1 and true or false
-        
+
         -- choose two colors to alternate between
         local alternateColor1 = math.random(1, highestColor)
         local alternateColor2 = math.random(1, highestColor)
         local alternateTier1 = math.random(0, highestTier)
         local alternateTier2 = math.random(0, highestTier)
-        
+
         -- used only when we want to skip a block, for skip pattern
         local skipFlag = math.random(2) == 1 and true or false
 
@@ -84,16 +86,16 @@ function LevelMaker.createMap(level)
                 skipFlag = not skipFlag
             end
 
-            b = Brick(
-                -- x-coordinate
-                (x-1)                   -- decrement x by 1 because tables are 1-indexed, coords are 0
-                * 32                    -- multiply by 32, the brick width
-                + 8                     -- the screen should have 8 pixels of padding; we can fit 13 cols + 16 pixels total
-                + (13 - numCols) * 16,  -- left-side padding for when there are fewer than 13 columns
-                
-                -- y-coordinate
-                y * 16                  -- just use y * 16, since we need top padding anyway
-            )
+            -- x-coordinate
+            local xPos =
+                (x - 1)               -- decrement x by 1 because tables are 1-indexed, coords are 0
+                * 32                  -- multiply by 32, the brick width
+                + 8                   -- the screen should have 8 pixels of padding; we can fit 13 cols + 16 pixels total
+                + (13 - numCols) * 16 -- left-side padding for when there are fewer than 13 columns
+            -- y-coordinate
+            local yPos = y * 16       -- just use y * 16, since we need top padding anyway
+
+            local b = Brick(xPos, yPos)
 
             -- if we're alternating, figure out which color/tier we're on
             if alternatePattern and alternateFlag then
@@ -106,18 +108,34 @@ function LevelMaker.createMap(level)
                 alternateFlag = not alternateFlag
             end
 
+
             -- if not alternating and we made it here, use the solid color/tier
             if not alternatePattern then
                 b.color = solidColor
                 b.tier = solidTier
-            end 
+            end
+
+            -- if brick is of highest tier, the give it the power up ability randomly
+            -- the lower the level, the higher ratio of powerups in the level
+            if b.tier == highestTier then
+                -- probability threshold inversely scales with the level number
+                local threshold = 100 - (level - 1) * 10
+                threshold = math.max(threshold, 10) -- Ensure at least a 10% chance
+
+                -- power-up up the brick if the random chance is within the threshold
+                if math.random(100) <= threshold then
+                    b.hasPowerUp = true
+                end
+            end
+
+            -- make the some of the heighest tiered bricks have power ups
 
             table.insert(bricks, b)
 
             -- Lua's version of the 'continue' statement
             ::continue::
         end
-    end 
+    end
 
     -- in the event we didn't generate any bricks, try again
     if #bricks == 0 then
