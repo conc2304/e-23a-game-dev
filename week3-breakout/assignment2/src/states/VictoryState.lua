@@ -19,16 +19,20 @@ function VictoryState:enter(params)
     self.highScores = params.highScores
     self.paddle = params.paddle
     self.health = params.health
-    self.ball = params.ball
+    self.balls = { Ball() }
     self.recoverPoints = params.recoverPoints
+
+    print("Num Balls [VICTORY ENTER]" .. tostring(#self.balls))
+    print("TYPE [VICTORY ENTER]" .. tostring(type(self.balls)))
+    print("TYPE[0] [VICTORY ENTER]" .. tostring(type(self.balls[1])))
 end
 
 function VictoryState:update(dt)
     self.paddle:update(dt)
 
     -- have the ball track the player
-    self.ball.x = self.paddle.x + (self.paddle.width / 2) - 4
-    self.ball.y = self.paddle.y - 8
+    self.balls[1].x = self.paddle.x + (self.paddle.width / 2) - 4
+    self.balls[1].y = self.paddle.y - 8
 
     -- go to play screen if the player presses Enter
     if love.keyboard.wasPressed('enter') or love.keyboard.wasPressed('return') then
@@ -46,7 +50,10 @@ end
 
 function VictoryState:render()
     self.paddle:render()
-    self.ball:render()
+    print("TYPE [VICTORY RENDER]" .. tostring(type(self.balls)))
+    print("Num Balls [VICTORY RENDER]" .. tostring(#self.balls))
+    print("TYPE[0] [VICTORY RENDER]" .. tostring(type(self.balls[1])))
+    self.balls[1]:render()
 
     renderHealth(self.health)
     renderScore(self.score)

@@ -58,18 +58,6 @@ function StartState:render()
     love.graphics.printf("BREAKOUT", 0, VIRTUAL_HEIGHT / 3,
         VIRTUAL_WIDTH, 'center')
 
-
-    -- TODO REMOVE
-
-    love.graphics.draw(
-        gTextures['main'],
-        gFrames['powerUps'][9],
-        176,
-        96
-    )
-
-
-
     -- instructions
     love.graphics.setFont(gFonts['medium'])
 

@@ -25,10 +25,16 @@ function ServeState:enter(params)
     self.highScores = params.highScores
     self.level = params.level
     self.recoverPoints = params.recoverPoints
-    self.powerUps = params.powerUps or {}
+    self.powerUps = {} -- start with no powerups
+
+
 
     -- init new ball (random color for fun)
     self.balls = { Ball() }
+
+    print("TYPE [SERVE ENTER]" .. tostring(type(self.balls)))
+    print("Num Balls [SERVE ENTER]" .. tostring(#self.balls))
+    print("TYPE[0] [SERVE ENTER]" .. tostring(type(self.balls[1])))
 
     for _, b in pairs(self.balls) do
         b.skin = math.random(7)
@@ -51,7 +57,6 @@ function ServeState:update(dt)
             highScores = self.highScores,
             balls = self.balls,
             powerUps = self.powerUps,
-            -- ball = self.ball,
             level = self.level,
             recoverPoints = self.recoverPoints
         })

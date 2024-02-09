@@ -74,19 +74,19 @@ function GenerateQuadsPaddles(atlas)
 
     for i = 0, 3 do
         -- smallest
-        quads[counter] = love.graphics.newQuad(x, y, 32, 16,
+        quads[counter] = love.graphics.newQuad(x, y, PADDLE_SM_WIDTH, PADDLE_DEFAULT_HEIGHT,
             atlas:getDimensions())
         counter = counter + 1
         -- medium
-        quads[counter] = love.graphics.newQuad(x + 32, y, 64, 16,
+        quads[counter] = love.graphics.newQuad(x + 32, y, PADDLE_MD_WIDTH, PADDLE_DEFAULT_HEIGHT,
             atlas:getDimensions())
         counter = counter + 1
         -- large
-        quads[counter] = love.graphics.newQuad(x + 96, y, 96, 16,
+        quads[counter] = love.graphics.newQuad(x + 96, y, PADDLE_LG_WIDTH, PADDLE_DEFAULT_HEIGHT,
             atlas:getDimensions())
         counter = counter + 1
         -- huge
-        quads[counter] = love.graphics.newQuad(x, y + 16, 128, 16,
+        quads[counter] = love.graphics.newQuad(x, y + 16, PADDLE_XL_WIDTH, PADDLE_DEFAULT_HEIGHT,
             atlas:getDimensions())
         counter = counter + 1
 

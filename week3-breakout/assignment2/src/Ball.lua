@@ -33,6 +33,8 @@ function Ball:init(skin)
     self.dy = 0
     self.dx = 0
 
+    self.inPlay = true
+
     self.scale = BALL_DEFAULT_SCALE
 
     -- this will effectively be the color of our ball, and we will index
@@ -59,6 +61,10 @@ function Ball:reset()
 end
 
 function Ball:update(dt)
+    if self.inPlay == false then
+        return
+    end
+
     self.x = self.x + self.dx * dt
     self.y = self.y + self.dy * dt
 
@@ -83,6 +89,9 @@ function Ball:update(dt)
 end
 
 function Ball:render()
+    if self.inPlay == false then
+        return
+    end
     -- gTexture is our global texture for all blocks
     -- gBallFrames is a table of quads mapping to each individual ball skin in the texture
     love.graphics.draw(gTextures['main'], gFrames['balls'][self.skin],

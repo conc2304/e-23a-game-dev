@@ -102,7 +102,6 @@ function Brick:hit()
         0
     )
 
-    print("Powerd Up: " .. tostring(self.hasPowerUp))
     self.psystem:emit(64)
 
     -- sound on hit
@@ -125,7 +124,6 @@ function Brick:hit()
         else
             self.color = self.color - 1
         end
-        -- if this brick has a power up then drop the power up
     end
 
     -- play a second layer sound if the brick is destroyed

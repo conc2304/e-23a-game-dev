@@ -13,7 +13,23 @@
     which the player gets to choose upon starting the game.
 ]]
 
-Paddle = Class{}
+PADDLE_DEFAULT_SIZE = 2
+PADDLE_SIZE_MIN = 1
+PADDLE_SIZE_MAX = 4
+
+PADDLE_DEFAULT_HEIGHT = 16
+PADDLE_SM_WIDTH = 32
+PADDLE_MD_WIDTH = 64
+PADDLE_LG_WIDTH = 96
+PADDLE_XL_WIDTH = 128
+PADDLE_SIZE_MAP = {
+    PADDLE_SM_WIDTH,
+    PADDLE_MD_WIDTH,
+    PADDLE_LG_WIDTH,
+    PADDLE_XL_WIDTH,
+}
+
+Paddle = Class {}
 
 --[[
     Our Paddle will initialize at the same spot every time, in the middle
@@ -29,9 +45,6 @@ function Paddle:init(skin)
     -- start us off with no velocity
     self.dx = 0
 
-    -- starting dimensions
-    self.width = 64
-    self.height = 16
 
     -- the skin only has the effect of changing our color, used to offset us
     -- into the gPaddleSkins table later
@@ -39,7 +52,10 @@ function Paddle:init(skin)
 
     -- the variant is which of the four paddle sizes we currently are; 2
     -- is the starting size, as the smallest is too tough to start with
-    self.size = 2
+    self.size = PADDLE_DEFAULT_SIZE
+    -- starting dimensions
+    self.width = PADDLE_SIZE_MAP[self.size]
+    self.height = 16
 end
 
 function Paddle:update(dt)
@@ -58,10 +74,10 @@ function Paddle:update(dt)
     -- previously-defined paddle speed scaled by dt
     if self.dx < 0 then
         self.x = math.max(0, self.x + self.dx * dt)
-    -- similar to before, this time we use math.min to ensure we don't
-    -- go any farther than the bottom of the screen minus the paddle's
-    -- height (or else it will go partially below, since position is
-    -- based on its top left corner)
+        -- similar to before, this time we use math.min to ensure we don't
+        -- go any farther than the bottom of the screen minus the paddle's
+        -- height (or else it will go partially below, since position is
+        -- based on its top left corner)
     else
         self.x = math.min(VIRTUAL_WIDTH - self.width, self.x + self.dx * dt)
     end
@@ -74,4 +90,12 @@ end
 function Paddle:render()
     love.graphics.draw(gTextures['main'], gFrames['paddles'][self.size + 4 * (self.skin - 1)],
         self.x, self.y)
+end
+
+function Paddle:SetSize(size)
+    print("Set Paddle Size: " .. tostring(size))
+    print("Set Paddle Width: " .. tostring(PADDLE_SIZE_MAP[self.size]))
+
+    self.size = size
+    self.width = PADDLE_SIZE_MAP[self.size]
 end
