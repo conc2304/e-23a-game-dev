@@ -144,8 +144,13 @@ function Brick:hit(playerHasKeyPup)
                 self.color = self.color - 1
             end
         end
-    elseif self.specialType == SPECIAL_BRICK_LOCKED and playerHasKeyPup then
-        self.specialType = SPECIAL_BRICK_UNLOCKED
+    elseif self.specialType == SPECIAL_BRICK_LOCKED then
+        if playerHasKeyPup then
+            self.specialType = SPECIAL_BRICK_UNLOCKED
+        else
+            gSounds['brick-hit-2']:stop()
+            gSounds['brick-hit-locked']:play()
+        end
     elseif self.specialType == SPECIAL_BRICK_UNLOCKED then
         self.inPlay = false
     end
