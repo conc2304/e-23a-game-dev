@@ -35,7 +35,7 @@ function PlayState:enter(params)
     self.powerUps = params.powerUps or {}
     self.playerHasKeyPup = false;
     self.spawnKeyPowerUp = false;
-    self.spawnPupIntervalSec = 15
+    self.spawnPupIntervalSec = 45
     self.timer = 0
 
     self.recoverPoints = 5000
@@ -229,16 +229,14 @@ function PlayState:update(dt)
     end
 
     -- Check if we need to spawn key power ups
-    self.spawnKeyPowerUp = (bricksLockedQty == bricksInPlayQty) or (bricksWithKeyPupQty <= bricksInPlayQty)
-    print("Key Spawn: " ..
-        tostring(self.spawnKeyPowerUp) .. " " ..
-        tostring(bricksInPlayQty) .. " " .. tostring(bricksLockedQty) .. " " .. tostring(bricksWithKeyPupQty))
+    self.spawnKeyPowerUp = bricksLockedQty > 0 and ((bricksLockedQty == bricksInPlayQty) or
+        (bricksWithKeyPupQty <= bricksInPlayQty))
+
     -- update timer for pup spawning
     self.timer = self.timer + dt
     if self.spawnKeyPowerUp and self.timer > self.spawnPupIntervalSec then
         -- spawn a power up, to drop from the top, but no
         local xPadding = VIRTUAL_WIDTH * 0.15
-        print("SPAWN KEY")
         local p = PowerUp(math.random(PUP_WIDTH + xPadding, VIRTUAL_WIDTH - PUP_WIDTH - xPadding), -PUP_HEIGHT,
             PUP_KEY)
         table.insert(self.powerUps, p)
@@ -258,7 +256,6 @@ function PlayState:update(dt)
 
     -- check each ball if it is passed the bottom of the screen and then disable it if it is
     for _, ball in pairs(self.balls) do
-        print("Ball inplay: " .. tostring(ball.inPlay))
         if ball.inPlay == false then
             ::continue::
         end
@@ -266,19 +263,17 @@ function PlayState:update(dt)
         -- if this is the last ball in play and it is over the line then round ends
         if ball.y >= VIRTUAL_HEIGHT then
             -- if this was the last ball in play then end current round
-            print("Ball is gone: ")
+            ballsInPlay = ballsInPlay - 1
             if ballsInPlay == 0 then
                 self.health = self.health - 1
                 gSounds['hurt']:play()
 
                 if self.health == 0 then
-                    print("Game Over")
                     return gStateMachine:change('game-over', {
                         score = self.score,
                         highScores = self.highScores
                     })
                 else
-                    print("LIFE LOST")
                     -- shrink the paddle size, but no lower than the min
                     self.paddle:SetSize(math.max(PADDLE_SIZE_MIN, self.paddle.size - 1))
                     gSounds['paddle-size-decrease']:play()
@@ -298,7 +293,7 @@ function PlayState:update(dt)
         end
         -- end if end of round
     end
-    -- end of balls loop bottom test
+    -- end of balls loop out of bounds check
 
 
     -- detect collision across all powerupse and apply power up if power up touches paddle
@@ -411,8 +406,7 @@ function PlayState:applyPowerUp(type)
             end
         end
     elseif type == PUP_EXTRA_BALL then
-        local extraBall = Ball()
-        extraBall.skin = math.random(7)
+        local extraBall = Ball(math.random(BALL_SKIN_MAX))
         extraBall.x = self.paddle.x + (self.paddle.width * 0.5)
         extraBall.y = self.paddle.y - (self.paddle.height - (extraBall.height * (extraBall.scale * 1.2)))
         extraBall.dx = math.random(-200, 200)

@@ -21,10 +21,6 @@ function VictoryState:enter(params)
     self.health = params.health
     self.balls = { Ball() }
     self.recoverPoints = params.recoverPoints
-
-    print("Num Balls [VICTORY ENTER]" .. tostring(#self.balls))
-    print("TYPE [VICTORY ENTER]" .. tostring(type(self.balls)))
-    print("TYPE[0] [VICTORY ENTER]" .. tostring(type(self.balls[1])))
 end
 
 function VictoryState:update(dt)
@@ -50,9 +46,6 @@ end
 
 function VictoryState:render()
     self.paddle:render()
-    print("TYPE [VICTORY RENDER]" .. tostring(type(self.balls)))
-    print("Num Balls [VICTORY RENDER]" .. tostring(#self.balls))
-    print("TYPE[0] [VICTORY RENDER]" .. tostring(type(self.balls[1])))
     self.balls[1]:render()
 
     renderHealth(self.health)

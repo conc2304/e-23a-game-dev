@@ -129,8 +129,7 @@ function love.load()
     })
 
     -- play our music outside of all states and set it to looping
-    -- TODO COMMENT BACK IN
-    -- gSounds['music']:play()
+    gSounds['music']:play()
     gSounds['music']:setLooping(true)
 
     -- a table we'll use to keep track of which keys have been pressed this
@@ -275,18 +274,21 @@ end
 ]]
 function renderHealth(health)
     -- start of our health rendering
-    local healthX = VIRTUAL_WIDTH - 100
+    -- if health is more than 3, then shift left per extra
+    local healthWidth = 11
+    local healthOffset = math.max(0, health - 3) * healthWidth
+    local healthX = VIRTUAL_WIDTH - 100 - healthOffset
 
     -- render health left
     for i = 1, health do
         love.graphics.draw(gTextures['hearts'], gFrames['hearts'][1], healthX, 4)
-        healthX = healthX + 11
+        healthX = healthX + healthWidth
     end
 
     -- render missing health
     for i = 1, 3 - health do
         love.graphics.draw(gTextures['hearts'], gFrames['hearts'][2], healthX, 4)
-        healthX = healthX + 11
+        healthX = healthX + healthWidth
     end
 end
 

@@ -146,14 +146,11 @@ function LevelMaker.createMap(level)
         local totalBricks = #bricks;
         local selectedIndex = math.random(1, totalBricks)
 
-        print("index: " .. selectedIndex)
-
         --  make sure we arent doing the same brick as we have already done
         while ValueInArray(selectedIndex, lockedBricks) do
             selectedIndex = math.random(1, totalBricks)
         end
 
-        print(bricks[selectedIndex].x, bricks[selectedIndex].y)
         -- add to lookup table
         table.insert(lockedBricks, selectedIndex)
 
@@ -162,8 +159,6 @@ function LevelMaker.createMap(level)
         bricks[selectedIndex].color = 0
         bricks[selectedIndex].tier = 0
     end
-    print("Locked Bricks Expected: " .. lockedBricksQty)
-    print("Locked Bricks Result: " .. #lockedBricks)
 
     -- in the event we didn't generate any bricks, try again
     if #bricks == 0 then

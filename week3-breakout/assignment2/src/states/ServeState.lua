@@ -27,14 +27,7 @@ function ServeState:enter(params)
     self.recoverPoints = params.recoverPoints
     self.powerUps = {} -- start with no powerups
 
-
-
-    -- init new ball (random color for fun)
     self.balls = { Ball() }
-
-    print("TYPE [SERVE ENTER]" .. tostring(type(self.balls)))
-    print("Num Balls [SERVE ENTER]" .. tostring(#self.balls))
-    print("TYPE[0] [SERVE ENTER]" .. tostring(type(self.balls[1])))
 
     for _, b in pairs(self.balls) do
         b.skin = math.random(7)

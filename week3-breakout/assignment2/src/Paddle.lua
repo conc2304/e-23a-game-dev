@@ -93,9 +93,6 @@ function Paddle:render()
 end
 
 function Paddle:SetSize(size)
-    print("Set Paddle Size: " .. tostring(size))
-    print("Set Paddle Width: " .. tostring(PADDLE_SIZE_MAP[self.size]))
-
     self.size = size
     self.width = PADDLE_SIZE_MAP[self.size]
 end
