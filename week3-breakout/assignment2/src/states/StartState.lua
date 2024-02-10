@@ -80,11 +80,4 @@ function StartState:render()
 
     -- reset the color
     love.graphics.setColor(1, 1, 1, 1)
-
-    love.graphics.draw(
-        gTextures['main'],
-        gFrames['powerUps'][10],
-        VIRTUAL_WIDTH / 2,
-        VIRTUAL_HEIGHT / 2
-    )
 end

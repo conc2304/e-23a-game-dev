@@ -14,8 +14,6 @@ PUP_LARGE_BALL = 8
 PUP_EXTRA_BALL = 9
 PUP_KEY = 10
 
-
-
 PUP_WIDTH = 16
 PUP_HEIGHT = 16
 
@@ -28,7 +26,7 @@ function PowerUp:init(x, y, type)
   self.height = PUP_HEIGHT
   self.inPlay = true
 
-  self.dy = math.random(7, 10)
+  self.dy = math.random(7, 15)
   self.dx = 0
 end
 
@@ -48,7 +46,6 @@ function PowerUp:reset()
 end
 
 function PowerUp:render()
-  print("PowerUP Type: " .. self.type)
   if self.inPlay then
     -- render power up
     love.graphics.draw(

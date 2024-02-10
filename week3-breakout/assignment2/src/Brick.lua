@@ -18,7 +18,6 @@ Brick = Class {}
 
 -- some of the colors in our palette (to be used with particle systems)
 local paletteColors = {
-
     -- blue
     [1] = {
         ['r'] = 99,
@@ -103,13 +102,12 @@ end
     Triggers a hit on the brick, taking it out of play if at 0 health or
     changing its color otherwise.
 ]]
-function Brick:hit()
+function Brick:hit(playerHasKeyPup)
     -- set the particle system to interpolate between two colors; in this case, we give
     -- it our self.color but with varying alpha; brighter for higher tiers, fading to 0
     -- over the particle's lifetime (the second color)
     local colorIndex = self.specialType == nil and self.color or 6
 
-    print("COLOR INDEX: " .. colorIndex)
 
     self.psystem:setColors(
         paletteColors[colorIndex].r / 255,
@@ -130,20 +128,26 @@ function Brick:hit()
 
     -- if we're at a higher tier than the base, we need to go down a tier
     -- if we're already at the lowest color, else just go down a color
-    if self.tier > 0 then
-        if self.color == 1 then
-            self.tier = self.tier - 1
-            self.color = 5
+    if self.specialType == nil then
+        if self.tier > 0 then
+            if self.color == 1 then
+                self.tier = self.tier - 1
+                self.color = 5
+            else
+                self.color = self.color - 1
+            end
         else
-            self.color = self.color - 1
+            -- if we're in the first tier and the base color, remove brick from play
+            if self.color == 1 then
+                self.inPlay = false
+            else
+                self.color = self.color - 1
+            end
         end
-    else
-        -- if we're in the first tier and the base color, remove brick from play
-        if self.color == 1 then
-            self.inPlay = false
-        else
-            self.color = self.color - 1
-        end
+    elseif self.specialType == SPECIAL_BRICK_LOCKED and playerHasKeyPup then
+        self.specialType = SPECIAL_BRICK_UNLOCKED
+    elseif self.specialType == SPECIAL_BRICK_UNLOCKED then
+        self.inPlay = false
     end
 
     -- play a second layer sound if the brick is destroyed

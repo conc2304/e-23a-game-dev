@@ -29,20 +29,23 @@ function PlayState:enter(params)
     self.score = params.score
     self.scoreMultiplier = params.scoreMultiplier or 1
     self.highScores = params.highScores
-    -- self.ball = params.ball
     self.balls = params.balls
     self.level = params.level
-    self.powerUps = params.powerUps
+
+    self.powerUps = params.powerUps or {}
+    self.playerHasKeyPup = false;
+    self.spawnKeyPowerUp = false;
+    self.spawnPupIntervalSec = 15
+    self.timer = 0
 
     self.recoverPoints = 5000
 
     -- give ball random starting velocity
     for _, ball in pairs(self.balls) do
-        if ball.inPlay == false then
-            ::continue::
+        if ball.inPlay then
+            ball.dx = math.random(-200, 200)
+            ball.dy = math.random(-50, -60)
         end
-        ball.dx = math.random(-200, 200)
-        ball.dy = math.random(-50, -60)
     end
 end
 
@@ -60,24 +63,20 @@ function PlayState:update(dt)
         return
     end
 
-
     -- update positions based on velocity
     self.paddle:update(dt)
 
-    local ballsInPlay = 0;
-    -- get an initial count of how many balls are in play
-    for _, ball in pairs(self.balls) do
-        if ball.inPlay then
-            ballsInPlay = ballsInPlay + 1
-            ball:update(dt)
-        end
-    end
-
     -- Check all balls for collision with Paddle
+    local ballsInPlay = 0;
     for _, ball in pairs(self.balls) do
-        if ball.inPlay == false then
+        if not ball.inPlay then
             ::continue::
         end
+
+        -- get an initial count of how many balls are in play
+        ballsInPlay = ballsInPlay + 1
+        ball:update(dt)
+
         if ball:collides(self.paddle) then
             -- raise ball above paddle in case it goes below it, then reverse dy
             ball.y = self.paddle.y - 8
@@ -100,27 +99,44 @@ function PlayState:update(dt)
         end
     end
 
-    -- detect collision across all bricks with the ball
+
+    local bricksWithKeyPupQty = 0;
+    local bricksLockedQty = 0;
+    local bricksInPlayQty = 0;
+
     for k, brick in pairs(self.bricks) do
+        -- detect collision across all bricks with the ball
         -- only check collision if we're in play
         for _, ball in pairs(self.balls) do
-            if ball.inPlay == false then
+            if not ball.inPlay then
                 ::continue::
             end
 
             if brick.inPlay and ball:collides(brick) then
+                local addPoints = true
+                -- if brick is locked and player does not have a key to unlock it then skip hit
+                if brick.specialType == SPECIAL_BRICK_LOCKED and not self.playerHasKeyPup then
+                    -- DO NOTHING - No points, No Brick Hit,  only bounce ball
+                    addPoints = false
+                elseif brick.specialType == SPECIAL_BRICK_LOCKED and self.playerHasKeyPup then
+                    addPoints = true
+                end
+
+
                 -- add to score
-                self.score = self.score + (self.scoreMultiplier * (brick.tier * 200 + brick.color * 25))
+                -- use power up multiplier and round to integer
+                if addPoints then
+                    self.score = math.ceil(self.score + (self.scoreMultiplier * (brick.tier * 200 + brick.color * 25)))
+                end
 
                 -- trigger the brick's hit function, which removes it from play
-                brick:hit()
+                brick:hit(self.playerHasKeyPup)
 
                 -- if brick has just been taken out of play and it contains a power up,
                 -- release the powerup in the center of the brick
-                if brick.inPlay == false and brick.hasPowerUp == true then
+                if not brick.inPlay and brick.hasPowerUp then
                     local brickCenterX = brick.x + (brick.height * 0.5)
                     local brickCenterY = brick.y + (brick.width * 0.5)
-                    -- currently only power up available should be extra balls
 
                     local powerUpType = brick.powerUpType
                     local p = PowerUp(brickCenterX, brickCenterY, powerUpType)
@@ -151,10 +167,6 @@ function PlayState:update(dt)
 
                 -- left edge; only check if we're moving right, and offset the check by a couple of pixels
                 -- so that flush corner hits register as Y flips, not X flips
-                -- for _, ball in pairs(self.balls) do
-                --     if ball.inPlay == false then
-                --         ::continue::
-                --     end
                 if ball.x + 2 < brick.x and ball.dx > 0 then
                     -- flip x velocity and reset position outside of brick
                     ball.dx = -ball.dx
@@ -195,7 +207,6 @@ function PlayState:update(dt)
             gSounds['victory']:play()
 
             local _balls = {}
-            local defaultBall = Ball()
             table.insert(_balls, Ball())
             return gStateMachine:change('victory', {
                 level = self.level,
@@ -207,6 +218,33 @@ function PlayState:update(dt)
                 recoverPoints = self.recoverPoints
             })
         end
+
+        --  while we are looping through all of the bricks, check if we need to spawn a key power up
+        --  we need to spawn brick unlockers if:
+        --      the only bricks that are on the board are locked bricks
+        --      or if no unlocked bricks have a key powerup
+        bricksWithKeyPupQty = brick.powerUpType == PUP_KEY and bricksWithKeyPupQty + 1 or bricksWithKeyPupQty;
+        bricksLockedQty = brick.specialType == SPECIAL_BRICK_LOCKED and bricksLockedQty + 1 or bricksLockedQty;
+        bricksInPlayQty = bricksInPlayQty + 1;
+    end
+
+    -- Check if we need to spawn key power ups
+    self.spawnKeyPowerUp = (bricksLockedQty == bricksInPlayQty) or (bricksWithKeyPupQty <= bricksInPlayQty)
+    print("Key Spawn: " ..
+        tostring(self.spawnKeyPowerUp) .. " " ..
+        tostring(bricksInPlayQty) .. " " .. tostring(bricksLockedQty) .. " " .. tostring(bricksWithKeyPupQty))
+    -- update timer for pup spawning
+    self.timer = self.timer + dt
+    if self.spawnKeyPowerUp and self.timer > self.spawnPupIntervalSec then
+        -- spawn a power up, to drop from the top, but no
+        local xPadding = VIRTUAL_WIDTH * 0.15
+        print("SPAWN KEY")
+        local p = PowerUp(math.random(PUP_WIDTH + xPadding, VIRTUAL_WIDTH - PUP_WIDTH - xPadding), -PUP_HEIGHT,
+            PUP_KEY)
+        table.insert(self.powerUps, p)
+
+        -- reset timer
+        self.timer = 0
     end
 
     -- if score is past threshold then give them bigger paddles
@@ -218,7 +256,9 @@ function PlayState:update(dt)
     end
 
 
+    -- check each ball if it is passed the bottom of the screen and then disable it if it is
     for _, ball in pairs(self.balls) do
+        print("Ball inplay: " .. tostring(ball.inPlay))
         if ball.inPlay == false then
             ::continue::
         end
@@ -226,6 +266,7 @@ function PlayState:update(dt)
         -- if this is the last ball in play and it is over the line then round ends
         if ball.y >= VIRTUAL_HEIGHT then
             -- if this was the last ball in play then end current round
+            print("Ball is gone: ")
             if ballsInPlay == 0 then
                 self.health = self.health - 1
                 gSounds['hurt']:play()
@@ -274,7 +315,7 @@ function PlayState:update(dt)
     end
 
     for _, powerUp in pairs(self.powerUps) do
-        if powerUp.inPlay == true then
+        if powerUp.inPlay then
             powerUp:update(dt)
         end
     end
@@ -328,7 +369,10 @@ end
 function PlayState:applyPowerUp(type)
     gSounds['powerup-pickup']:play()
 
+    local ballSpeedMultiplier = 1.5
+
     if type == PUP_HALF_POINTS then
+        -- dont let them get into negative points
         self.scoreMultiplier = math.min(0.01, self.scoreMultiplier * 0.5)
     elseif type == PUP_DOUBLE_POINTS then
         self.scoreMultiplier = self.scoreMultiplier * 2
@@ -337,26 +381,30 @@ function PlayState:applyPowerUp(type)
     elseif type == PUP_SUB_LIFE then
         self.health = self.health - 1
     elseif type == PUP_BALL_SPEED_FASTER then
+        -- new balls spawned after will have original speed
         for _, ball in pairs(self.balls) do
-            if ball.inPlay == true then
-                ball.dx = ball.dx * 1.1
-                ball.dy = ball.dy * 1.1
+            if ball.inPlay then
+                ball.dx = ball.dx * ballSpeedMultiplier
+                ball.dy = ball.dy * ballSpeedMultiplier
             end
         end
     elseif type == PUP_BALL_SPEED_SLOWER then
+        -- new balls spawned after will have original speed
         for _, ball in pairs(self.balls) do
             if ball.inPlay then
-                ball.dx = ball.dx / 1.1
-                ball.dy = ball.dy / 1.1
+                ball.dx = ball.dx / ballSpeedMultiplier
+                ball.dy = ball.dy / ballSpeedMultiplier
             end
         end
     elseif type == PUP_TINY_BALL then
+        -- new balls spawned after will have original size
         for _, ball in pairs(self.balls) do
-            if ball.inPlay == true then
+            if ball.inPlay then
                 ball.scale = BALL_SMALL_SCALE
             end
         end
     elseif type == PUP_LARGE_BALL then
+        -- new balls spawned after will have original size
         for _, ball in pairs(self.balls) do
             if ball.inPlay then
                 ball.scale = BALL_LARGE_SCALE
@@ -371,5 +419,6 @@ function PlayState:applyPowerUp(type)
         extraBall.dy = math.random(-50, -60)
         table.insert(self.balls, extraBall)
     elseif type == PUP_KEY then
+        self.playerHasKeyPup = true
     end
 end
