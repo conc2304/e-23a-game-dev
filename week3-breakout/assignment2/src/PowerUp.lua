@@ -1,5 +1,7 @@
 PowerUp = Class {}
 
+PUP_MIN_INDEX = 1
+PUP_MAX_INDEX = 10
 
 PUP_HALF_POINTS = 1
 PUP_DOUBLE_POINTS = 2
@@ -13,12 +15,17 @@ PUP_EXTRA_BALL = 9
 PUP_KEY = 10
 
 
+
+PUP_WIDTH = 16
+PUP_HEIGHT = 16
+
+
 function PowerUp:init(x, y, type)
   self.x = x
   self.y = y
   self.type = type
-  self.width = 16
-  self.height = 16
+  self.width = PUP_WIDTH
+  self.height = PUP_HEIGHT
   self.inPlay = true
 
   self.dy = math.random(7, 10)
@@ -41,6 +48,7 @@ function PowerUp:reset()
 end
 
 function PowerUp:render()
+  print("PowerUP Type: " .. self.type)
   if self.inPlay then
     -- render power up
     love.graphics.draw(

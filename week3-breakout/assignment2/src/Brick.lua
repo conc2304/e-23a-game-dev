@@ -17,7 +17,8 @@
 Brick = Class {}
 
 -- some of the colors in our palette (to be used with particle systems)
-paletteColors = {
+local paletteColors = {
+
     -- blue
     [1] = {
         ['r'] = 99,
@@ -47,8 +48,20 @@ paletteColors = {
         ['r'] = 251,
         ['g'] = 242,
         ['b'] = 54
-    }
+    },
+    -- dark gray
+    [6] = {
+        ['r'] = 89,
+        ['g'] = 86,
+        ['b'] = 83
+    },
 }
+
+BRICK_WIDTH = 32
+BRICK_HEIGHT = 16
+
+SPECIAL_BRICK_LOCKED = 1
+SPECIAL_BRICK_UNLOCKED = 2
 
 function Brick:init(x, y)
     -- used for coloring and score calculation
@@ -57,11 +70,14 @@ function Brick:init(x, y)
 
     self.x = x
     self.y = y
-    self.width = 32
-    self.height = 16
+    self.width = BRICK_WIDTH
+    self.height = BRICK_HEIGHT
+
+    self.specialType = nil
 
     -- used to determine whether this brick holds a power up
     self.hasPowerUp = false
+    self.powerUpType = nil
 
     -- used to determine whether this brick should be rendered
     self.inPlay = true
@@ -91,14 +107,18 @@ function Brick:hit()
     -- set the particle system to interpolate between two colors; in this case, we give
     -- it our self.color but with varying alpha; brighter for higher tiers, fading to 0
     -- over the particle's lifetime (the second color)
+    local colorIndex = self.specialType == nil and self.color or 6
+
+    print("COLOR INDEX: " .. colorIndex)
+
     self.psystem:setColors(
-        paletteColors[self.color].r / 255,
-        paletteColors[self.color].g / 255,
-        paletteColors[self.color].b / 255,
+        paletteColors[colorIndex].r / 255,
+        paletteColors[colorIndex].g / 255,
+        paletteColors[colorIndex].b / 255,
         55 * (self.tier + 1) / 255,
-        paletteColors[self.color].r / 255,
-        paletteColors[self.color].g / 255,
-        paletteColors[self.color].b / 255,
+        paletteColors[colorIndex].r / 255,
+        paletteColors[colorIndex].g / 255,
+        paletteColors[colorIndex].b / 255,
         0
     )
 
@@ -139,11 +159,16 @@ end
 
 function Brick:render()
     if self.inPlay then
-        love.graphics.draw(gTextures['main'],
-            -- multiply color by 4 (-1) to get our color offset, then add tier to that
-            -- to draw the correct tier and color brick onto the screen
-            gFrames['bricks'][1 + ((self.color - 1) * 4) + self.tier],
-            self.x, self.y)
+        if self.specialType == nil then
+            love.graphics.draw(gTextures['main'],
+                -- multiply color by 4 (-1) to get our color offset, then add tier to that
+                -- to draw the correct tier and color brick onto the screen
+                gFrames['bricks'][1 + ((self.color - 1) * 4) + self.tier],
+                self.x, self.y)
+        else
+            -- render special bricks
+            love.graphics.draw(gTextures['main'], gFrames['special-bricks'][self.specialType], self.x, self.y)
+        end
     end
 end
 

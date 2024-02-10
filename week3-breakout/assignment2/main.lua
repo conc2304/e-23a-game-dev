@@ -67,6 +67,7 @@ function love.load()
         ['balls'] = GenerateQuadsBalls(gTextures['main']),
         ['powerUps'] = GenerateQuadPowerUps(gTextures['main']),
         ['bricks'] = GenerateQuadsBricks(gTextures['main']),
+        ['special-bricks'] = GenerateQuadLockedBrick(gTextures['main']),
         ['hearts'] = GenerateQuads(gTextures['hearts'], 10, 9)
     }
 
@@ -87,6 +88,9 @@ function love.load()
         ['confirm'] = love.audio.newSource('sounds/confirm.wav', 'static'),
         ['select'] = love.audio.newSource('sounds/select.wav', 'static'),
         ['no-select'] = love.audio.newSource('sounds/no-select.wav', 'static'),
+        ['paddle-size-increase'] = love.audio.newSource('sounds/paddle_size_increase.wav', 'static'),
+        ['paddle-size-decrease'] = love.audio.newSource('sounds/paddle_size_decrease.wav', 'static'),
+        ['powerup-pickup'] = love.audio.newSource('sounds/powerup_pickup.wav', 'static'),
         ['brick-hit-1'] = love.audio.newSource('sounds/brick-hit-1.wav', 'static'),
         ['brick-hit-2'] = love.audio.newSource('sounds/brick-hit-2.wav', 'static'),
         ['hurt'] = love.audio.newSource('sounds/hurt.wav', 'static'),

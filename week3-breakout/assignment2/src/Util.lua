@@ -129,13 +129,13 @@ function GenerateQuadsBalls(atlas)
 end
 
 function GenerateQuadPowerUps(atlas)
-    local h = 16
-    local w = 16
+    local h = PUP_WIDTH
+    local w = PUP_HEIGHT
     local powerUpsQty = 10
-    local powerUpRow = 12
+    local powerUpRow = 13
 
     local x = 0
-    local y = powerUpRow * ROW_HEIGHT
+    local y = (powerUpRow * ROW_HEIGHT) - ROW_HEIGHT
 
     local quads = {}
     local counter = 1
@@ -143,13 +143,27 @@ function GenerateQuadPowerUps(atlas)
 
     -- power ups are located on the 13th row of the atlas
 
-    for i = 0, powerUpsQty - 1 do
+    for i = 1, powerUpsQty do
         quads[counter] = love.graphics.newQuad(x, y, w, h, atlas:getDimensions())
         x = x + w
         counter = counter + 1
     end
 
     return quads
+end
+
+--[[
+    This function is specifically made to piece out the key brick from the
+    sprite sheet. ]]
+function GenerateQuadLockedBrick(atlas)
+    local rowIndex = 4
+    local x = atlas:getWidth() - BRICK_WIDTH
+    local y = (rowIndex * ROW_HEIGHT) - ROW_HEIGHT
+
+    return {
+        [SPECIAL_BRICK_LOCKED] = love.graphics.newQuad(x, y, BRICK_WIDTH, BRICK_HEIGHT, atlas:getDimensions()),
+        [SPECIAL_BRICK_UNLOCKED] = table.slice(GenerateQuads(atlas, 32, 16), 21, 21)[1]
+    }
 end
 
 function Collides(a, target)
@@ -175,4 +189,13 @@ function Collides(a, target)
 
     -- if the above aren't true, they're overlapping
     return true
+end
+
+function ValueInArray(value, array)
+    for _, v in ipairs(array) do
+        if v == value then
+            return true
+        end
+    end
+    return false
 end

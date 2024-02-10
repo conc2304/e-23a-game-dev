@@ -16,7 +16,7 @@
 
 PlayState = Class { __includes = BaseState }
 
-PADDLE_RESIZER_PT_INTERVAL = 500
+PADDLE_RESIZER_PT_INTERVAL = 1000
 
 --[[
     We initialize what's in our PlayState via a state table that we pass between
@@ -122,7 +122,8 @@ function PlayState:update(dt)
                     local brickCenterY = brick.y + (brick.width * 0.5)
                     -- currently only power up available should be extra balls
 
-                    local p = PowerUp(brickCenterX, brickCenterY, PUP_EXTRA_BALL)
+                    local powerUpType = brick.powerUpType
+                    local p = PowerUp(brickCenterX, brickCenterY, powerUpType)
 
                     table.insert(self.powerUps, p)
                 end
@@ -195,7 +196,6 @@ function PlayState:update(dt)
 
             local _balls = {}
             local defaultBall = Ball()
-
             table.insert(_balls, Ball())
             return gStateMachine:change('victory', {
                 level = self.level,
@@ -214,6 +214,7 @@ function PlayState:update(dt)
         -- grow paddle up to the max size
         self.paddle:SetSize(math.min(self.paddle.size + 1, PADDLE_SIZE_MAX))
         PADDLE_RESIZER_PT_INTERVAL = PADDLE_RESIZER_PT_INTERVAL + PADDLE_RESIZER_PT_INTERVAL
+        gSounds['paddle-size-increase']:play()
     end
 
 
@@ -239,7 +240,7 @@ function PlayState:update(dt)
                     print("LIFE LOST")
                     -- shrink the paddle size, but no lower than the min
                     self.paddle:SetSize(math.max(PADDLE_SIZE_MIN, self.paddle.size - 1))
-
+                    gSounds['paddle-size-decrease']:play()
                     return gStateMachine:change('serve', {
                         paddle = self.paddle,
                         bricks = self.bricks,
@@ -252,7 +253,6 @@ function PlayState:update(dt)
                 end
             end
             ball.inPlay = false
-            -- ballsInPlay = ballsInPlay - 1
             -- end if last ball in play
         end
         -- end if end of round
@@ -324,7 +324,10 @@ function PlayState:checkVictory()
     return true
 end
 
+-- Apply the powerup
 function PlayState:applyPowerUp(type)
+    gSounds['powerup-pickup']:play()
+
     if type == PUP_HALF_POINTS then
         self.scoreMultiplier = math.min(0.01, self.scoreMultiplier * 0.5)
     elseif type == PUP_DOUBLE_POINTS then
@@ -336,15 +339,15 @@ function PlayState:applyPowerUp(type)
     elseif type == PUP_BALL_SPEED_FASTER then
         for _, ball in pairs(self.balls) do
             if ball.inPlay == true then
-                ball.dx = ball.dx * 1.25
-                ball.dy = ball.dy * 1.25
+                ball.dx = ball.dx * 1.1
+                ball.dy = ball.dy * 1.1
             end
         end
     elseif type == PUP_BALL_SPEED_SLOWER then
         for _, ball in pairs(self.balls) do
             if ball.inPlay then
-                ball.dx = ball.dx * 0.75
-                ball.dy = ball.dy * 0.75
+                ball.dx = ball.dx / 1.1
+                ball.dy = ball.dy / 1.1
             end
         end
     elseif type == PUP_TINY_BALL then

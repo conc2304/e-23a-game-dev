@@ -22,7 +22,6 @@ BALL_LARGE_SCALE = 1.5
 BALL_INITIAL_SIZE = 8
 
 
-
 function Ball:init(skin)
     -- simple positional and dimensional variables
     self.width = BALL_INITIAL_SIZE

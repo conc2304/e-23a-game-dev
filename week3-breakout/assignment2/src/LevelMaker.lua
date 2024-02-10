@@ -119,12 +119,14 @@ function LevelMaker.createMap(level)
             -- the lower the level, the higher ratio of powerups in the level
             if b.tier == highestTier then
                 -- probability threshold inversely scales with the level number
-                local threshold = 100 - (level - 1) * 10
+                local threshold = 100 - (level * math.random(1, 2)) * 10
+                threshold = math.min(threshold, 80) -- Ensure a no more than a 80% chance
                 threshold = math.max(threshold, 10) -- Ensure at least a 10% chance
 
                 -- power-up up the brick if the random chance is within the threshold
                 if math.random(100) <= threshold then
                     b.hasPowerUp = true
+                    b.powerUpType = math.random(PUP_MIN_INDEX, PUP_MAX_INDEX)
                 end
             end
 
@@ -136,6 +138,32 @@ function LevelMaker.createMap(level)
             ::continue::
         end
     end
+
+    -- each level should have increasingly more locked bricks
+    local lockedBricksQty = math.random(level, level * 2)
+    local lockedBricks = {}
+    for i = 1, lockedBricksQty do
+        local totalBricks = #bricks;
+        local selectedIndex = math.random(1, totalBricks)
+
+        print("index: " .. selectedIndex)
+
+        --  make sure we arent doing the same brick as we have already done
+        while ValueInArray(selectedIndex, lockedBricks) do
+            selectedIndex = math.random(1, totalBricks)
+        end
+
+        print(bricks[selectedIndex].x, bricks[selectedIndex].y)
+        -- add to lookup table
+        table.insert(lockedBricks, selectedIndex)
+
+        -- apply special lock features
+        bricks[selectedIndex].specialType = SPECIAL_BRICK_LOCKED
+        bricks[selectedIndex].color = 0
+        bricks[selectedIndex].tier = 0
+    end
+    print("Locked Bricks Expected: " .. lockedBricksQty)
+    print("Locked Bricks Result: " .. #lockedBricks)
 
     -- in the event we didn't generate any bricks, try again
     if #bricks == 0 then
