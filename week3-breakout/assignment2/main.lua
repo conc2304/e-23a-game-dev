@@ -90,6 +90,8 @@ function love.load()
         ['no-select'] = love.audio.newSource('sounds/no-select.wav', 'static'),
         ['paddle-size-increase'] = love.audio.newSource('sounds/paddle_size_increase.wav', 'static'),
         ['paddle-size-decrease'] = love.audio.newSource('sounds/paddle_size_decrease.wav', 'static'),
+        ['powerup-bad'] = love.audio.newSource('sounds/powerup_bad.wav', 'static'),
+        ['powerup-good'] = love.audio.newSource('sounds/powerup_good.wav', 'static'),
         ['powerup-pickup'] = love.audio.newSource('sounds/powerup_pickup.wav', 'static'),
         ['brick-hit-1'] = love.audio.newSource('sounds/brick-hit-1.wav', 'static'),
         ['brick-hit-2'] = love.audio.newSource('sounds/brick-hit-2.wav', 'static'),

@@ -118,6 +118,7 @@ function PlayState:update(dt)
                 if brick.specialType == SPECIAL_BRICK_LOCKED and not self.playerHasKeyPup then
                     -- DO NOTHING - No points, No Brick Hit,  only bounce ball
                     addPoints = false
+                    -- player has the
                 elseif brick.specialType == SPECIAL_BRICK_LOCKED and self.playerHasKeyPup then
                     addPoints = true
                 end
@@ -126,7 +127,10 @@ function PlayState:update(dt)
                 -- add to score
                 -- use power up multiplier and round to integer
                 if addPoints then
-                    self.score = math.ceil(self.score + (self.scoreMultiplier * (brick.tier * 200 + brick.color * 25)))
+                    -- bonus points for destorying the locked brick
+                    local lockedBrickBonus = brick.specialType == SPECIAL_BRICK_LOCKED and 250 or 0
+                    self.score = math.ceil(self.score + (self.scoreMultiplier * (brick.tier * 200 + brick.color * 25))) +
+                        lockedBrickBonus
                 end
 
                 -- trigger the brick's hit function, which removes it from play
@@ -362,20 +366,24 @@ end
 
 -- Apply the powerup
 function PlayState:applyPowerUp(type)
-    gSounds['powerup-pickup']:play()
-
     local ballSpeedMultiplier = 1.5
+    local powerUpType = 'pickup'
 
     if type == PUP_HALF_POINTS then
         -- dont let them get into negative points
         self.scoreMultiplier = math.min(0.01, self.scoreMultiplier * 0.5)
+        powerUpType = 'bad'
     elseif type == PUP_DOUBLE_POINTS then
+        powerUpType = 'good'
         self.scoreMultiplier = self.scoreMultiplier * 2
     elseif type == PUP_ADD_LIFE then
+        powerUpType = 'good'
         self.health = self.health + 1
     elseif type == PUP_SUB_LIFE then
+        powerUpType = 'bad'
         self.health = self.health - 1
     elseif type == PUP_BALL_SPEED_FASTER then
+        powerUpType = 'pickup'
         -- new balls spawned after will have original speed
         for _, ball in pairs(self.balls) do
             if ball.inPlay then
@@ -384,6 +392,7 @@ function PlayState:applyPowerUp(type)
             end
         end
     elseif type == PUP_BALL_SPEED_SLOWER then
+        powerUpType = 'pickup'
         -- new balls spawned after will have original speed
         for _, ball in pairs(self.balls) do
             if ball.inPlay then
@@ -392,6 +401,7 @@ function PlayState:applyPowerUp(type)
             end
         end
     elseif type == PUP_TINY_BALL then
+        powerUpType = 'bad'
         -- new balls spawned after will have original size
         for _, ball in pairs(self.balls) do
             if ball.inPlay then
@@ -399,6 +409,7 @@ function PlayState:applyPowerUp(type)
             end
         end
     elseif type == PUP_LARGE_BALL then
+        powerUpType = 'good'
         -- new balls spawned after will have original size
         for _, ball in pairs(self.balls) do
             if ball.inPlay then
@@ -406,6 +417,7 @@ function PlayState:applyPowerUp(type)
             end
         end
     elseif type == PUP_EXTRA_BALL then
+        powerUpType = 'good'
         local extraBall = Ball(math.random(BALL_SKIN_MAX))
         extraBall.x = self.paddle.x + (self.paddle.width * 0.5)
         extraBall.y = self.paddle.y - (self.paddle.height - (extraBall.height * (extraBall.scale * 1.2)))
@@ -413,6 +425,10 @@ function PlayState:applyPowerUp(type)
         extraBall.dy = math.random(-50, -60)
         table.insert(self.balls, extraBall)
     elseif type == PUP_KEY then
+        powerUpType = 'good'
         self.playerHasKeyPup = true
     end
+
+    local powerUpSoundKey = 'powerup-' .. powerUpType
+    gSounds[powerUpSoundKey]:play()
 end
