@@ -1,3 +1,6 @@
 {
+  "Lua.diagnostics.globals": [
+    "love"
+  ],
   "todo-tree.regex.regex": "(//|--|#|<!--|;|/\\*|^|^[ \\t]*(-|\\d+.))\\s*($TAGS)",
 }
