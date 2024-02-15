@@ -82,4 +82,19 @@ function print_r ( t )
         sub_print_r(t,"  ")
     end
     print()
+    
 end
+
+
+
+-- Stuff about this function
+function IterateOverBoard(board, callback)
+    for _, col_table in ipairs(board) do
+        for _, tile in ipairs(col_table) do
+            if callback ~= nil then
+                callback(tile)
+            end
+        end
+    end
+end
+
