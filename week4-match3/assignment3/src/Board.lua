@@ -11,12 +11,46 @@
     sets of three horizontally or vertically.
 ]]
 
-Board = Class{}
+Board = Class {}
 
-function Board:init(x, y)
+BOARD_GRID_SIZE = { x = 8, y = 8 }
+
+MIN_MATCH_QTY = 3
+
+EASY_DIFFICULTY_COLOR_TILES = { 1, 5, 6, 9, 10, 13, 15, 18 }                          -- 8 hand picked easy to distinguish tiles
+MEDIUM_DIFFICULTY_COLOR_TILES = ArrayMerge(EASY_DIFFICULTY_COLOR_TILES, { 3, 16, 8 }) -- add more colors till we have them all
+HARD_DIFFICULTY_COLOR_TILES = ArrayMerge(MEDIUM_DIFFICULTY_COLOR_TILES, { 2, 7, 11 })
+EXPERT_DIFFICULTY_COLOR_TILES = ArrayFill({}, TILE_COLOR_MAX, 0)
+
+LEVEL_EASY = 'EASY'
+LEVEL_MEDIUM = 'MEDIUM'
+LEVEL_DIFFICULT = 'DIFFICULT'
+LEVEL_EXPERT = 'EXPERT'
+
+TILE_DIFFICULTY_COLOR_MAP = {
+    [LEVEL_EASY] = EASY_DIFFICULTY_COLOR_TILES,
+    [LEVEL_MEDIUM] = MEDIUM_DIFFICULTY_COLOR_TILES,
+    [LEVEL_DIFFICULT] = HARD_DIFFICULTY_COLOR_TILES,
+    [LEVEL_EXPERT] = EXPERT_DIFFICULTY_COLOR_TILES -- every color
+}
+
+TILE_DIFFICULTY_VARIETY_MAP = {
+    [LEVEL_EASY] = 1,
+    [LEVEL_MEDIUM] = math.floor(TILE_VARIETY_MAX / 3),
+    [LEVEL_DIFFICULT] = math.floor(TILE_VARIETY_MAX / 2),
+    [LEVEL_EXPERT] = TILE_VARIETY_MAX -- every color
+}
+
+
+function Board:init(x, y, level)
     self.x = x
     self.y = y
+    self.level = level or 1
     self.matches = {}
+    self.difficulty = GetDifficultyByLevel(self.level)
+
+    print("INIT")
+    print("DIFFICULT: " .. self.difficulty)
 
     self:initializeTiles()
 end
@@ -24,20 +58,23 @@ end
 function Board:initializeTiles()
     self.tiles = {}
 
-    for tileY = 1, 8 do
-        
+
+    for tileY = 1, BOARD_GRID_SIZE.y do
         -- empty table that will serve as a new row
         table.insert(self.tiles, {})
 
-        for tileX = 1, 8 do
-            
+        for tileX = 1, BOARD_GRID_SIZE.x do
             -- create a new tile at X,Y with a random color and variety
-            table.insert(self.tiles[tileY], Tile(tileX, tileY, math.random(18), math.random(6)))
+            local colorOptions = TILE_DIFFICULTY_COLOR_MAP[self.difficulty] -- a table of the colors
+            local tileColor = colorOptions[math.random(#colorOptions)]
+            local tileVarietyMaxIndex = TILE_DIFFICULTY_VARIETY_MAP[self.difficulty]
+
+            table.insert(self.tiles[tileY],
+                Tile(tileX, tileY, tileColor, math.random(tileVarietyMaxIndex)))
         end
     end
 
     while self:calculateMatches() do
-        
         -- recursively initialize if matches were returned so we always have
         -- a matchless board on start
         self:initializeTiles()
@@ -46,7 +83,7 @@ end
 
 --[[
     Goes left to right, top to bottom in the board, calculating matches by counting consecutive
-    tiles of the same color. Doesn't need to check the last tile in every row or column if the 
+    tiles of the same color. Doesn't need to check the last tile in every row or column if the
     last two haven't been a match.
 ]]
 function Board:calculateMatches()
@@ -56,29 +93,26 @@ function Board:calculateMatches()
     local matchNum = 1
 
     -- horizontal matches first
-    for y = 1, 8 do
+    for y = 1, BOARD_GRID_SIZE.y do
         local colorToMatch = self.tiles[y][1].color
 
         matchNum = 1
-        
+
         -- every horizontal tile
-        for x = 2, 8 do
-            
+        for x = 2, BOARD_GRID_SIZE.x do
             -- if this is the same color as the one we're trying to match...
             if self.tiles[y][x].color == colorToMatch then
                 matchNum = matchNum + 1
             else
-                
                 -- set this as the new color we want to watch for
                 colorToMatch = self.tiles[y][x].color
 
                 -- if we have a match of 3 or more up to now, add it to our matches table
-                if matchNum >= 3 then
+                if matchNum >= MIN_MATCH_QTY then
                     local match = {}
 
                     -- go backwards from here by matchNum
                     for x2 = x - 1, x - matchNum, -1 do
-                        
                         -- add each tile to the match that's in that match
                         table.insert(match, self.tiles[y][x2])
                     end
@@ -97,11 +131,11 @@ function Board:calculateMatches()
         end
 
         -- account for the last row ending with a match
-        if matchNum >= 3 then
+        if matchNum >= MIN_MATCH_QTY then
             local match = {}
-            
+
             -- go backwards from end of last row by matchNum
-            for x = 8, 8 - matchNum + 1, -1 do
+            for x = BOARD_GRID_SIZE.x, BOARD_GRID_SIZE.x - matchNum + 1, -1 do
                 table.insert(match, self.tiles[y][x])
             end
 
@@ -110,19 +144,19 @@ function Board:calculateMatches()
     end
 
     -- vertical matches
-    for x = 1, 8 do
+    for x = 1, BOARD_GRID_SIZE.x do
         local colorToMatch = self.tiles[1][x].color
 
         matchNum = 1
 
         -- every vertical tile
-        for y = 2, 8 do
+        for y = 2, BOARD_GRID_SIZE.y do
             if self.tiles[y][x].color == colorToMatch then
                 matchNum = matchNum + 1
             else
                 colorToMatch = self.tiles[y][x].color
 
-                if matchNum >= 3 then
+                if matchNum >= MIN_MATCH_QTY then
                     local match = {}
 
                     for y2 = y - 1, y - matchNum, -1 do
@@ -142,11 +176,11 @@ function Board:calculateMatches()
         end
 
         -- account for the last column ending with a match
-        if matchNum >= 3 then
+        if matchNum >= MIN_MATCH_QTY then
             local match = {}
-            
+
             -- go backwards from end of last row by matchNum
-            for y = 8, 8 - matchNum + 1, -1 do
+            for y = BOARD_GRID_SIZE.y, BOARD_GRID_SIZE.y - matchNum + 1, -1 do
                 table.insert(match, self.tiles[y][x])
             end
 
@@ -184,21 +218,18 @@ function Board:getFallingTiles()
     local tweens = {}
 
     -- for each column, go up tile by tile till we hit a space
-    for x = 1, 8 do
+    for x = 1, BOARD_GRID_SIZE.x do
         local space = false
         local spaceY = 0
 
-        local y = 8
+        local y = BOARD_GRID_SIZE.y
         while y >= 1 do
-            
             -- if our last tile was a space...
             local tile = self.tiles[y][x]
-            
+
             if space then
-                
                 -- if the current tile is *not* a space, bring this down to the lowest space
                 if tile then
-                    
                     -- put the tile in the correct spot in the board and fix its grid positions
                     self.tiles[spaceY][x] = tile
                     tile.gridY = spaceY
@@ -208,7 +239,7 @@ function Board:getFallingTiles()
 
                     -- tween the Y position to 32 x its grid position
                     tweens[tile] = {
-                        y = (tile.gridY - 1) * 32
+                        y = (tile.gridY - 1) * TILE_HIGHT
                     }
 
                     -- set Y to spaceY so we start back from here again
@@ -220,7 +251,7 @@ function Board:getFallingTiles()
                 end
             elseif tile == nil then
                 space = true
-                
+
                 -- if we haven't assigned a space yet, set this to it
                 if spaceY == 0 then
                     spaceY = y
@@ -232,21 +263,26 @@ function Board:getFallingTiles()
     end
 
     -- create replacement tiles at the top of the screen
-    for x = 1, 8 do
-        for y = 8, 1, -1 do
+    for x = 1, BOARD_GRID_SIZE.x do
+        for y = BOARD_GRID_SIZE.y, 1, -1 do
             local tile = self.tiles[y][x]
 
             -- if the tile is nil, we need to add a new one
             if not tile then
-
                 -- new tile with random color and variety
-                local tile = Tile(x, y, math.random(18), math.random(6))
-                tile.y = -32
+
+                -- get a random color that is within the colors selected for the difficulty
+                local colorOptions = TILE_DIFFICULTY_COLOR_MAP[self.difficulty] -- a table of the colors
+                local tileColor = colorOptions[math.random(#colorOptions)]
+                local tileVarietyMaxIndex = TILE_DIFFICULTY_VARIETY_MAP[self.difficulty]
+
+                local tile = Tile(x, y, tileColor, math.random(tileVarietyMaxIndex))
+                tile.y = -TILE_HIGHT
                 self.tiles[y][x] = tile
 
                 -- create a new tween to return for this tile to fall down
                 tweens[tile] = {
-                    y = (tile.gridY - 1) * 32
+                    y = (tile.gridY - 1) * TILE_HIGHT
                 }
             end
         end

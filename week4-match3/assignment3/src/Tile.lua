@@ -13,6 +13,16 @@
 
 Tile = Class{}
 
+TILE_WIDTH = 32
+TILE_HIGHT = 32
+
+TILE_VARIETY_MAX = 6
+TILE_VARIETY_MIN = 1
+
+TILE_COLOR_MIN = 1
+TILE_COLOR_MAX = 18
+
+
 function Tile:init(x, y, color, variety)
     
     -- board positions
@@ -20,8 +30,8 @@ function Tile:init(x, y, color, variety)
     self.gridY = y
 
     -- coordinate positions
-    self.x = (self.gridX - 1) * 32
-    self.y = (self.gridY - 1) * 32
+    self.x = (self.gridX - 1) * TILE_WIDTH
+    self.y = (self.gridY - 1) * TILE_HIGHT
 
     -- tile appearance/points
     self.color = color
