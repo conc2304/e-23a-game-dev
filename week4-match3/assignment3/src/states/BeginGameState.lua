@@ -23,7 +23,6 @@ function BeginGameState:init()
 
     -- start our level # label off-screen
     self.levelLabelY = -64
-    print("BEGIN STATE - init level: ", self.level)
 end
 
 function BeginGameState:enter(def)
@@ -33,8 +32,6 @@ function BeginGameState:enter(def)
         self.level = def.level
         self.board = Board(VIRTUAL_WIDTH - 272, 16, self.level)
     end
-
-    print("BEGIN STATE - enter level: ", self.level)
 
     --
     -- animate our white screen fade-in, then animate a drop-down with

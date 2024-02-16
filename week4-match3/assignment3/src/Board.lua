@@ -49,9 +49,6 @@ function Board:init(x, y, level)
     self.matches = {}
     self.difficulty = GetDifficultyByLevel(self.level)
 
-    print("INIT")
-    print("DIFFICULT: " .. self.difficulty)
-
     self:initializeTiles()
 end
 
@@ -69,8 +66,14 @@ function Board:initializeTiles()
             local tileColor = colorOptions[math.random(#colorOptions)]
             local tileVarietyMaxIndex = TILE_DIFFICULTY_VARIETY_MAP[self.difficulty]
 
+            local hasPup = math.random(1, 100) <= 10
+            local powerupType = nil
+            if hasPup then
+                powerupType = math.random(#TILE_POWERUPS)
+            end
+
             table.insert(self.tiles[tileY],
-                Tile(tileX, tileY, tileColor, math.random(tileVarietyMaxIndex)))
+                Tile(tileX, tileY, tileColor, math.random(tileVarietyMaxIndex), powerupType))
         end
     end
 
@@ -298,3 +301,11 @@ function Board:render()
         end
     end
 end
+
+-- function Board:update(dt)
+--     for y = 1, #self.tiles do
+--         for x = 1, #self.tiles[1] do
+--             self.tiles[y][x]:update(dt)
+--         end
+--     end
+-- end
