@@ -202,8 +202,8 @@ function PlayState:calculateMatches()
 
                 -- check the matches for bonus point tiles
                 -- for any tile above variety 1 assign extra points
-                self.score = self.score +
-                (bonusAmount * (tileVariety - 1))                           -- if variety is 1 then multiply by 0 to assign no extra points
+                -- if variety is 1 then multiply by 0 to assign no extra points
+                self.score = self.score + (bonusAmount * (tileVariety - 1))
             end
 
             -- scoring a match extends the timer by 1 second per tile in a match.

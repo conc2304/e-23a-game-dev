@@ -17,10 +17,10 @@ BOARD_GRID_SIZE = { x = 8, y = 8 }
 
 MIN_MATCH_QTY = 3
 
-EASY_DIFFICULTY_COLOR_TILES = { 1, 5, 6, 9, 10, 13, 15, 18 }                          -- 8 hand picked easy to distinguish tiles
-MEDIUM_DIFFICULTY_COLOR_TILES = ArrayMerge(EASY_DIFFICULTY_COLOR_TILES, { 3, 16, 8 }) -- add more colors till we have them all
-HARD_DIFFICULTY_COLOR_TILES = ArrayMerge(MEDIUM_DIFFICULTY_COLOR_TILES, { 2, 7, 11 })
-EXPERT_DIFFICULTY_COLOR_TILES = ArrayFill({}, TILE_COLOR_MAX, 0)
+EASY_DIFFICULTY_COLOR_TILES = { 1, 5, 6, 9, 10, 13, 15, 18 }                       -- 8 hand picked easy to distinguish tiles
+MEDIUM_DIFFICULTY_COLOR_TILES = ArrayMerge(EASY_DIFFICULTY_COLOR_TILES, { 3, 14 }) -- add more colors till we have them all
+HARD_DIFFICULTY_COLOR_TILES = ArrayMerge(MEDIUM_DIFFICULTY_COLOR_TILES, { 7, 16 })
+EXPERT_DIFFICULTY_COLOR_TILES = ArrayMerge(MEDIUM_DIFFICULTY_COLOR_TILES, { 2, 9 })
 
 LEVEL_EASY = 'EASY'
 LEVEL_MEDIUM = 'MEDIUM'
@@ -77,7 +77,7 @@ function Board:initializeTiles()
         end
     end
 
-    while self:calculateMatches() do
+    while self:calculateMatches(true) do
         -- recursively initialize if matches were returned so we always have
         -- a matchless board on start
         self:initializeTiles()
@@ -89,7 +89,9 @@ end
     tiles of the same color. Doesn't need to check the last tile in every row or column if the
     last two haven't been a match.
 ]]
-function Board:calculateMatches()
+function Board:calculateMatches(isInitialization)
+    isInitialization = isInitialization or false
+
     print("--calculateMatches--")
     local matches = {}
 
@@ -98,22 +100,14 @@ function Board:calculateMatches()
 
     -- horizontal matches first
     for y = 1, BOARD_GRID_SIZE.y do
-        print("HORIZONTAL")
         local colorToMatch = self.tiles[y][1].color
 
-
-        local matchHasOppenheimerTile = self.tiles[y][1].powerupType == TILE_POWERUPS[TILE_PUP_DESTORY_ROW]
-        print("BOMB [outer y]:", 1, y, matchHasOppenheimerTile)
         matchNum = 1
 
         -- every horizontal tile
         for x = 2, BOARD_GRID_SIZE.x do
             local currentTile = self.tiles[y][x]
 
-            -- only update to true
-            matchHasOppenheimerTile = matchHasOppenheimerTile or currentTile.powerupType ==
-                TILE_POWERUPS[TILE_PUP_DESTORY_ROW]
-            -- print("matchHasOppenheimerTile x: ", x, y, matchHasOppenheimerTile)
 
             -- if this is the same color as the one we're trying to match...
             if currentTile.color == colorToMatch then
@@ -124,17 +118,36 @@ function Board:calculateMatches()
 
                 -- if we have a match of 3 or more up to now, add it to our matches table
                 if matchNum >= MIN_MATCH_QTY then
-                    print("Local Match: ", matchNum)
-                    print("Pos: " .. tostring(x) .. ', ' .. tostring(y))
                     local match = {}
 
-                    -- if our match has a row destoyer then add the entire row to this match table
-                    print("matchHasOppenheimerTile MATCH: ", matchHasOppenheimerTile)
-                    if matchHasOppenheimerTile == true then
-                        for xR = 1, #self.tiles[y], 1 do
+                    -- first check if we have an Oppenheimer Tile
+                    -- then we will either add the individual tile, or the whole row
+                    local isDestroyerOfRows = false;
+
+                    for x2 = x - 1, x - matchNum, -1 do
+                        if self.tiles[y][x2].powerupType == TILE_POWERUPS[TILE_PUP_DESTORY_ROW] then
+                            isDestroyerOfRows = true
+                            -- we dont need to know anything else, break out
+                            break
+                        end
+                    end
+
+                    -- For Horizontal Matches, if our match has a row destoyer
+                    --   then add the entire row to this match table and thats its
+                    if isDestroyerOfRows == true then
+                        -- add entire row to matches
+                        for xR = 0, BOARD_GRID_SIZE.x, 1 do
                             table.insert(match, self.tiles[y][xR])
                         end
+
+                        -- dont play sound on initialization, its annoying and you don't see it happend anyway
+                        if isInitialization ~= nil then
+                            -- play row desctruction sound
+                            gSounds['row-destruction']:stop()
+                            gSounds['row-destruction']:play()
+                        end
                     else
+                        -- Match does not have a row destoyer, add individual tiles
                         -- go backwards from here by matchNum
 
                         for x2 = x - 1, x - matchNum, -1 do
@@ -159,13 +172,41 @@ function Board:calculateMatches()
         if matchNum >= MIN_MATCH_QTY then
             local match = {}
 
-            -- go backwards from end of last row by matchNum
+            -- check if row has row destoyer
+            local isDestroyerOfRows = false;
             for x = BOARD_GRID_SIZE.x, BOARD_GRID_SIZE.x - matchNum + 1, -1 do
-                table.insert(match, self.tiles[y][x])
+                if self.tiles[y][x].powerupType == TILE_POWERUPS[TILE_PUP_DESTORY_ROW] then
+                    isDestroyerOfRows = true
+                    -- we dont need to know anything else, break out
+                    break
+                end
+            end
+
+            -- For Horizontal Matches, if our match has a row destoyer
+            --   then add the entire row to this match table and thats its
+            if isDestroyerOfRows == true then
+                -- add entire row to matches
+                for xR = 0, BOARD_GRID_SIZE.x, 1 do
+                    table.insert(match, self.tiles[y][xR])
+                end
+
+                -- dont play sound on initialization, its annoying and you don't see it happend anyway
+                if isInitialization ~= nil then
+                    -- play row desctruction sound
+                    gSounds['row-destruction']:stop()
+                    gSounds['row-destruction']:play()
+                end
+            else
+                -- Match does not have a row destoyer, add individual tiles
+                -- go backwards from end of last row by matchNum
+                for x = BOARD_GRID_SIZE.x, BOARD_GRID_SIZE.x - matchNum + 1, -1 do
+                    table.insert(match, self.tiles[y][x])
+                end
             end
 
             table.insert(matches, match)
         end
+        -- END Y LOOP
     end
     -- END HORIZONTAL CHECK
 
@@ -173,18 +214,11 @@ function Board:calculateMatches()
     for x = 1, BOARD_GRID_SIZE.x do
         print("VERTICAL")
         local colorToMatch = self.tiles[1][x].color
-
-        local matchHasOppenheimerTile = self.tiles[1][x].powerupType == TILE_POWERUPS[TILE_PUP_DESTORY_ROW]
-        print("BOMB [outer y]:", x, 1, matchHasOppenheimerTile)
         matchNum = 1
 
         -- every vertical tile
         for y = 2, BOARD_GRID_SIZE.y do
             local currentTile = self.tiles[y][x]
-
-            -- only update to true
-            matchHasOppenheimerTile = matchHasOppenheimerTile or currentTile.powerupType ==
-                TILE_POWERUPS[TILE_PUP_DESTORY_ROW]
 
             if currentTile.color == colorToMatch then
                 matchNum = matchNum + 1
@@ -192,16 +226,43 @@ function Board:calculateMatches()
                 colorToMatch = currentTile.color
 
                 if matchNum >= MIN_MATCH_QTY then
-                    print("Local Match: ", matchNum)
-                    print("Pos: " .. tostring(x) .. ', ' .. tostring(y))
                     local match = {}
 
-                    print("matchHasOppenheimerTile MATCH: ", matchHasOppenheimerTile)
-                    if matchHasOppenheimerTile == true then
-                        for xR = 1, #self.tiles[y], 1 do
-                            table.insert(match, self.tiles[y][xR])
+                    -- first check if we have an Oppenheimer Tile
+                    -- then we will either add the individual tile, or the whole row
+                    local isDestroyerOfRows = false;
+                    for y2 = y - 1, y - matchNum, -1 do
+                        if self.tiles[y2][x].powerupType == TILE_POWERUPS[TILE_PUP_DESTORY_ROW] then
+                            isDestroyerOfRows = true
+                            break
+                        end
+                    end
+
+
+                    -- For Vertical Matches, Destroy the shiny boy rows, but not the dull boy's rows
+                    if isDestroyerOfRows == true then
+                        for y2 = y - 1, y - matchNum, -1 do
+                            -- tile is shiny boy, destroy that row
+                            if self.tiles[y2][x].powerupType == TILE_POWERUPS[TILE_PUP_DESTORY_ROW] then
+                                print("Vert X:", x, y2)
+                                -- add entire row
+                                for xR = 0, BOARD_GRID_SIZE.x, 1 do
+                                    table.insert(match, self.tiles[y2][xR])
+                                end
+                            else
+                                -- add single tile
+                                table.insert(match, self.tiles[y2][x])
+                            end
+                        end
+
+                        -- dont play sound on initialization, its annoying and you don't see it happend
+                        if isInitialization ~= nil then
+                            -- play row desctruction sound
+                            gSounds['row-destruction']:stop()
+                            gSounds['row-destruction']:play()
                         end
                     else
+                        -- match set does not have row destoyer, add individual tiles
                         for y2 = y - 1, y - matchNum, -1 do
                             table.insert(match, self.tiles[y2][x])
                         end
@@ -223,14 +284,52 @@ function Board:calculateMatches()
         if matchNum >= MIN_MATCH_QTY then
             local match = {}
 
-            -- go backwards from end of last row by matchNum
+            -- first check if we have an Oppenheimer Tile
+            -- then we will either add the individual tile, or the whole row
+            local isDestroyerOfRows = false;
             for y = BOARD_GRID_SIZE.y, BOARD_GRID_SIZE.y - matchNum + 1, -1 do
-                table.insert(match, self.tiles[y][x])
+                if self.tiles[y][x].powerupType == TILE_POWERUPS[TILE_PUP_DESTORY_ROW] then
+                    isDestroyerOfRows = true
+                    break
+                end
+            end
+
+
+
+            -- For Vertical Matches, Destroy the shiny boy rows, but not the dull boy's rows
+            if isDestroyerOfRows == true then
+                for y = BOARD_GRID_SIZE.y, BOARD_GRID_SIZE.y - matchNum + 1, -1 do
+                    -- tile is shiny boy, destroy that row
+                    if self.tiles[y][x].powerupType == TILE_POWERUPS[TILE_PUP_DESTORY_ROW] then
+                        print("Vert X:", x, y)
+                        -- add entire row
+                        for xR = 0, BOARD_GRID_SIZE.x, 1 do
+                            table.insert(match, self.tiles[y][xR])
+                        end
+                    else
+                        -- add single tile
+                        table.insert(match, self.tiles[y][x])
+                    end
+                end
+
+                -- dont play sound on initialization, its annoying and you don't see it happend
+                if isInitialization ~= nil then
+                    -- play row desctruction sound
+                    gSounds['row-destruction']:stop()
+                    gSounds['row-destruction']:play()
+                end
+            else
+                -- match set does not have row destoyer, add individual tiles
+                -- go backwards from end of last row by matchNum
+                for y = BOARD_GRID_SIZE.y, BOARD_GRID_SIZE.y - matchNum + 1, -1 do
+                    table.insert(match, self.tiles[y][x])
+                end
             end
 
             table.insert(matches, match)
         end
     end
+    -- END VERTICAL CHECK LOOP
 
     -- store matches for later reference
     self.matches = matches

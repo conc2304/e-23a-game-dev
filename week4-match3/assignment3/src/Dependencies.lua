@@ -44,6 +44,7 @@ require 'src/states/StartState'
 gSounds = {
     ['music'] = love.audio.newSource('sounds/music3.mp3', 'static'),
     ['select'] = love.audio.newSource('sounds/select.wav', 'static'),
+    ['row-destruction'] = love.audio.newSource('sounds/row_destruction.wav', 'static'),
     ['error'] = love.audio.newSource('sounds/error.wav', 'static'),
     ['match'] = love.audio.newSource('sounds/match.wav', 'static'),
     ['clock'] = love.audio.newSource('sounds/clock.wav', 'static'),
