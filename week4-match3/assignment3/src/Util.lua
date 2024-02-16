@@ -94,20 +94,7 @@ function IterateOverBoard(board, callback)
     end
 end
 
-function ArrayFill(arr, length, from, value)
-    arr = arr or {}
-    from = from or 0
-
-    print("length: " .. TILE_COLOR_MAX)
-
-    for i = from, length do
-        arr[i] = value or i
-    end
-
-    return arr
-end
-
-function ArrayMerge(...)
+function TableMerge(...)
     local arrays = { ... }
     local returnTable = {}
 
@@ -117,29 +104,13 @@ function ArrayMerge(...)
                 table.insert(returnTable, value)
             end
         else
-            print(string.format("ArrayMerge expected a table at arg %d but received a %d.", i, type(arr)))
+            print(string.format("TableMerge expected a table at arg %d but received a %d.", i, type(arr)))
         end
     end
 
     return returnTable
 end
 
-function Range(start, stop, step)
-    step = step or 1
-    local arr = {}
-    for i = start, stop, step do
-        table.insert(arr, i)
-    end
-    return arr
-end
-
--- TODO, see if we need to remove this
--- LEVEL_TO_DIFFICULTY_RANGE = {
---     [LEVEL_EASY] = {1,1},
---     [LEVEL_MEDIUM] = {2,2},
---     [LEVEL_DIFFICULT] = {3,3},
---     [LEVEL_EXPERT] = {4,4}
--- }
 -- currently just simplying level to difficulty range to just 1 level
 -- but this allows for dynamic ranges
 function GetDifficultyByLevel(level)

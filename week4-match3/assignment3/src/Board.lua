@@ -18,9 +18,9 @@ BOARD_GRID_SIZE = { x = 8, y = 8 }
 MIN_MATCH_QTY = 3
 
 EASY_DIFFICULTY_COLOR_TILES = { 1, 5, 6, 9, 10, 13, 15, 18 }                       -- 8 hand picked easy to distinguish tiles
-MEDIUM_DIFFICULTY_COLOR_TILES = ArrayMerge(EASY_DIFFICULTY_COLOR_TILES, { 3, 14 }) -- add more colors till we have them all
-HARD_DIFFICULTY_COLOR_TILES = ArrayMerge(MEDIUM_DIFFICULTY_COLOR_TILES, { 7, 16 })
-EXPERT_DIFFICULTY_COLOR_TILES = ArrayMerge(MEDIUM_DIFFICULTY_COLOR_TILES, { 2, 9 })
+MEDIUM_DIFFICULTY_COLOR_TILES = TableMerge(EASY_DIFFICULTY_COLOR_TILES, { 3, 14 }) -- add more colors till we have them all
+HARD_DIFFICULTY_COLOR_TILES = TableMerge(MEDIUM_DIFFICULTY_COLOR_TILES, { 7, 16 })
+EXPERT_DIFFICULTY_COLOR_TILES = TableMerge(MEDIUM_DIFFICULTY_COLOR_TILES, { 2, 9 })
 
 LEVEL_EASY = 'EASY'
 LEVEL_MEDIUM = 'MEDIUM'
@@ -90,9 +90,9 @@ end
     last two haven't been a match.
 ]]
 function Board:calculateMatches(isInitialization)
+    -- used so we dont do row destruction sounds on initialization
     isInitialization = isInitialization or false
 
-    print("--calculateMatches--")
     local matches = {}
 
     -- how many of the same color blocks in a row we've found
@@ -212,7 +212,6 @@ function Board:calculateMatches(isInitialization)
 
     -- vertical matches
     for x = 1, BOARD_GRID_SIZE.x do
-        print("VERTICAL")
         local colorToMatch = self.tiles[1][x].color
         matchNum = 1
 
@@ -244,7 +243,6 @@ function Board:calculateMatches(isInitialization)
                         for y2 = y - 1, y - matchNum, -1 do
                             -- tile is shiny boy, destroy that row
                             if self.tiles[y2][x].powerupType == TILE_POWERUPS[TILE_PUP_DESTORY_ROW] then
-                                print("Vert X:", x, y2)
                                 -- add entire row
                                 for xR = 0, BOARD_GRID_SIZE.x, 1 do
                                     table.insert(match, self.tiles[y2][xR])
@@ -296,12 +294,13 @@ function Board:calculateMatches(isInitialization)
 
 
 
-            -- For Vertical Matches, Destroy the shiny boy rows, but not the dull boy's rows
+            -- For Vertical Matches,
+            -- Destroy the shiny boy rows,
+            -- but not the dull boy's rows
             if isDestroyerOfRows == true then
                 for y = BOARD_GRID_SIZE.y, BOARD_GRID_SIZE.y - matchNum + 1, -1 do
                     -- tile is shiny boy, destroy that row
                     if self.tiles[y][x].powerupType == TILE_POWERUPS[TILE_PUP_DESTORY_ROW] then
-                        print("Vert X:", x, y)
                         -- add entire row
                         for xR = 0, BOARD_GRID_SIZE.x, 1 do
                             table.insert(match, self.tiles[y][xR])
