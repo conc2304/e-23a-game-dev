@@ -98,7 +98,6 @@ function PlayState:update(dt)
         gStateMachine:change('begin-game', {
             level = self.level + 1,
             score = self.score
-            -- TODO HERE MAYBE
         })
     end
 
@@ -121,8 +120,9 @@ function PlayState:update(dt)
         -- if we've pressed enter, to select or deselect a tile...
         if love.keyboard.wasPressed('enter') or love.keyboard.wasPressed('return') then
             -- if same tile as currently highlighted, deselect
-            local x = self.boardHighlightX + 1
+            local x = self.boardHighlightX + 1 --  converting 0 based index to 1 based index
             local y = self.boardHighlightY + 1
+
 
             -- if nothing is highlighted, highlight current tile
             if not self.highlightedTile then
@@ -139,10 +139,10 @@ function PlayState:update(dt)
                 self.highlightedTile = nil
             else
                 -- swap grid positions of tiles
-                local tempX = self.highlightedTile.gridX
+                local tempX = self.highlightedTile.gridX -- the one first selected
                 local tempY = self.highlightedTile.gridY
 
-                local newTile = self.board.tiles[y][x]
+                local newTile = self.board.tiles[y][x] -- new tile selected to match
 
                 self.highlightedTile.gridX = newTile.gridX
                 self.highlightedTile.gridY = newTile.gridY
@@ -162,9 +162,48 @@ function PlayState:update(dt)
                 })
 
                 -- once the swap is finished, we can tween falling blocks as needed
-                    :finish(function()
-                        self:calculateMatches()
-                    end)
+                    :finish(
+                        function()
+                            -- check if this move creates a match
+                            local matches = self.board:calculateMatches(true)
+                            -- if it does not create a match then
+                            if matches == false then
+                                -- tween/swap the visual tiles back to their original position
+                                Timer.tween(0.1, {
+                                    [self.highlightedTile] = { x = newTile.x, y = newTile.y },
+                                    [newTile] = { x = self.highlightedTile.x, y = self.highlightedTile.y }
+                                })
+                                -- put board highlight back where it
+                                -- boardHighlightX is 0 index but tile grid is 1 index so -1
+                                self.boardHighlightX = tempX - 1
+                                self.boardHighlightY = tempY - 1
+
+                                -- swap the board tiles back to their original data position
+                                -- swap tiles in the tiles table
+                                -- this is what we swapped them to prior, so reverse this
+                                tempX = self.highlightedTile.gridX
+                                tempY = self.highlightedTile.gridY
+
+                                -- Swap the grid positions back
+                                self.highlightedTile.gridX = newTile.gridX
+                                self.highlightedTile.gridY = newTile.gridY
+                                newTile.gridX = tempX
+                                newTile.gridY = tempY
+
+                                -- Swap the tiles back in the tiles table
+                                self.board.tiles[self.highlightedTile.gridY][self.highlightedTile.gridX] = self
+                                    .highlightedTile
+                                self.board.tiles[newTile.gridY][newTile.gridX] = newTile
+
+                                -- unselect highlighted tile
+                                self.highlightedTile = nil
+                                gSounds['error']:play()
+                            else
+                                -- else proceed as normal
+                                self:calculateMatches()
+                            end
+                        end
+                    )
             end
         end
     end
@@ -180,13 +219,13 @@ end
     have matched and replaces them with new randomized tiles, deferring most of this
     to the Board class.
 ]]
-function PlayState:calculateMatches()
+function PlayState:calculateMatches(isInitialization)
     self.highlightedTile = nil
 
     local bonusAmount = 25 -- per level
 
     -- if we have any matches, remove them and tween the falling blocks that result
-    local matches = self.board:calculateMatches()
+    local matches = self.board:calculateMatches(isInitialization)
 
     if matches then
         gSounds['match']:stop()
