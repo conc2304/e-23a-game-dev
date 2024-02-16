@@ -90,6 +90,7 @@ end
     last two haven't been a match.
 ]]
 function Board:calculateMatches()
+    print("--calculateMatches--")
     local matches = {}
 
     -- how many of the same color blocks in a row we've found
@@ -97,29 +98,50 @@ function Board:calculateMatches()
 
     -- horizontal matches first
     for y = 1, BOARD_GRID_SIZE.y do
+        print("HORIZONTAL")
         local colorToMatch = self.tiles[y][1].color
 
+
+        local matchHasOppenheimerTile = self.tiles[y][1].powerupType == TILE_POWERUPS[TILE_PUP_DESTORY_ROW]
+        print("BOMB [outer y]:", 1, y, matchHasOppenheimerTile)
         matchNum = 1
 
         -- every horizontal tile
         for x = 2, BOARD_GRID_SIZE.x do
+            local currentTile = self.tiles[y][x]
+
+            -- only update to true
+            matchHasOppenheimerTile = matchHasOppenheimerTile or currentTile.powerupType ==
+                TILE_POWERUPS[TILE_PUP_DESTORY_ROW]
+            -- print("matchHasOppenheimerTile x: ", x, y, matchHasOppenheimerTile)
+
             -- if this is the same color as the one we're trying to match...
-            if self.tiles[y][x].color == colorToMatch then
+            if currentTile.color == colorToMatch then
                 matchNum = matchNum + 1
             else
                 -- set this as the new color we want to watch for
-                colorToMatch = self.tiles[y][x].color
+                colorToMatch = currentTile.color
 
                 -- if we have a match of 3 or more up to now, add it to our matches table
                 if matchNum >= MIN_MATCH_QTY then
+                    print("Local Match: ", matchNum)
+                    print("Pos: " .. tostring(x) .. ', ' .. tostring(y))
                     local match = {}
 
-                    -- go backwards from here by matchNum
-                    for x2 = x - 1, x - matchNum, -1 do
-                        -- add each tile to the match that's in that match
-                        table.insert(match, self.tiles[y][x2])
-                    end
+                    -- if our match has a row destoyer then add the entire row to this match table
+                    print("matchHasOppenheimerTile MATCH: ", matchHasOppenheimerTile)
+                    if matchHasOppenheimerTile == true then
+                        for xR = 1, #self.tiles[y], 1 do
+                            table.insert(match, self.tiles[y][xR])
+                        end
+                    else
+                        -- go backwards from here by matchNum
 
+                        for x2 = x - 1, x - matchNum, -1 do
+                            -- add each tile to the match that's in that match
+                            table.insert(match, self.tiles[y][x2])
+                        end
+                    end
                     -- add this match to our total matches table
                     table.insert(matches, match)
                 end
@@ -145,25 +167,44 @@ function Board:calculateMatches()
             table.insert(matches, match)
         end
     end
+    -- END HORIZONTAL CHECK
 
     -- vertical matches
     for x = 1, BOARD_GRID_SIZE.x do
+        print("VERTICAL")
         local colorToMatch = self.tiles[1][x].color
 
+        local matchHasOppenheimerTile = self.tiles[1][x].powerupType == TILE_POWERUPS[TILE_PUP_DESTORY_ROW]
+        print("BOMB [outer y]:", x, 1, matchHasOppenheimerTile)
         matchNum = 1
 
         -- every vertical tile
         for y = 2, BOARD_GRID_SIZE.y do
-            if self.tiles[y][x].color == colorToMatch then
+            local currentTile = self.tiles[y][x]
+
+            -- only update to true
+            matchHasOppenheimerTile = matchHasOppenheimerTile or currentTile.powerupType ==
+                TILE_POWERUPS[TILE_PUP_DESTORY_ROW]
+
+            if currentTile.color == colorToMatch then
                 matchNum = matchNum + 1
             else
-                colorToMatch = self.tiles[y][x].color
+                colorToMatch = currentTile.color
 
                 if matchNum >= MIN_MATCH_QTY then
+                    print("Local Match: ", matchNum)
+                    print("Pos: " .. tostring(x) .. ', ' .. tostring(y))
                     local match = {}
 
-                    for y2 = y - 1, y - matchNum, -1 do
-                        table.insert(match, self.tiles[y2][x])
+                    print("matchHasOppenheimerTile MATCH: ", matchHasOppenheimerTile)
+                    if matchHasOppenheimerTile == true then
+                        for xR = 1, #self.tiles[y], 1 do
+                            table.insert(match, self.tiles[y][xR])
+                        end
+                    else
+                        for y2 = y - 1, y - matchNum, -1 do
+                            table.insert(match, self.tiles[y2][x])
+                        end
                     end
 
                     table.insert(matches, match)
@@ -197,6 +238,8 @@ function Board:calculateMatches()
     -- return matches table if > 0, else just return false
     return #self.matches > 0 and self.matches or false
 end
+
+-- END CALCULATEMATCHES
 
 --[[
     Remove the matches from the Board by just setting the Tile slots within

@@ -43,8 +43,6 @@ function Tile:init(x, y, color, variety, powerupType)
 
     self.powerupType = TILE_POWERUPS[powerupType] or nil
     self.opacityStrober = 1
-
-    print('pup type: ', self.powerupType)
 end
 
 function Tile:render(x, y)
@@ -66,8 +64,12 @@ function Tile:render(x, y)
     love.graphics.draw(gTextures['main'], gFrames['tiles'][self.color][self.variety],
         self.x + x, self.y + y)
 
+    -- TODO FIGURE OUT WHY THE PSYSTEM NOT WORKING
     if self.powerupType ~= nil then
         -- do the power up render
+        love.graphics.setColor(255, 1, 1, 1)
+        love.graphics.setFont(gFonts['medium'])
+        love.graphics.printf('X', self.x + x + 1, self.y + TILE_HIGHT - 8, TILE_WIDTH, 'center')
     end
 end
 

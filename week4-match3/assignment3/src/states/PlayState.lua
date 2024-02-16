@@ -169,7 +169,7 @@ function PlayState:update(dt)
         end
     end
 
-    self.board:update(dt)
+    -- self.board:update(dt)
 
     Timer.update(dt)
 end
@@ -183,6 +183,8 @@ end
 function PlayState:calculateMatches()
     self.highlightedTile = nil
 
+    local bonusAmount = 25 -- per level
+
     -- if we have any matches, remove them and tween the falling blocks that result
     local matches = self.board:calculateMatches()
 
@@ -194,14 +196,15 @@ function PlayState:calculateMatches()
         for k, match in pairs(matches) do
             self.score = self.score + #match * 50
 
-            bonusAmount = 25 -- per level
+            --
             for _, tile in pairs(match) do
                 local tileVariety = tile.variety
-                print("Tile Variety Pointer: ", tileVariety)
-                print("Tile Variety Bonus: ", (bonusAmount * (tileVariety - 1)))
-                self.score = self.score + (bonusAmount * (tileVariety - 1))
+
+                -- check the matches for bonus point tiles
+                -- for any tile above variety 1 assign extra points
+                self.score = self.score +
+                (bonusAmount * (tileVariety - 1))                           -- if variety is 1 then multiply by 0 to assign no extra points
             end
-            -- check the matches for bonus point tiles
 
             -- scoring a match extends the timer by 1 second per tile in a match.
             self.timer = self.timer + #match
