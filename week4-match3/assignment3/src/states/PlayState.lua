@@ -129,9 +129,7 @@ function PlayState:update(dt)
         -- if we've pressed enter, to select or deselect a tile...
         if love.keyboard.wasPressed('enter') or love.keyboard.wasPressed('return') then
             -- if same tile as currently highlighted, deselect
-            -- local x = self.boardHighlightX + 1 --  converting 0 based index to 1 based index
-            -- local y = self.boardHighlightY + 1
-            local x = self.boardHighlightX --  converting 0 based index to 1 based index
+            local x = self.boardHighlightX
             local y = self.boardHighlightY
 
             -- if nothing is highlighted, highlight current tile
@@ -176,38 +174,12 @@ function PlayState:update(dt)
                         function()
                             -- post user swap : check if this move creates a match
 
-                            local matches = self.board:calculateMatches(true) -- initialization flag so we dont trigger sounds
+                            local matches = self.board:calculateMatches()
 
                             -- if it does not create a match then
+                            -- tween/swap the visual tiles back to their original position
                             if matches == false then
-                                -- tween/swap the visual tiles back to their original position
-                                Timer.tween(0.1, {
-                                    [self.highlightedTile] = { x = newTile.x, y = newTile.y },
-                                    [newTile] = { x = self.highlightedTile.x, y = self.highlightedTile.y }
-                                })
-
-                                -- put board highlight back where it
-                                -- boardHighlightX is 0 index but tile grid is 1 index so -1
-                                self.boardHighlightX = tempX
-                                self.boardHighlightY = tempY
-
-                                -- swap the board tiles back to their original data position
-                                tempX = self.highlightedTile.gridX
-                                tempY = self.highlightedTile.gridY
-
-                                self.highlightedTile.gridX = newTile.gridX
-                                self.highlightedTile.gridY = newTile.gridY
-                                newTile.gridX = tempX
-                                newTile.gridY = tempY
-                                self.board.tiles[self.highlightedTile.gridY][self.highlightedTile.gridX] = self
-                                    .highlightedTile
-                                self.board.tiles[newTile.gridY][newTile.gridX] = newTile
-
-                                -- unselect highlighted tile
-                                self.highlightedTile = nil
-
-                                -- give user feedback
-                                gSounds['error']:play()
+                                self:handleBadSwap(newTile, { x = tempX, y = tempY })
                             else
                                 -- else proceed as normal
                                 self:calculateMatches()
@@ -225,6 +197,7 @@ function PlayState:update(dt)
 
                                 if movingTile ~= nil and targetTile ~= nil then
                                     print(movingTile.gridX, movingTile.gridY)
+                                    print(targetTile.gridX, targetTile.gridY)
                                     self.showHintTile = true
                                     self.hintTileX = movingTile.gridX
                                     self.hintTileY = movingTile.gridY
@@ -312,6 +285,7 @@ function PlayState:calculateMatches(isInitialization)
             -- recursively call function in case new matches have been created
             -- as a result of falling blocks once new blocks have finished falling
             self:calculateMatches()
+            print("TIMER CACULATE MATCHES")
         end)
 
         -- if no matches, we can continue playing
@@ -373,4 +347,36 @@ function PlayState:render()
     love.graphics.printf('Score: ' .. tostring(self.score), 20, 52, 182, 'center')
     love.graphics.printf('Goal : ' .. tostring(self.scoreGoal), 20, 80, 182, 'center')
     love.graphics.printf('Timer: ' .. tostring(self.timer), 20, 108, 182, 'center')
+end
+
+function PlayState:handleBadSwap(tile, oldPos)
+    local tempX, tempY = oldPos.x, oldPos.y
+    local newTile = tile
+
+    Timer.tween(0.1, {
+        [self.highlightedTile] = { x = newTile.x, y = newTile.y },
+        [newTile] = { x = self.highlightedTile.x, y = self.highlightedTile.y }
+    })
+
+    -- put board highlight back where it
+    self.boardHighlightX = tempX
+    self.boardHighlightY = tempY
+
+    -- swap the board tiles back to their original data position
+    tempX = self.highlightedTile.gridX
+    tempY = self.highlightedTile.gridY
+
+    self.highlightedTile.gridX = newTile.gridX
+    self.highlightedTile.gridY = newTile.gridY
+    newTile.gridX = tempX
+    newTile.gridY = tempY
+    self.board.tiles[self.highlightedTile.gridY][self.highlightedTile.gridX] = self
+        .highlightedTile
+    self.board.tiles[newTile.gridY][newTile.gridX] = newTile
+
+    -- unselect highlighted tile
+    self.highlightedTile = nil
+
+    -- give user feedback
+    gSounds['error']:play()
 end

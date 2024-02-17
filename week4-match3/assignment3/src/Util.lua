@@ -206,7 +206,7 @@ function CheckPossibleMatches(boardOrig)
                 boardHighlightX = math.min(BOARD_GRID_SIZE.x, boardHighlightX + 1)
             end
 
-            local xB = boardHighlightX --  converting 0 based index to 1 based index
+            local xB = boardHighlightX
             local yB = boardHighlightY
 
             print("TILE B: ", xB, yB)

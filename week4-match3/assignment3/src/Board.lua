@@ -101,6 +101,9 @@ function Board:calculateMatches()
     -- how many of the same color blocks in a row we've found
     local matchNum = 1
 
+    local boardHasPotentialMatches = false
+    local potentialMatches = {}
+
     -- horizontal matches first
     for y = 1, BOARD_GRID_SIZE.y do
         local colorToMatch = self.tiles[y][1].color
@@ -126,7 +129,6 @@ function Board:calculateMatches()
                     -- first check if we have an Oppenheimer Tile
                     -- then we will either add the individual tile, or the whole row
                     local isDestroyerOfRows = false;
-
                     for x2 = x - 1, x - matchNum, -1 do
                         if self.tiles[y][x2].powerupType == TILE_POWERUPS[TILE_PUP_DESTORY_ROW] then
                             isDestroyerOfRows = true
@@ -309,7 +311,7 @@ function Board:calculateMatches()
     self.matches = matches
 
     -- return matches table if > 0, else just return false
-    return #self.matches > 0 and self.matches or false
+    return #self.matches > 0 and self.matches or boardHasPotentialMatches
 end
 
 -- END CALCULATEMATCHES
