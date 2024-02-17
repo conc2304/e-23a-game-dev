@@ -187,27 +187,27 @@ function CheckPossibleMatches(boardOrig)
 
         local xA, yA = boardPosition.x, boardPosition.y
 
-        local highlightedTile = boardCopy.tiles[yA][xA]   -- stationary
+        local highlightedTile = boardCopy.tiles[yA][xA] -- stationary
 
-        local boardHighlightY = highlightedTile.gridY - 1 -- target that will move 1 in all direction from stationary
-        local boardHighlightX = highlightedTile.gridX - 1 -- target
+        local boardHighlightY = highlightedTile.gridY   -- target that will move 1 in all direction from stationary
+        local boardHighlightX = highlightedTile.gridX   -- target
         print("TILE A: ", xA, yA)
 
         -- move this tile in all of the available directions
         for _, dir in pairs(directions) do
             print("dir", dir)
             if dir == 'up' then
-                boardHighlightY = math.max(0, boardHighlightY - 1)
+                boardHighlightY = math.max(1, boardHighlightY - 1)
             elseif dir == 'down' then
-                boardHighlightY = math.min(7, boardHighlightY + 1)
+                boardHighlightY = math.min(BOARD_GRID_SIZE.y, boardHighlightY + 1)
             elseif dir == 'left' then
-                boardHighlightX = math.max(0, boardHighlightX - 1)
+                boardHighlightX = math.max(1, boardHighlightX - 1)
             elseif dir == 'right' then
-                boardHighlightX = math.min(7, boardHighlightX + 1)
+                boardHighlightX = math.min(BOARD_GRID_SIZE.x, boardHighlightX + 1)
             end
 
-            local xB = boardHighlightX + 1 --  converting 0 based index to 1 based index
-            local yB = boardHighlightY + 1
+            local xB = boardHighlightX --  converting 0 based index to 1 based index
+            local yB = boardHighlightY
 
             print("TILE B: ", xB, yB)
 

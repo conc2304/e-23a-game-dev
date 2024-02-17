@@ -23,8 +23,8 @@ function PlayState:init()
     self.transitionAlpha = 1
 
     -- position in the grid which we're highlighting
-    self.boardHighlightX = 0
-    self.boardHighlightY = 0
+    self.boardHighlightX = 1
+    self.boardHighlightY = 1
 
     -- timer used to switch the highlight rect's color
     self.rectHighlighted = false
@@ -113,24 +113,26 @@ function PlayState:update(dt)
     if self.canInput then
         -- move cursor around based on bounds of grid, playing sounds
         if love.keyboard.wasPressed('up') then
-            self.boardHighlightY = math.max(0, self.boardHighlightY - 1)
+            self.boardHighlightY = math.max(1, self.boardHighlightY - 1)
             gSounds['select']:play()
         elseif love.keyboard.wasPressed('down') then
-            self.boardHighlightY = math.min(7, self.boardHighlightY + 1)
+            self.boardHighlightY = math.min(BOARD_GRID_SIZE.y, self.boardHighlightY + 1)
             gSounds['select']:play()
         elseif love.keyboard.wasPressed('left') then
-            self.boardHighlightX = math.max(0, self.boardHighlightX - 1)
+            self.boardHighlightX = math.max(1, self.boardHighlightX - 1)
             gSounds['select']:play()
         elseif love.keyboard.wasPressed('right') then
-            self.boardHighlightX = math.min(7, self.boardHighlightX + 1)
+            self.boardHighlightX = math.min(BOARD_GRID_SIZE.x, self.boardHighlightX + 1)
             gSounds['select']:play()
         end
 
         -- if we've pressed enter, to select or deselect a tile...
         if love.keyboard.wasPressed('enter') or love.keyboard.wasPressed('return') then
             -- if same tile as currently highlighted, deselect
-            local x = self.boardHighlightX + 1 --  converting 0 based index to 1 based index
-            local y = self.boardHighlightY + 1
+            -- local x = self.boardHighlightX + 1 --  converting 0 based index to 1 based index
+            -- local y = self.boardHighlightY + 1
+            local x = self.boardHighlightX --  converting 0 based index to 1 based index
+            local y = self.boardHighlightY
 
             -- if nothing is highlighted, highlight current tile
             if not self.highlightedTile then
@@ -186,8 +188,8 @@ function PlayState:update(dt)
 
                                 -- put board highlight back where it
                                 -- boardHighlightX is 0 index but tile grid is 1 index so -1
-                                self.boardHighlightX = tempX - 1
-                                self.boardHighlightY = tempY - 1
+                                self.boardHighlightX = tempX
+                                self.boardHighlightY = tempY
 
                                 -- swap the board tiles back to their original data position
                                 tempX = self.highlightedTile.gridX
@@ -224,11 +226,11 @@ function PlayState:update(dt)
                                 if movingTile ~= nil and targetTile ~= nil then
                                     print(movingTile.gridX, movingTile.gridY)
                                     self.showHintTile = true
-                                    self.hintTileX = movingTile.gridX - 1
-                                    self.hintTileY = movingTile.gridY - 1
+                                    self.hintTileX = movingTile.gridX
+                                    self.hintTileY = movingTile.gridY
 
-                                    self.hintTargetTileX = targetTile.gridX - 1
-                                    self.hintTargetTileY = targetTile.gridY - 1
+                                    self.hintTargetTileX = targetTile.gridX
+                                    self.hintTargetTileY = targetTile.gridY
                                 else
                                     self.showHintTile = false
                                 end
@@ -344,8 +346,8 @@ function PlayState:render()
 
     -- draw actual cursor rect
     love.graphics.setLineWidth(4)
-    love.graphics.rectangle('line', self.boardHighlightX * 32 + (VIRTUAL_WIDTH - 272),
-        self.boardHighlightY * 32 + 16, 32, 32, 4)
+    love.graphics.rectangle('line', (self.boardHighlightX - 1) * TILE_WIDTH + (VIRTUAL_WIDTH - 272),
+        (self.boardHighlightY - 1) * TILE_HIGHT + 16, TILE_WIDTH, TILE_HIGHT, 4)
 
     -- draw hint
     if self.showHintTile == true and self.hintTileX ~= nil and self.hintTileY ~= nil then
