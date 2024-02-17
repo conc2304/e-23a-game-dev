@@ -97,17 +97,53 @@ function Board:calculateMatches()
 
     local boardHasPotentialMatches = false
     local potentialMatches = {}
+    local potentialMatchNum = 1
 
     -- horizontal matches first
     for y = 1, BOARD_GRID_SIZE.y do
-        local colorToMatch = self.tiles[y][1].color
+        local tileToMatch = self.tiles[y][1]
+        local colorToMatch = tileToMatch.color
 
         matchNum = 1
+        potentialMatchNum = 1
 
         -- every horizontal tile
         for x = 2, BOARD_GRID_SIZE.x do
             local currentTile = self.tiles[y][x]
+            local currentColor = self.tiles[y][x].color
 
+            currentTile.showHint = false;
+            local neighborsH = {}
+            local rangeX = 2
+            local machNumPH = 1
+            -- one immediate neighbor is necessary
+
+            -- print("Every Horizontal Tile")
+            -- print(x, y)
+
+            local neighborLeftIsMatch = x - 1 > 0 and self.tiles[y][x - 1].color == currentColor
+            local neighborRightIsMatch = x + 1 <= BOARD_GRID_SIZE.y and self.tiles[y][x + 1].color == currentColor
+            local neighborLeft2IsMatch = x - 2 > 0 and self.tiles[y][x - 2].color == currentColor
+            local neighborRight2IsMatch = x + 2 <= BOARD_GRID_SIZE.y and self.tiles[y][x + 2].color == currentColor
+
+            if neighborLeft2IsMatch and neighborRightIsMatch then
+                print("match possible horizontal: ", y)
+                print(x, y)
+                print(self.tiles[y][x - 2].color, currentColor, self.tiles[y][x + 1].color)
+                print(x - 2, x, x + 1)
+                self.tiles[y][x - 2].showHint = true
+                currentTile.showHint = true
+                self.tiles[y][x + 1].showHint = true
+            end
+            if neighborLeftIsMatch and neighborRight2IsMatch then
+                print("match possible horizontal", y)
+                print(x, y)
+                print(self.tiles[y][x - 1].color, currentColor, self.tiles[y][x + 2].color)
+                print(x - 1, x, x + 2)
+                self.tiles[y][x - 1].showHint = true
+                currentTile.showHint = true
+                self.tiles[y][x + 2].showHint = true
+            end
 
             -- if this is the same color as the one we're trying to match...
             if currentTile.color == colorToMatch then
@@ -115,6 +151,7 @@ function Board:calculateMatches()
             else
                 -- set this as the new color we want to watch for
                 colorToMatch = currentTile.color
+
 
                 -- if we have a match of 3 or more up to now, add it to our matches table
                 if matchNum >= MIN_MATCH_QTY then
@@ -275,6 +312,7 @@ function Board:calculateMatches()
             -- For Vertical Matches,
             -- Destroy the shiny boy rows,
             -- but not the dull boy's rows
+            -- assignment said "rows" and not "columns" so doing doing any row with shiny
             if isDestroyerOfRows == true then
                 for y = BOARD_GRID_SIZE.y, BOARD_GRID_SIZE.y - matchNum + 1, -1 do
                     -- tile is shiny boy, destroy that row

@@ -40,6 +40,12 @@ function Tile:init(x, y, color, variety, powerupType)
     -- tile appearance/points
     self.color = color
     self.variety = variety
+    self.strobeHint = false
+    self.showHint = false
+    -- set our Timer class to turn cursor highlight on and off
+    Timer.every(0.5, function()
+        self.strobeHint = not self.strobeHint
+    end)
 
     self.powerupType = TILE_POWERUPS[powerupType] or nil
 end
@@ -52,14 +58,16 @@ function Tile:render(x, y)
 
     -- draw shadow
 
-    love.graphics.setColor(34, 32, 52, 1)
+    local opacity = 1
+    if self.showHint and self.strobeHint then
+        opacity = 0.7
+    end
+    love.graphics.setColor(34, 32, 52, opacity)
     love.graphics.draw(gTextures['main'], gFrames['tiles'][self.color][self.variety],
         self.x + x + 2, self.y + y + 2)
 
     -- draw tile itself
-
-
-    love.graphics.setColor(255, 255, 255, 1) -- alpha is from 0-1 not 255
+    love.graphics.setColor(255, 255, 255, opacity) -- alpha is from 0-1 not 255
     love.graphics.draw(gTextures['main'], gFrames['tiles'][self.color][self.variety],
         self.x + x, self.y + y)
 

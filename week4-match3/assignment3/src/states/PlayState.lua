@@ -183,36 +183,6 @@ function PlayState:update(dt)
                             else
                                 -- else proceed as normal
                                 self:calculateMatches()
-
-                                -- -- TODO implment check matches here
-                                -- -- once we have caclulated matches and updated the board
-                                -- -- then we check for possible matches
-                                -- -- test if the user has any available matches that are possible
-                                -- local matchResults = CheckPossibleMatches(self.board)
-                                -- local matchesPossible = matchResults['possibleMatches']
-                                -- local movingTile = matchResults['tile']
-                                -- local targetTile = matchResults['target']
-
-                                -- print("Matches Possible: ", #matchesPossible)
-
-                                -- if movingTile ~= nil and targetTile ~= nil then
-                                --     print(movingTile.gridX, movingTile.gridY)
-                                --     print(targetTile.gridX, targetTile.gridY)
-                                --     self.showHintTile = true
-                                --     self.hintTileX = movingTile.gridX
-                                --     self.hintTileY = movingTile.gridY
-
-                                --     self.hintTargetTileX = targetTile.gridX
-                                --     self.hintTargetTileY = targetTile.gridY
-                                -- else
-                                --     self.showHintTile = false
-                                -- end
-
-                                -- if #matchesPossible == 0 then
-                                --     -- generate a new board after displaying a messages
-                                --     print("NEW BOARD _ NO MATCHES")
-                                --     self.board = Board(VIRTUAL_WIDTH - 272, 16, self.level)
-                                -- end
                             end
                         end -- end of anonymous function in Finish
                     )       -- end of Timer:Finish()
@@ -285,7 +255,6 @@ function PlayState:calculateMatches()
             -- recursively call function in case new matches have been created
             -- as a result of falling blocks once new blocks have finished falling
             self:calculateMatches()
-            print("TIMER CACULATE MATCHES")
         end)
 
         -- if no matches, we can continue playing
