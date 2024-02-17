@@ -86,6 +86,7 @@ function PlayState:update(dt)
         -- clear timers from prior PlayStates
         Timer.clear()
 
+        print("game-over")
         gSounds['game-over']:play()
 
         gStateMachine:change('game-over', {

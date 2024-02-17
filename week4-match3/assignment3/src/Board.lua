@@ -50,12 +50,6 @@ function Board:init(x, y, level)
     self.difficulty = GetDifficultyByLevel(self.level)
 
     self:initializeTiles()
-    -- local t = 8
-    -- self.tiles[t - 3][t].color = TILE_COLOR_MAX
-    -- self.tiles[t - 3][t].variety = TILE_VARIETY_MAX
-
-    -- print_r("self.tiles[8][8]")
-    -- print_r(self.tiles[t - 3][t])
 end
 
 function Board:initializeTiles()
