@@ -50,6 +50,8 @@ function Board:init(x, y, level)
     self.difficulty = GetDifficultyByLevel(self.level)
 
     self:initializeTiles()
+
+    -- self.tiles[1][1].showHint = true
 end
 
 function Board:initializeTiles()
@@ -122,28 +124,27 @@ function Board:calculateMatches()
             -- print(x, y)
 
             local neighborLeftIsMatch = x - 1 > 0 and self.tiles[y][x - 1].color == currentColor
-            local neighborRightIsMatch = x + 1 <= BOARD_GRID_SIZE.y and self.tiles[y][x + 1].color == currentColor
+            local neighborRightIsMatch = x + 1 <= BOARD_GRID_SIZE.x and self.tiles[y][x + 1].color == currentColor
             local neighborLeft2IsMatch = x - 2 > 0 and self.tiles[y][x - 2].color == currentColor
-            local neighborRight2IsMatch = x + 2 <= BOARD_GRID_SIZE.y and self.tiles[y][x + 2].color == currentColor
+            local neighborRight2IsMatch = x + 2 <= BOARD_GRID_SIZE.x and self.tiles[y][x + 2].color == currentColor
 
+            --  test tile left and right are the same as above and below
             if neighborLeft2IsMatch and neighborRightIsMatch then
-                print("match possible horizontal: ", y)
-                print(x, y)
-                print(self.tiles[y][x - 2].color, currentColor, self.tiles[y][x + 1].color)
-                print(x - 2, x, x + 1)
                 self.tiles[y][x - 2].showHint = true
                 currentTile.showHint = true
                 self.tiles[y][x + 1].showHint = true
             end
             if neighborLeftIsMatch and neighborRight2IsMatch then
-                print("match possible horizontal", y)
-                print(x, y)
-                print(self.tiles[y][x - 1].color, currentColor, self.tiles[y][x + 2].color)
-                print(x - 1, x, x + 2)
                 self.tiles[y][x - 1].showHint = true
                 currentTile.showHint = true
                 self.tiles[y][x + 2].showHint = true
             end
+
+
+            local neighborAboveColorCanMatch = y - 1 > 0 and self.tiles[y - 1][x].color == self.tiles[y][x - 1].color and
+                self.tiles[y - 1][x].color == self.tiles[y][x + 1].color
+            local neigborBelowColorCanMatch = y + 1 <= BOARD_GRID_SIZE.y and self.tiles[y + 1][x].color
+
 
             -- if this is the same color as the one we're trying to match...
             if currentTile.color == colorToMatch then
@@ -240,6 +241,25 @@ function Board:calculateMatches()
         -- every vertical tile
         for y = 2, BOARD_GRID_SIZE.y do
             local currentTile = self.tiles[y][x]
+            local currentColor = self.tiles[y][x].color
+            currentTile.showHint = false;
+
+            local neighborUpIsMatch = y - 1 > 0 and self.tiles[y - 1][x].color == currentColor
+            local neighborDowntIsMatch = y + 1 <= BOARD_GRID_SIZE.y and self.tiles[y + 1][x].color == currentColor
+            local neighborUp2IsMatch = y - 2 > 0 and self.tiles[y - 2][x].color == currentColor
+            local neighborDown2IsMatch = y + 2 <= BOARD_GRID_SIZE.y and self.tiles[y + 2][x].color == currentColor
+
+            if neighborUp2IsMatch and neighborDowntIsMatch then
+                self.tiles[y - 2][x].showHint = true
+                currentTile.showHint = true
+                self.tiles[y + 1][x].showHint = true
+            end
+            if neighborUpIsMatch and neighborDown2IsMatch then
+                self.tiles[y - 1][x].showHint = true
+                currentTile.showHint = true
+                self.tiles[y + 2][x].showHint = true
+            end
+
 
             if currentTile.color == colorToMatch then
                 matchNum = matchNum + 1

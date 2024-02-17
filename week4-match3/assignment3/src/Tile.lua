@@ -47,6 +47,10 @@ function Tile:init(x, y, color, variety, powerupType)
         self.strobeHint = not self.strobeHint
     end)
 
+    Timer.every(0.05, function()
+        self.strobeShiny = not self.strobeShiny
+    end)
+
     self.powerupType = TILE_POWERUPS[powerupType] or nil
 end
 
