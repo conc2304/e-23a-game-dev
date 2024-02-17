@@ -32,6 +32,8 @@ function PlayState:init()
     self.showHintTile = false
     self.hintTileX = nil
     self.hintTileY = nil
+    self.hintTargetTileX = nil
+    self.hintTargetTileY = nil
 
     -- flag to show whether we're able to process input (not swapping or clearing)
     self.canInput = true
@@ -215,14 +217,20 @@ function PlayState:update(dt)
                                 local matchResults = CheckPossibleMatches(self.board)
                                 local matchesPossible = matchResults['possibleMatches']
                                 local movingTile = matchResults['tile']
+                                local targetTile = matchResults['target']
 
                                 print("Matches Possible: ", #matchesPossible)
 
-                                if movingTile ~= nil then
+                                if movingTile ~= nil and targetTile ~= nil then
                                     print(movingTile.gridX, movingTile.gridY)
                                     self.showHintTile = true
-                                    self.hintTileX = BOARD_GRID_SIZE.x - movingTile.gridX
-                                    self.hintTileY = BOARD_GRID_SIZE.y - movingTile.gridY
+                                    self.hintTileX = movingTile.gridX - 1
+                                    self.hintTileY = movingTile.gridY - 1
+
+                                    self.hintTargetTileX = targetTile.gridX - 1
+                                    self.hintTargetTileY = targetTile.gridY - 1
+                                else
+                                    self.showHintTile = false
                                 end
 
                                 if #matchesPossible == 0 then
@@ -347,6 +355,12 @@ function PlayState:render()
             self.hintTileY * 32 + 16, 32, 32, 4)
     end
 
+    if self.showHintTile == true and self.hintTargetTileX ~= nil and self.hintTargetTileY ~= nil then
+        love.graphics.setColor(22 / 255, 150 / 255, 150 / 255, 0.7)
+        love.graphics.setLineWidth(4)
+        love.graphics.rectangle('line', self.hintTargetTileX * 32 + (VIRTUAL_WIDTH - 272),
+            self.hintTargetTileY * 32 + 16, 32, 32, 4)
+    end
     -- GUI text
     love.graphics.setColor(56 / 255, 56 / 255, 56 / 255, 234 / 255)
     love.graphics.rectangle('fill', 16, 16, 186, 116, 4)

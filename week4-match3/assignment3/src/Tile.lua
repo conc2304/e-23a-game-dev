@@ -42,7 +42,6 @@ function Tile:init(x, y, color, variety, powerupType)
     self.variety = variety
 
     self.powerupType = TILE_POWERUPS[powerupType] or nil
-    self.opacityStrober = 1
 end
 
 function Tile:render(x, y)

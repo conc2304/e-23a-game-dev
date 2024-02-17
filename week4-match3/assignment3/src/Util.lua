@@ -171,13 +171,17 @@ function CheckPossibleMatches(boardOrig)
     )
 
     local movingTile = nil
+    local targetTile = nil
 
     local directions = { 'up', 'down', 'left', 'right' }
     local function callbackOuter(_, boardPosition)
         -- bail out if we already have found 1 match
         if #possibleMatches > 0 then
-            print("MATCH FOUND")
-            print_r(possibleMatches)
+            print("MATCH FOUND", #possibleMatches)
+            print(possibleMatches)
+            for _, tile in pairs(possibleMatches[1]) do
+                print("XY", tile.gridX, tile.gridY)
+            end
             return
         end
 
@@ -191,6 +195,7 @@ function CheckPossibleMatches(boardOrig)
 
         -- move this tile in all of the available directions
         for _, dir in pairs(directions) do
+            print("dir", dir)
             if dir == 'up' then
                 boardHighlightY = math.max(0, boardHighlightY - 1)
             elseif dir == 'down' then
@@ -207,8 +212,10 @@ function CheckPossibleMatches(boardOrig)
             print("TILE B: ", xB, yB)
 
             if xA == xB and yA == yB then
-                break
+                print("same tile, skipping", dir)
+                goto continue
             end
+
 
             -- swap grid positions of tiles
             local tempX = highlightedTile.gridX -- the one first selected
@@ -229,11 +236,10 @@ function CheckPossibleMatches(boardOrig)
 
             boardCopy.tiles[newTile.gridY][newTile.gridX] = newTile
 
-            local matches = boardCopy:calculateMatches(true)
-            movingTile = newTile;
-            if matches ~= false then
-                possibleMatches = matches
-
+            possibleMatches = boardCopy:calculateMatches() or {}
+            movingTile = highlightedTile;
+            targetTile = newTile
+            if possibleMatches ~= false then
                 return
             end
             -- if no matches undo the move and keep going
@@ -247,6 +253,7 @@ function CheckPossibleMatches(boardOrig)
             newTile.gridY = tempY
             boardCopy.tiles[highlightedTile.gridY][highlightedTile.gridX] = highlightedTile
             boardCopy.tiles[newTile.gridY][newTile.gridX] = newTile
+            ::continue::
         end
     end
 
@@ -258,5 +265,6 @@ function CheckPossibleMatches(boardOrig)
     return {
         ['possibleMatches'] = possibleMatches,
         ['tile'] = movingTile,
+        ['target'] = targetTile,
     }
 end
