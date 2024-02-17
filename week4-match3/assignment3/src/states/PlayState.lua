@@ -184,35 +184,35 @@ function PlayState:update(dt)
                                 -- else proceed as normal
                                 self:calculateMatches()
 
-                                -- TODO implment check matches here
-                                -- once we have caclulated matches and updated the board
-                                -- then we check for possible matches
-                                -- test if the user has any available matches that are possible
-                                local matchResults = CheckPossibleMatches(self.board)
-                                local matchesPossible = matchResults['possibleMatches']
-                                local movingTile = matchResults['tile']
-                                local targetTile = matchResults['target']
+                                -- -- TODO implment check matches here
+                                -- -- once we have caclulated matches and updated the board
+                                -- -- then we check for possible matches
+                                -- -- test if the user has any available matches that are possible
+                                -- local matchResults = CheckPossibleMatches(self.board)
+                                -- local matchesPossible = matchResults['possibleMatches']
+                                -- local movingTile = matchResults['tile']
+                                -- local targetTile = matchResults['target']
 
-                                print("Matches Possible: ", #matchesPossible)
+                                -- print("Matches Possible: ", #matchesPossible)
 
-                                if movingTile ~= nil and targetTile ~= nil then
-                                    print(movingTile.gridX, movingTile.gridY)
-                                    print(targetTile.gridX, targetTile.gridY)
-                                    self.showHintTile = true
-                                    self.hintTileX = movingTile.gridX
-                                    self.hintTileY = movingTile.gridY
+                                -- if movingTile ~= nil and targetTile ~= nil then
+                                --     print(movingTile.gridX, movingTile.gridY)
+                                --     print(targetTile.gridX, targetTile.gridY)
+                                --     self.showHintTile = true
+                                --     self.hintTileX = movingTile.gridX
+                                --     self.hintTileY = movingTile.gridY
 
-                                    self.hintTargetTileX = targetTile.gridX
-                                    self.hintTargetTileY = targetTile.gridY
-                                else
-                                    self.showHintTile = false
-                                end
+                                --     self.hintTargetTileX = targetTile.gridX
+                                --     self.hintTargetTileY = targetTile.gridY
+                                -- else
+                                --     self.showHintTile = false
+                                -- end
 
-                                if #matchesPossible == 0 then
-                                    -- generate a new board after displaying a messages
-                                    print("NEW BOARD _ NO MATCHES")
-                                    self.board = Board(VIRTUAL_WIDTH - 272, 16, self.level)
-                                end
+                                -- if #matchesPossible == 0 then
+                                --     -- generate a new board after displaying a messages
+                                --     print("NEW BOARD _ NO MATCHES")
+                                --     self.board = Board(VIRTUAL_WIDTH - 272, 16, self.level)
+                                -- end
                             end
                         end -- end of anonymous function in Finish
                     )       -- end of Timer:Finish()
@@ -230,13 +230,13 @@ end
     have matched and replaces them with new randomized tiles, deferring most of this
     to the Board class.
 ]]
-function PlayState:calculateMatches(isInitialization)
+function PlayState:calculateMatches()
     self.highlightedTile = nil
 
     local bonusAmount = 25 -- per level
 
     -- if we have any matches, remove them and tween the falling blocks that result
-    local matches = self.board:calculateMatches(isInitialization)
+    local matches = self.board:calculateMatches()
 
     if matches then
         gSounds['match']:stop()
@@ -377,6 +377,7 @@ function PlayState:handleBadSwap(tile, oldPos)
     -- unselect highlighted tile
     self.highlightedTile = nil
 
+    print("ERROR")
     -- give user feedback
     gSounds['error']:play()
 end

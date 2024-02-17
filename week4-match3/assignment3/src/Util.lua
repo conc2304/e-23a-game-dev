@@ -127,14 +127,6 @@ function GetDifficultyByLevel(level)
     end
 end
 
-function CopyTable(table)
-    local copy = {}
-    for key, value in pairs(table) do
-        copy[key] = value
-    end
-    return copy
-end
-
 -- revamped deep copy from :https://gist.github.com/tylerneylon/81333721109155b2d244
 function DeepCopy(original)
     local original_type = type(original)
