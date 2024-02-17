@@ -50,6 +50,12 @@ function Board:init(x, y, level)
     self.difficulty = GetDifficultyByLevel(self.level)
 
     self:initializeTiles()
+    local t = 8
+    self.tiles[t - 3][t].color = TILE_COLOR_MAX
+    self.tiles[t - 3][t].variety = TILE_VARIETY_MAX
+
+    print_r("self.tiles[8][8]")
+    print_r(self.tiles[t - 3][t])
 end
 
 function Board:initializeTiles()
@@ -77,7 +83,7 @@ function Board:initializeTiles()
         end
     end
 
-    while self:calculateMatches(true) do
+    while self:calculateMatches() do
         -- recursively initialize if matches were returned so we always have
         -- a matchless board on start
         self:initializeTiles()
@@ -89,10 +95,7 @@ end
     tiles of the same color. Doesn't need to check the last tile in every row or column if the
     last two haven't been a match.
 ]]
-function Board:calculateMatches(isInitialization)
-    -- used so we dont do row destruction sounds on initialization
-    isInitialization = isInitialization or false
-
+function Board:calculateMatches()
     local matches = {}
 
     -- how many of the same color blocks in a row we've found
@@ -139,13 +142,6 @@ function Board:calculateMatches(isInitialization)
                         for xR = 0, BOARD_GRID_SIZE.x, 1 do
                             table.insert(match, self.tiles[y][xR])
                         end
-
-                        -- dont play sound on initialization, its annoying and you don't see it happend anyway
-                        if isInitialization ~= nil then
-                            -- play row desctruction sound
-                            gSounds['row-destruction']:stop()
-                            gSounds['row-destruction']:play()
-                        end
                     else
                         -- Match does not have a row destoyer, add individual tiles
                         -- go backwards from here by matchNum
@@ -188,13 +184,6 @@ function Board:calculateMatches(isInitialization)
                 -- add entire row to matches
                 for xR = 0, BOARD_GRID_SIZE.x, 1 do
                     table.insert(match, self.tiles[y][xR])
-                end
-
-                -- dont play sound on initialization, its annoying and you don't see it happend anyway
-                if isInitialization ~= nil then
-                    -- play row desctruction sound
-                    gSounds['row-destruction']:stop()
-                    gSounds['row-destruction']:play()
                 end
             else
                 -- Match does not have a row destoyer, add individual tiles
@@ -252,13 +241,6 @@ function Board:calculateMatches(isInitialization)
                                 table.insert(match, self.tiles[y2][x])
                             end
                         end
-
-                        -- dont play sound on initialization, its annoying and you don't see it happend
-                        if isInitialization ~= nil then
-                            -- play row desctruction sound
-                            gSounds['row-destruction']:stop()
-                            gSounds['row-destruction']:play()
-                        end
                     else
                         -- match set does not have row destoyer, add individual tiles
                         for y2 = y - 1, y - matchNum, -1 do
@@ -309,13 +291,6 @@ function Board:calculateMatches(isInitialization)
                         -- add single tile
                         table.insert(match, self.tiles[y][x])
                     end
-                end
-
-                -- dont play sound on initialization, its annoying and you don't see it happend
-                if isInitialization ~= nil then
-                    -- play row desctruction sound
-                    gSounds['row-destruction']:stop()
-                    gSounds['row-destruction']:play()
                 end
             else
                 -- match set does not have row destoyer, add individual tiles

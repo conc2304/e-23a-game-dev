@@ -85,10 +85,12 @@ end
 
 -- Stuff about this function
 function IterateOverBoard(board, callback)
-    for _, col_table in ipairs(board) do
-        for _, tile in ipairs(col_table) do
+    print("IterateOverBoard")
+    for y, col_table in ipairs(board) do
+        for x, tile in ipairs(col_table) do
             if callback ~= nil then
-                callback(tile)
+                local tilePos = { x = x, y = y }
+                callback(tile, tilePos)
             end
         end
     end
@@ -123,4 +125,138 @@ function GetDifficultyByLevel(level)
     else
         return LEVEL_EXPERT
     end
+end
+
+function CopyTable(table)
+    local copy = {}
+    for key, value in pairs(table) do
+        copy[key] = value
+    end
+    return copy
+end
+
+-- revamped deep copy from :https://gist.github.com/tylerneylon/81333721109155b2d244
+function DeepCopy(original)
+    local original_type = type(original)
+    local copy
+    if original_type == 'table' then
+        copy = {}
+        for original_key, original_value in next, original, nil do
+            copy[DeepCopy(original_key)] = DeepCopy(original_value)
+        end
+        setmetatable(copy, DeepCopy(getmetatable(original)))
+    else -- number, string, boolean, etc dont have nesting to travers
+        copy = original
+    end
+    return copy
+end
+
+function CheckPossibleMatches(boardOrig)
+    print("--CheckPossibleMatches--")
+
+    local possibleMatches = {}
+
+    -- make a copy of the board that we can mutate it safely
+    -- use Board class so taht we have access to cacluate matches
+    -- clean out the initialized tiles
+    local boardCopy = Board(VIRTUAL_WIDTH - 272, 16, 1) -- level doesnt matter
+
+    -- doing a deep copy of the full self.board creates a stack overflow
+    IterateOverBoard(boardOrig,
+        -- add our real tiles to our copy of the board
+        function(tile, tilePos)
+            local x, y = tilePos.x, tilePos.y
+            boardCopy.tiles[y][x] = DeepCopy(tile)
+        end
+    )
+
+    local movingTile = nil
+
+    local directions = { 'up', 'down', 'left', 'right' }
+    local function callbackOuter(_, boardPosition)
+        -- bail out if we already have found 1 match
+        if #possibleMatches > 0 then
+            print("MATCH FOUND")
+            print_r(possibleMatches)
+            return
+        end
+
+        local xA, yA = boardPosition.x, boardPosition.y
+
+        local highlightedTile = boardCopy.tiles[yA][xA]   -- stationary
+
+        local boardHighlightY = highlightedTile.gridY - 1 -- target that will move 1 in all direction from stationary
+        local boardHighlightX = highlightedTile.gridX - 1 -- target
+        print("TILE A: ", xA, yA)
+
+        -- move this tile in all of the available directions
+        for _, dir in pairs(directions) do
+            if dir == 'up' then
+                boardHighlightY = math.max(0, boardHighlightY - 1)
+            elseif dir == 'down' then
+                boardHighlightY = math.min(7, boardHighlightY + 1)
+            elseif dir == 'left' then
+                boardHighlightX = math.max(0, boardHighlightX - 1)
+            elseif dir == 'right' then
+                boardHighlightX = math.min(7, boardHighlightX + 1)
+            end
+
+            local xB = boardHighlightX + 1 --  converting 0 based index to 1 based index
+            local yB = boardHighlightY + 1
+
+            print("TILE B: ", xB, yB)
+
+            if xA == xB and yA == yB then
+                break
+            end
+
+            -- swap grid positions of tiles
+            local tempX = highlightedTile.gridX -- the one first selected
+            local tempY = highlightedTile.gridY
+
+            local newTile = boardCopy.tiles[yB][xB] -- new tile selected to match
+
+            print("newTile", xB, yB)
+            print_r(newTile)
+            highlightedTile.gridX = newTile.gridX
+            highlightedTile.gridY = newTile.gridY
+            newTile.gridX = tempX
+            newTile.gridY = tempY
+
+            -- swap tiles in the tiles table
+            boardCopy.tiles[highlightedTile.gridY][highlightedTile.gridX] =
+                highlightedTile
+
+            boardCopy.tiles[newTile.gridY][newTile.gridX] = newTile
+
+            local matches = boardCopy:calculateMatches(true)
+            movingTile = newTile;
+            if matches ~= false then
+                possibleMatches = matches
+
+                return
+            end
+            -- if no matches undo the move and keep going
+
+            tempX = highlightedTile.gridX
+            tempY = highlightedTile.gridY
+
+            highlightedTile.gridX = newTile.gridX
+            highlightedTile.gridY = newTile.gridY
+            newTile.gridX = tempX
+            newTile.gridY = tempY
+            boardCopy.tiles[highlightedTile.gridY][highlightedTile.gridX] = highlightedTile
+            boardCopy.tiles[newTile.gridY][newTile.gridX] = newTile
+        end
+    end
+
+
+    IterateOverBoard(boardCopy.tiles, callbackOuter)
+
+
+    print("END POSSIBLE CHECK")
+    return {
+        ['possibleMatches'] = possibleMatches,
+        ['tile'] = movingTile,
+    }
 end

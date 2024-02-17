@@ -29,6 +29,10 @@ function PlayState:init()
     -- timer used to switch the highlight rect's color
     self.rectHighlighted = false
 
+    self.showHintTile = false
+    self.hintTileX = nil
+    self.hintTileY = nil
+
     -- flag to show whether we're able to process input (not swapping or clearing)
     self.canInput = true
 
@@ -42,6 +46,8 @@ function PlayState:init()
     Timer.every(0.5, function()
         self.rectHighlighted = not self.rectHighlighted
     end)
+
+
 
     -- subtract 1 from timer every second
     Timer.every(1, function()
@@ -101,6 +107,7 @@ function PlayState:update(dt)
         })
     end
 
+
     if self.canInput then
         -- move cursor around based on bounds of grid, playing sounds
         if love.keyboard.wasPressed('up') then
@@ -122,7 +129,6 @@ function PlayState:update(dt)
             -- if same tile as currently highlighted, deselect
             local x = self.boardHighlightX + 1 --  converting 0 based index to 1 based index
             local y = self.boardHighlightY + 1
-
 
             -- if nothing is highlighted, highlight current tile
             if not self.highlightedTile then
@@ -164,8 +170,10 @@ function PlayState:update(dt)
                 -- once the swap is finished, we can tween falling blocks as needed
                     :finish(
                         function()
-                            -- check if this move creates a match
-                            local matches = self.board:calculateMatches(true)
+                            -- post user swap : check if this move creates a match
+
+                            local matches = self.board:calculateMatches(true) -- initialization flag so we dont trigger sounds
+
                             -- if it does not create a match then
                             if matches == false then
                                 -- tween/swap the visual tiles back to their original position
@@ -173,42 +181,62 @@ function PlayState:update(dt)
                                     [self.highlightedTile] = { x = newTile.x, y = newTile.y },
                                     [newTile] = { x = self.highlightedTile.x, y = self.highlightedTile.y }
                                 })
+
                                 -- put board highlight back where it
                                 -- boardHighlightX is 0 index but tile grid is 1 index so -1
                                 self.boardHighlightX = tempX - 1
                                 self.boardHighlightY = tempY - 1
 
                                 -- swap the board tiles back to their original data position
-                                -- swap tiles in the tiles table
-                                -- this is what we swapped them to prior, so reverse this
                                 tempX = self.highlightedTile.gridX
                                 tempY = self.highlightedTile.gridY
 
-                                -- Swap the grid positions back
                                 self.highlightedTile.gridX = newTile.gridX
                                 self.highlightedTile.gridY = newTile.gridY
                                 newTile.gridX = tempX
                                 newTile.gridY = tempY
-
-                                -- Swap the tiles back in the tiles table
                                 self.board.tiles[self.highlightedTile.gridY][self.highlightedTile.gridX] = self
                                     .highlightedTile
                                 self.board.tiles[newTile.gridY][newTile.gridX] = newTile
 
                                 -- unselect highlighted tile
                                 self.highlightedTile = nil
+
+                                -- give user feedback
                                 gSounds['error']:play()
                             else
                                 -- else proceed as normal
                                 self:calculateMatches()
-                            end
-                        end
-                    )
-            end
-        end
-    end
 
-    -- self.board:update(dt)
+                                -- TODO implment check matches here
+                                -- once we have caclulated matches and updated the board
+                                -- then we check for possible matches
+                                -- test if the user has any available matches that are possible
+                                local matchResults = CheckPossibleMatches(self.board)
+                                local matchesPossible = matchResults['possibleMatches']
+                                local movingTile = matchResults['tile']
+
+                                print("Matches Possible: ", #matchesPossible)
+
+                                if movingTile ~= nil then
+                                    print(movingTile.gridX, movingTile.gridY)
+                                    self.showHintTile = true
+                                    self.hintTileX = BOARD_GRID_SIZE.x - movingTile.gridX
+                                    self.hintTileY = BOARD_GRID_SIZE.y - movingTile.gridY
+                                end
+
+                                if #matchesPossible == 0 then
+                                    -- generate a new board after displaying a messages
+                                    print("NEW BOARD _ NO MATCHES")
+                                    self.board = Board(VIRTUAL_WIDTH - 272, 16, self.level)
+                                end
+                            end
+                        end -- end of anonymous function in Finish
+                    )       -- end of Timer:Finish()
+            end
+        end                 -- End user pressed enter
+    end                     -- End check user input
+
 
     Timer.update(dt)
 end
@@ -232,6 +260,7 @@ function PlayState:calculateMatches(isInitialization)
         gSounds['match']:play()
 
         -- add score for each match
+        local matchesHasRowDestoyer = false
         for k, match in pairs(matches) do
             self.score = self.score + #match * 50
 
@@ -243,13 +272,25 @@ function PlayState:calculateMatches(isInitialization)
                 -- for any tile above variety 1 assign extra points
                 -- if variety is 1 then multiply by 0 to assign no extra points
                 self.score = self.score + (bonusAmount * (tileVariety - 1))
+
+                -- check for the row destoyer
+                if tile.powerupType == TILE_POWERUPS[TILE_PUP_DESTORY_ROW] then
+                    matchesHasRowDestoyer = true
+                end
             end
+
 
             -- scoring a match extends the timer by 1 second per tile in a match.
             self.timer = self.timer + #match
         end
 
         -- remove any tiles that matched from the board, making empty spaces
+        -- check if matches had a row destoyer and play its sound
+        if matchesHasRowDestoyer then
+            gSounds['row-destruction']:stop()
+            gSounds['row-destruction']:play()
+        end
+
         self.board:removeMatches()
 
         -- gets a table with tween values for tiles that should now fall
@@ -297,6 +338,14 @@ function PlayState:render()
     love.graphics.setLineWidth(4)
     love.graphics.rectangle('line', self.boardHighlightX * 32 + (VIRTUAL_WIDTH - 272),
         self.boardHighlightY * 32 + 16, 32, 32, 4)
+
+    -- draw hint
+    if self.showHintTile == true and self.hintTileX ~= nil and self.hintTileY ~= nil then
+        love.graphics.setColor(22 / 255, 150 / 255, 150 / 255, 1)
+        love.graphics.setLineWidth(4)
+        love.graphics.rectangle('line', self.hintTileX * 32 + (VIRTUAL_WIDTH - 272),
+            self.hintTileY * 32 + 16, 32, 32, 4)
+    end
 
     -- GUI text
     love.graphics.setColor(56 / 255, 56 / 255, 56 / 255, 234 / 255)

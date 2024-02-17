@@ -62,7 +62,7 @@ function BeginGameState:enter(def)
                             :finish(function()
                                 gStateMachine:change('play', {
                                     level = self.level,
-                                    board = self.board -- TODO double check - if we do not sent a board then we
+                                    board = self.board
                                 })
                             end)
                     end)
