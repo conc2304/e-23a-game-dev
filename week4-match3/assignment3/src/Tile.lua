@@ -78,13 +78,13 @@ function Tile:initializePSystem()
 
     -- Initialize the particle system
     particleSystem = love.graphics.newParticleSystem(particleImage, 10)
-    particleSystem:setParticleLifetime(1, 2)           -- Particles live at least 1s and at most 2s.
-    particleSystem:setEmissionRate(12)                 -- Increase the emission rate
+    particleSystem:setParticleLifetime(1, 2)                                -- Particles live at least 1s and at most 2s.
+    particleSystem:setEmissionRate(12)                                      -- Increase the emission rate
     particleSystem:setSizeVariation(1)
-    particleSystem:setSizes(0.5, 3)                    -- Make particles bigger
-    particleSystem:setLinearAcceleration(-5, -5, 5, 5) -- Random movement in all directions.
-    particleSystem:setColors(1, 1, 1, 1, 1, 1, 1, 0)   -- Start white, fade to transparent.
-    particleSystem:setAreaSpread('normal', TILE_WIDTH / 4, TILE_HEIGHT / 4)
+    particleSystem:setSizes(0.5, 3)                                         -- Make particles bigger
+    particleSystem:setLinearAcceleration(-5, -5, 5, 5)                      -- Random movement in all directions.
+    particleSystem:setColors(1, 1, 1, 1, 1, 1, 1, 0)                        -- Start white, fade to transparent.
+    particleSystem:setAreaSpread('normal', TILE_WIDTH / 4, TILE_HEIGHT / 4) -- the particle spawn area span the middle of the tile
 
     return particleSystem
 end

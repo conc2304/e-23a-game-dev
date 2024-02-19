@@ -161,8 +161,8 @@ end
     them to nil, then setting self.matches to nil.
 ]]
 function Board:removeMatches()
-    for k, match in pairs(self.matches) do
-        for k, tile in pairs(match) do
+    for _, match in pairs(self.matches) do
+        for _, tile in pairs(match) do
             self.tiles[tile.gridY][tile.gridX] = nil
         end
     end
