@@ -16,7 +16,9 @@ local positions = {}
 
 StartState = Class { __includes = BaseState }
 
-
+local ACTION_BEGIN_GAME = 1
+local ACTION_QUIT_GAME = 2
+local START_ACTIONS = { [ACTION_BEGIN_GAME] = ACTION_BEGIN_GAME, [ACTION_QUIT_GAME] = ACTION_QUIT_GAME }
 
 function StartState:init()
     -- currently selected menu item
@@ -82,26 +84,7 @@ function StartState:update(dt)
 
     if love.mouse.wasPressed(1) then
         local mouse = love.mouse.buttonsPressed[1]
-        local gameX, gameY = push:toGame(mouse.x, mouse.y)
-
-        print(gameX, gameY)
-
-
-        if gameX >= self.startX and gameX <= self.startX + self.menuWidth and
-            gameY >= self.startY and gameY <= self.startY + self.menuItemHeight then
-            -- "Start" was clicked
-            print("Start Game clicked")
-            -- Handle "Start" click here
-            self.currentMenuItem = 1
-        end
-
-        -- Check if "Quit Game" was clicked
-        if gameX >= self.startX and gameX <= self.startX + self.menuWidth and
-            gameY >= self.quitY and gameY <= self.quitY + self.menuItemHeight then
-            -- "Quit Game" was clicked
-            print("Quit Game clicked")
-            self.currentMenuItem = 2
-        end
+        self:handleMouseClick(mouse.x, mouse.y)
     end
 
 
@@ -115,25 +98,8 @@ function StartState:update(dt)
 
         -- switch to another state via one of the menu options
         if love.keyboard.wasPressed('enter') or love.keyboard.wasPressed('return') then
-            if self.currentMenuItem == 1 then
-                -- tween, using Timer, the transition rect's alpha to 1, then
-                -- transition to the BeginGame state after the animation is over
-                Timer.tween(1, {
-                    [self] = { transitionAlpha = 1 }
-                }):finish(function()
-                    gStateMachine:change('begin-game', {
-                        level = 1
-                    })
-
-                    -- remove color timer from Timer
-                    self.colorTimer:remove()
-                end)
-            else
-                love.event.quit()
-            end
-
-            -- turn off input during transition
-            self.pauseInput = true
+            -- do navigation
+            self:navigateTo(self.currentMenuItem)
         end
     end
 
@@ -177,7 +143,7 @@ end
 function StartState:drawMatch3Text(y)
     -- draw semi-transparent rect behind MATCH 3
     love.graphics.setColor(1, 1, 1, 128 / 255)
-    love.graphics.rectangle('fill', VIRTUAL_WIDTH / 2 - 76, VIRTUAL_HEIGHT / 2 + y - 11, 150, 58, 6)
+    love.graphics.rectangle('fill', VIRTUAL_WIDTH / 2 - 76, VIRTUAL_HEIGHT / 2 + y - 11, 150, 58, 6) -- so many random numbers!!!!
 
     -- draw MATCH 3 text shadows
     love.graphics.setFont(gFonts['large'])
@@ -216,7 +182,7 @@ function StartState:drawOptions(y)
     self:drawTextShadow('Quit Game', self.quitY)
 
     if self.currentMenuItem == 2 then
-        love.graphics.setColor(99 / 255, 155 / 255, 1, 1)
+        love.graphics.setColor(99 / 255, 155 / 255, 1, 1) -- code makers why u no use variables??!??
     else
         love.graphics.setColor(48 / 255, 96 / 255, 130 / 255, 1)
     end
@@ -234,4 +200,54 @@ function StartState:drawTextShadow(text, y)
     love.graphics.printf(text, 1, y + 1, VIRTUAL_WIDTH, 'center')
     love.graphics.printf(text, 0, y + 1, VIRTUAL_WIDTH, 'center')
     love.graphics.printf(text, 1, y + 2, VIRTUAL_WIDTH, 'center')
+end
+
+function StartState:handleMouseClick(mouseX, mouseY)
+    local gameX, gameY = push:toGame(mouseX, mouseY)
+
+    -- handle start click
+    if gameX >= self.startX and gameX <= self.startX + self.menuWidth and
+        gameY >= self.startY and gameY <= self.startY + self.menuItemHeight then
+        self.currentMenuItem = 1
+        self:navigateTo(self.currentMenuItem)
+    end
+
+    -- handle quict click
+    if gameX >= self.startX and gameX <= self.startX + self.menuWidth and
+        gameY >= self.quitY and gameY <= self.quitY + self.menuItemHeight then
+        -- "Quit Game" was clicked
+        print("Quit Game clicked")
+        self.currentMenuItem = 2
+        self:navigateTo(self.currentMenuItem)
+    end
+end
+
+function StartState:navigateTo(actionState)
+    local action = START_ACTIONS[actionState]
+
+    -- finite state for actions
+    if action == nil then return end
+
+    gSounds['select']:play()
+
+
+    if action == START_ACTIONS[ACTION_BEGIN_GAME] then
+        -- tween, using Timer, the transition rect's alpha to 1, then
+        -- transition to the BeginGame state after the animation is over
+        Timer.tween(1, {
+            [self] = { transitionAlpha = 1 }
+        }):finish(function()
+            gStateMachine:change('begin-game', {
+                level = 1
+            })
+
+            -- remove color timer from Timer
+            self.colorTimer:remove()
+        end)
+    elseif action == START_ACTIONS[ACTION_QUIT_GAME] then
+        love.event.quit() -- ... um quit
+    end
+
+    -- turn off input during transition
+    self.pauseInput = true
 end
