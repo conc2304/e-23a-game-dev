@@ -47,7 +47,7 @@ end
 
 function Tile:render(x, y)
     -- draw shadow
-    love.graphics.setColor(34, 32, 52, 1)
+    love.graphics.setColor(0, 0, 0, 0.7)
     love.graphics.draw(gTextures['main'], gFrames['tiles'][self.color][self.variety],
         self.x + x + 2, self.y + y + 2)
 
@@ -73,8 +73,8 @@ function Tile:initializePSystem()
     local particleSystem = nil
     local particleImage = love.graphics.newCanvas(1, 1)
     love.graphics.setCanvas(particleImage)
-    love.graphics.clear(1, 1, 1, 1) -- Set the color to white
-    love.graphics.setCanvas()       -- Reset the canvas
+    love.graphics.clear(1, 1, 1, 0.8) -- Set the color to white
+    love.graphics.setCanvas()         -- Reset the canvas
 
     -- Initialize the particle system
     particleSystem = love.graphics.newParticleSystem(particleImage, 20)
@@ -83,7 +83,7 @@ function Tile:initializePSystem()
     particleSystem:setSizeVariation(1)
     particleSystem:setSizes(1, 3)                          -- Make particles bigger
     particleSystem:setLinearAcceleration(-10, -10, 10, 10) -- Random movement in all directions.
-    particleSystem:setColors(1, 1, 1, 1, 1, 1, 1, 0.5)     -- Start red, fade to transparent.
+    particleSystem:setColors(1, 1, 1, 1, 1, 1, 1, 1)       -- Start white, fade to transparent.
 
     return particleSystem
 end
