@@ -68,6 +68,7 @@ function Tile:update(dt)
 end
 
 function Tile:initializePSystem()
+    -- pystem form Guy White's section code
     -- Create a 1x1 white pixel image for particles
     local particleSystem = nil
     local particleImage = love.graphics.newCanvas(1, 1)
