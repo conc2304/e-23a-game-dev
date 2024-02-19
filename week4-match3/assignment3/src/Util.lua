@@ -85,7 +85,6 @@ end
 
 -- Stuff about this function
 function IterateOverBoard(board, callback)
-    print("IterateOverBoard")
     for y, col_table in ipairs(board) do
         for x, tile in ipairs(col_table) do
             if callback ~= nil then
@@ -127,8 +126,10 @@ function GetDifficultyByLevel(level)
     end
 end
 
+-- deprecated buy keeping around
 -- revamped deep copy from :https://gist.github.com/tylerneylon/81333721109155b2d244
 function DeepCopy(original)
+    print("DeepCopy")
     local original_type = type(original)
     local copy
     if original_type == 'table' then
@@ -143,6 +144,7 @@ function DeepCopy(original)
     return copy
 end
 
+-- deprecated but keeping around
 function CheckPossibleMatches(boardOrig)
     print("--CheckPossibleMatches--")
 
@@ -158,7 +160,14 @@ function CheckPossibleMatches(boardOrig)
         -- add our real tiles to our copy of the board
         function(tile, tilePos)
             local x, y = tilePos.x, tilePos.y
-            boardCopy.tiles[y][x] = DeepCopy(tile)
+            boardCopy.tiles[y][x] = {
+                gridX = tile.gridX,
+                gridY = tile.gridY,
+                x = tile.x,
+                y = tile.y,
+                color = tile.color,
+                variety = tile.variety,
+            }
         end
     )
 
@@ -167,15 +176,16 @@ function CheckPossibleMatches(boardOrig)
 
     local directions = { 'up', 'down', 'left', 'right' }
     local function callbackOuter(_, boardPosition)
+        print("CALLBACK")
         -- bail out if we already have found 1 match
         if #possibleMatches > 0 then
             print("MATCH FOUND", #possibleMatches)
-            print(possibleMatches)
             for _, tile in pairs(possibleMatches[1]) do
                 print("XY", tile.gridX, tile.gridY)
             end
             return
         end
+        print("SEARCH ")
 
         local xA, yA = boardPosition.x, boardPosition.y
 
@@ -201,10 +211,9 @@ function CheckPossibleMatches(boardOrig)
             local xB = boardHighlightX
             local yB = boardHighlightY
 
-            print("TILE B: ", xB, yB)
 
             if xA == xB and yA == yB then
-                print("same tile, skipping", dir)
+                print("same tile, continueing: ", xA, yA, dir)
                 goto continue
             end
 
@@ -215,7 +224,6 @@ function CheckPossibleMatches(boardOrig)
 
             local newTile = boardCopy.tiles[yB][xB] -- new tile selected to match
 
-            print("newTile", xB, yB)
             print_r(newTile)
             highlightedTile.gridX = newTile.gridX
             highlightedTile.gridY = newTile.gridY
@@ -228,10 +236,15 @@ function CheckPossibleMatches(boardOrig)
 
             boardCopy.tiles[newTile.gridY][newTile.gridX] = newTile
 
-            possibleMatches = boardCopy:calculateMatches() or {}
+            -- possibleMatches = boardCopy:calculateMatches() or {}
+            local results = boardCopy:calculateMatches() or {}
+
+            possibleSwaps = results.possibleSwaps or {}
+
             movingTile = highlightedTile;
             targetTile = newTile
-            if possibleMatches ~= false then
+            if possibleSwaps ~= false and #possibleSwaps > 0 then
+                print("Possible Match Found")
                 return
             end
             -- if no matches undo the move and keep going
@@ -259,4 +272,60 @@ function CheckPossibleMatches(boardOrig)
         ['tile'] = movingTile,
         ['target'] = targetTile,
     }
+end
+
+function FindSwapMatch(tiles, x, y)
+    local directions = {
+        { dx = 0,  dy = -1 }, -- up
+        { dx = 0,  dy = 1 },  -- down
+        { dx = -1, dy = 0 },  -- left
+        { dx = 1,  dy = 0 }   -- right
+    }
+
+    local function checkMatch(xA, yA, xB, yB)
+        local tile = tiles[yA] and tiles[yA][xA]
+        local swapTile = tiles[yB] and tiles[yB][xB]
+
+        -- Simulate the swap for checking
+        -- Swap current item with the simulated item position if they match the simulated swap positions
+        local function getTile(cx, cy)
+            if cx == xA and cy == yA then
+                return swapTile
+            elseif cx == xB and cy == yB then
+                return tile
+            else
+                return tiles[cy] and tiles[cy][cx]
+            end
+        end
+
+        -- check horizontal match
+        if xA > 1 and xA < BOARD_GRID_SIZE.x then
+            if getTile(xA - 1, yA).color == tile.color and getTile(xA + 1, yA).color == tile.color then
+                return true
+            end
+        end
+        -- check vertical match
+        if yA > 1 and yA < BOARD_GRID_SIZE.y then
+            if getTile(xA, yA - 1).color == tile.color and getTile(xA, yA + 1).color == tile.color then
+                return true
+            end
+        end
+        return false
+    end
+    -- END checkMatch
+
+    for _, dir in ipairs(directions) do
+        local swapX, swapY = x + dir.dx, y + dir.dy
+        -- test the swap only if the target tile is in bounds
+        if tiles[swapY] and tiles[swapY][swapX] then
+            -- check for a match with a non mutating swap
+            if checkMatch(x, y, swapX, swapY) then
+                -- return tuple : true + positions of the items that would be swapped
+                return true, { x = x, y = y },
+                    { x = swapX, y = swapY }
+            end
+        end
+    end
+
+    return false -- no match found
 end

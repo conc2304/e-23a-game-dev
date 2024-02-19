@@ -29,12 +29,6 @@ function PlayState:init()
     -- timer used to switch the highlight rect's color
     self.rectHighlighted = false
 
-    self.showHintTile = false
-    self.hintTileX = nil
-    self.hintTileY = nil
-    self.hintTargetTileX = nil
-    self.hintTargetTileY = nil
-
     -- flag to show whether we're able to process input (not swapping or clearing)
     self.canInput = true
 
@@ -44,12 +38,12 @@ function PlayState:init()
     self.score = 0
     self.timer = 60
 
+    self.possibleSwaps = {}
+
     -- set our Timer class to turn cursor highlight on and off
     Timer.every(0.5, function()
         self.rectHighlighted = not self.rectHighlighted
     end)
-
-
 
     -- subtract 1 from timer every second
     Timer.every(1, function()
@@ -109,7 +103,7 @@ function PlayState:update(dt)
         })
     end
 
-
+    -- monolith
     if self.canInput then
         -- move cursor around based on bounds of grid, playing sounds
         if love.keyboard.wasPressed('up') then
@@ -174,10 +168,20 @@ function PlayState:update(dt)
                         function()
                             -- post user swap : check if this move creates a match
 
-                            local matches = self.board:calculateMatches()
+                            local results = self.board:calculateMatches()
+                            local matches = results.matches
 
-                            -- if it does not create a match then
-                            -- tween/swap the visual tiles back to their original position
+
+                            self.possibleSwaps = results.possibleSwaps
+                            if not self.possibleSwaps or #self.possibleSwaps == 0 then
+                                -- spawn a new board if there are no possibleSwaps
+                                gSounds['shuffle-board']:stop()
+                                gSounds['shuffle-board']:play()
+                                self.board = Board(VIRTUAL_WIDTH - 272, 16, self.level)
+                            end
+
+                            -- if this move does not create a match then
+                            -- tween/swap the visual tiles back to their original position and the data
                             if matches == false then
                                 self:handleBadSwap(newTile, { x = tempX, y = tempY })
                             else
@@ -190,7 +194,7 @@ function PlayState:update(dt)
         end                 -- End user pressed enter
     end                     -- End check user input
 
-
+    self.board:update(dt)
     Timer.update(dt)
 end
 
@@ -206,7 +210,8 @@ function PlayState:calculateMatches()
     local bonusAmount = 25 -- per level
 
     -- if we have any matches, remove them and tween the falling blocks that result
-    local matches = self.board:calculateMatches()
+    local results = self.board:calculateMatches()
+    local matches = results.matches
 
     if matches then
         gSounds['match']:stop()
@@ -231,7 +236,6 @@ function PlayState:calculateMatches()
                     matchesHasRowDestoyer = true
                 end
             end
-
 
             -- scoring a match extends the timer by 1 second per tile in a match.
             self.timer = self.timer + #match
@@ -260,6 +264,15 @@ function PlayState:calculateMatches()
         -- if no matches, we can continue playing
     else
         self.canInput = true
+    end
+
+    self.possibleSwaps = results.possibleSwaps
+
+    if not self.possibleSwaps or #self.possibleSwaps == 0 then
+        -- spawn a new board if there are no possibleSwaps
+        gSounds['shuffle-board']:stop()
+        gSounds['shuffle-board']:play()
+        self.board = Board(VIRTUAL_WIDTH - 272, 16, self.level)
     end
 end
 
@@ -292,20 +305,6 @@ function PlayState:render()
     love.graphics.rectangle('line', (self.boardHighlightX - 1) * TILE_WIDTH + (VIRTUAL_WIDTH - 272),
         (self.boardHighlightY - 1) * TILE_HIGHT + 16, TILE_WIDTH, TILE_HIGHT, 4)
 
-    -- draw hint
-    if self.showHintTile == true and self.hintTileX ~= nil and self.hintTileY ~= nil then
-        love.graphics.setColor(22 / 255, 150 / 255, 150 / 255, 1)
-        love.graphics.setLineWidth(4)
-        love.graphics.rectangle('line', self.hintTileX * 32 + (VIRTUAL_WIDTH - 272),
-            self.hintTileY * 32 + 16, 32, 32, 4)
-    end
-
-    if self.showHintTile == true and self.hintTargetTileX ~= nil and self.hintTargetTileY ~= nil then
-        love.graphics.setColor(22 / 255, 150 / 255, 150 / 255, 0.7)
-        love.graphics.setLineWidth(4)
-        love.graphics.rectangle('line', self.hintTargetTileX * 32 + (VIRTUAL_WIDTH - 272),
-            self.hintTargetTileY * 32 + 16, 32, 32, 4)
-    end
     -- GUI text
     love.graphics.setColor(56 / 255, 56 / 255, 56 / 255, 234 / 255)
     love.graphics.rectangle('fill', 16, 16, 186, 116, 4)
@@ -346,7 +345,6 @@ function PlayState:handleBadSwap(tile, oldPos)
     -- unselect highlighted tile
     self.highlightedTile = nil
 
-    print("ERROR")
     -- give user feedback
     gSounds['error']:play()
 end

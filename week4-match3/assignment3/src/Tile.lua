@@ -40,50 +40,49 @@ function Tile:init(x, y, color, variety, powerupType)
     -- tile appearance/points
     self.color = color
     self.variety = variety
-    self.strobeHint = false
-    self.showHint = false
-    -- set our Timer class to turn cursor highlight on and off
-    Timer.every(0.5, function()
-        self.strobeHint = not self.strobeHint
-    end)
-
-    Timer.every(0.05, function()
-        self.strobeShiny = not self.strobeShiny
-    end)
-
     self.powerupType = TILE_POWERUPS[powerupType] or nil
+
+    self.psystem = self.powerupType ~= nil and self.initializePSystem()
 end
 
 function Tile:render(x, y)
-    -- if self.powerupType ~= nil then
-    --     self.renderParticles(self)
-    -- end
-
-
     -- draw shadow
-
-    local opacity = 1
-    if self.showHint and self.strobeHint then
-        opacity = 0.7
-    end
-    love.graphics.setColor(34, 32, 52, opacity)
+    love.graphics.setColor(34, 32, 52, 1)
     love.graphics.draw(gTextures['main'], gFrames['tiles'][self.color][self.variety],
         self.x + x + 2, self.y + y + 2)
 
     -- draw tile itself
-    love.graphics.setColor(255, 255, 255, opacity) -- alpha is from 0-1 not 255
+    love.graphics.setColor(255, 255, 255, 1) -- alpha is from 0-1 not 255
     love.graphics.draw(gTextures['main'], gFrames['tiles'][self.color][self.variety],
         self.x + x, self.y + y)
 
-    -- TODO FIGURE OUT WHY THE PSYSTEM NOT WORKING
-    if self.powerupType ~= nil then
-        -- do the power up render
-        love.graphics.setColor(255, 1, 1, 1)
-        love.graphics.setFont(gFonts['medium'])
-        love.graphics.printf('X', self.x + x + 1, self.y + TILE_HIGHT - 8, TILE_WIDTH, 'center')
+    if self.powerupType ~= nil and self.psystem ~= nil then
+        love.graphics.draw(self.psystem, self.x + x + (TILE_WIDTH / 2), self.y + y + (TILE_HIGHT / 2))
     end
 end
 
 function Tile:update(dt)
-    print("Tile Update", dt)
+    if self.psystem then
+        self.psystem:update(dt)
+    end
+end
+
+function Tile:initializePSystem()
+    -- Create a 1x1 white pixel image for particles
+    local particleSystem = nil
+    local particleImage = love.graphics.newCanvas(1, 1)
+    love.graphics.setCanvas(particleImage)
+    love.graphics.clear(1, 1, 1, 1) -- Set the color to white
+    love.graphics.setCanvas()       -- Reset the canvas
+
+    -- Initialize the particle system
+    particleSystem = love.graphics.newParticleSystem(particleImage, 20)
+    particleSystem:setParticleLifetime(1, 2)               -- Particles live at least 1s and at most 2s.
+    particleSystem:setEmissionRate(20)                     -- Increase the emission rate
+    particleSystem:setSizeVariation(1)
+    particleSystem:setSizes(1, 3)                          -- Make particles bigger
+    particleSystem:setLinearAcceleration(-10, -10, 10, 10) -- Random movement in all directions.
+    particleSystem:setColors(1, 1, 1, 1, 1, 1, 1, 0.5)     -- Start red, fade to transparent.
+
+    return particleSystem
 end

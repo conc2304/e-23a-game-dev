@@ -19,8 +19,8 @@ MIN_MATCH_QTY = 3
 
 EASY_DIFFICULTY_COLOR_TILES = { 1, 5, 6, 9, 10, 13, 15, 18 }                       -- 8 hand picked easy to distinguish tiles
 MEDIUM_DIFFICULTY_COLOR_TILES = TableMerge(EASY_DIFFICULTY_COLOR_TILES, { 3, 14 }) -- add more colors till we have them all
-HARD_DIFFICULTY_COLOR_TILES = TableMerge(MEDIUM_DIFFICULTY_COLOR_TILES, { 7, 16 })
-EXPERT_DIFFICULTY_COLOR_TILES = TableMerge(MEDIUM_DIFFICULTY_COLOR_TILES, { 2, 9 })
+HARD_DIFFICULTY_COLOR_TILES = TableMerge(MEDIUM_DIFFICULTY_COLOR_TILES, { 7, 8 })
+EXPERT_DIFFICULTY_COLOR_TILES = TableMerge(MEDIUM_DIFFICULTY_COLOR_TILES, { 2, 16 })
 
 LEVEL_EASY = 'EASY'
 LEVEL_MEDIUM = 'MEDIUM'
@@ -34,13 +34,13 @@ TILE_DIFFICULTY_COLOR_MAP = {
     [LEVEL_EXPERT] = EXPERT_DIFFICULTY_COLOR_TILES -- every color
 }
 
+
 TILE_DIFFICULTY_VARIETY_MAP = {
     [LEVEL_EASY] = 1,
     [LEVEL_MEDIUM] = math.floor(TILE_VARIETY_MAX / 3),
     [LEVEL_DIFFICULT] = math.floor(TILE_VARIETY_MAX / 2),
     [LEVEL_EXPERT] = TILE_VARIETY_MAX -- every color
 }
-
 
 function Board:init(x, y, level)
     self.x = x
@@ -50,13 +50,10 @@ function Board:init(x, y, level)
     self.difficulty = GetDifficultyByLevel(self.level)
 
     self:initializeTiles()
-
-    -- self.tiles[1][1].showHint = true
 end
 
 function Board:initializeTiles()
     self.tiles = {}
-
 
     for tileY = 1, BOARD_GRID_SIZE.y do
         -- empty table that will serve as a new row
@@ -79,7 +76,8 @@ function Board:initializeTiles()
         end
     end
 
-    while self:calculateMatches() do
+    -- or if there are no possibleSwaps, then also re-initialize
+    while self:calculateMatches().matches or not self:calculateMatches().possibleSwaps do
         -- recursively initialize if matches were returned so we always have
         -- a matchless board on start
         self:initializeTiles()
@@ -93,13 +91,10 @@ end
 ]]
 function Board:calculateMatches()
     local matches = {}
-
+    -- THIS IS AN ABSOLUTE MONOLITH :|
     -- how many of the same color blocks in a row we've found
     local matchNum = 1
-
-    local boardHasPotentialMatches = false
-    local potentialMatches = {}
-    local potentialMatchNum = 1
+    local possibleSwaps = {}
 
     -- horizontal matches first
     for y = 1, BOARD_GRID_SIZE.y do
@@ -107,52 +102,25 @@ function Board:calculateMatches()
         local colorToMatch = tileToMatch.color
 
         matchNum = 1
-        potentialMatchNum = 1
 
         -- every horizontal tile
         for x = 2, BOARD_GRID_SIZE.x do
             local currentTile = self.tiles[y][x]
-            local currentColor = self.tiles[y][x].color
+            local currentColor = currentTile.color
 
-            currentTile.showHint = false;
-            local neighborsH = {}
-            local rangeX = 2
-            local machNumPH = 1
-            -- one immediate neighbor is necessary
 
-            -- print("Every Horizontal Tile")
-            -- print(x, y)
-
-            local neighborLeftIsMatch = x - 1 > 0 and self.tiles[y][x - 1].color == currentColor
-            local neighborRightIsMatch = x + 1 <= BOARD_GRID_SIZE.x and self.tiles[y][x + 1].color == currentColor
-            local neighborLeft2IsMatch = x - 2 > 0 and self.tiles[y][x - 2].color == currentColor
-            local neighborRight2IsMatch = x + 2 <= BOARD_GRID_SIZE.x and self.tiles[y][x + 2].color == currentColor
-
-            --  test tile left and right are the same as above and below
-            if neighborLeft2IsMatch and neighborRightIsMatch then
-                self.tiles[y][x - 2].showHint = true
-                currentTile.showHint = true
-                self.tiles[y][x + 1].showHint = true
+            local matchFound, tile1XY, tile2XY = FindSwapMatch(self.tiles, x, y)
+            if matchFound and tile1XY and tile2XY then
+                -- add swaps to swap table
+                table.insert(possibleSwaps, { self.tiles[tile1XY.y][tile1XY.x], self.tiles[tile2XY.y][tile2XY.x] })
             end
-            if neighborLeftIsMatch and neighborRight2IsMatch then
-                self.tiles[y][x - 1].showHint = true
-                currentTile.showHint = true
-                self.tiles[y][x + 2].showHint = true
-            end
-
-
-            local neighborAboveColorCanMatch = y - 1 > 0 and self.tiles[y - 1][x].color == self.tiles[y][x - 1].color and
-                self.tiles[y - 1][x].color == self.tiles[y][x + 1].color
-            local neigborBelowColorCanMatch = y + 1 <= BOARD_GRID_SIZE.y and self.tiles[y + 1][x].color
-
 
             -- if this is the same color as the one we're trying to match...
-            if currentTile.color == colorToMatch then
+            if currentColor == colorToMatch then
                 matchNum = matchNum + 1
             else
                 -- set this as the new color we want to watch for
-                colorToMatch = currentTile.color
-
+                colorToMatch = currentColor
 
                 -- if we have a match of 3 or more up to now, add it to our matches table
                 if matchNum >= MIN_MATCH_QTY then
@@ -235,36 +203,26 @@ function Board:calculateMatches()
 
     -- vertical matches
     for x = 1, BOARD_GRID_SIZE.x do
-        local colorToMatch = self.tiles[1][x].color
+        local tileToMatch = self.tiles[1][x]
+        local colorToMatch = tileToMatch.color
         matchNum = 1
 
         -- every vertical tile
         for y = 2, BOARD_GRID_SIZE.y do
             local currentTile = self.tiles[y][x]
-            local currentColor = self.tiles[y][x].color
-            currentTile.showHint = false;
+            local currentColor = currentTile.color
 
-            local neighborUpIsMatch = y - 1 > 0 and self.tiles[y - 1][x].color == currentColor
-            local neighborDowntIsMatch = y + 1 <= BOARD_GRID_SIZE.y and self.tiles[y + 1][x].color == currentColor
-            local neighborUp2IsMatch = y - 2 > 0 and self.tiles[y - 2][x].color == currentColor
-            local neighborDown2IsMatch = y + 2 <= BOARD_GRID_SIZE.y and self.tiles[y + 2][x].color == currentColor
+            local matchFound, tile1XY, tile2XY = FindSwapMatch(self.tiles, x, y)
 
-            if neighborUp2IsMatch and neighborDowntIsMatch then
-                self.tiles[y - 2][x].showHint = true
-                currentTile.showHint = true
-                self.tiles[y + 1][x].showHint = true
-            end
-            if neighborUpIsMatch and neighborDown2IsMatch then
-                self.tiles[y - 1][x].showHint = true
-                currentTile.showHint = true
-                self.tiles[y + 2][x].showHint = true
+            if matchFound and tile1XY and tile2XY then
+                -- add swaps to swap table
+                table.insert(possibleSwaps, { self.tiles[tile1XY.y][tile1XY.x], self.tiles[tile2XY.y][tile2XY.x] })
             end
 
-
-            if currentTile.color == colorToMatch then
+            if currentColor == colorToMatch then
                 matchNum = matchNum + 1
             else
-                colorToMatch = currentTile.color
+                colorToMatch = currentColor
 
                 if matchNum >= MIN_MATCH_QTY then
                     local match = {}
@@ -278,7 +236,6 @@ function Board:calculateMatches()
                             break
                         end
                     end
-
 
                     -- For Vertical Matches, Destroy the shiny boy rows, but not the dull boy's rows
                     if isDestroyerOfRows == true then
@@ -327,8 +284,6 @@ function Board:calculateMatches()
                 end
             end
 
-
-
             -- For Vertical Matches,
             -- Destroy the shiny boy rows,
             -- but not the dull boy's rows
@@ -362,8 +317,15 @@ function Board:calculateMatches()
     -- store matches for later reference
     self.matches = matches
 
-    -- return matches table if > 0, else just return false
-    return #self.matches > 0 and self.matches or boardHasPotentialMatches
+    -- i **hate** that this function is doing too many things
+    -- AND changing the truthiness and the return type based on the different objectives that it is running
+    -- but out of scope to refactor this beast
+
+    return {
+        -- return matches table if > 0, else just return false
+        matches = #self.matches > 0 and self.matches,
+        possibleSwaps = #possibleSwaps > 0 and possibleSwaps
+    }
 end
 
 -- END CALCULATEMATCHES
@@ -472,10 +434,8 @@ function Board:render()
     end
 end
 
--- function Board:update(dt)
---     for y = 1, #self.tiles do
---         for x = 1, #self.tiles[1] do
---             self.tiles[y][x]:update(dt)
---         end
---     end
--- end
+function Board:update(dt)
+    IterateOverBoard(self.tiles, function(tile)
+        tile:update(dt)
+    end)
+end
