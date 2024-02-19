@@ -303,7 +303,7 @@ function PlayState:render()
     -- draw actual cursor rect
     love.graphics.setLineWidth(4)
     love.graphics.rectangle('line', (self.boardHighlightX - 1) * TILE_WIDTH + (VIRTUAL_WIDTH - 272),
-        (self.boardHighlightY - 1) * TILE_HIGHT + 16, TILE_WIDTH, TILE_HIGHT, 4)
+        (self.boardHighlightY - 1) * TILE_HEIGHT + 16, TILE_WIDTH, TILE_HEIGHT, 4)
 
     -- GUI text
     love.graphics.setColor(56 / 255, 56 / 255, 56 / 255, 234 / 255)

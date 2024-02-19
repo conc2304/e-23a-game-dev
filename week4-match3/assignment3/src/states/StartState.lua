@@ -115,12 +115,12 @@ function StartState:render()
             -- render shadow first
             love.graphics.setColor(0, 0, 0, 1)
             love.graphics.draw(gTextures['main'], positions[(y - 1) * x + x],
-                (x - 1) * TILE_WIDTH + boardOffsetX + 3, (y - 1) * TILE_HIGHT + (TILE_HIGHT / 2) + 3)
+                (x - 1) * TILE_WIDTH + boardOffsetX + 3, (y - 1) * TILE_HEIGHT + (TILE_HEIGHT / 2) + 3)
 
             -- render tile
             love.graphics.setColor(1, 1, 1, 1)
             love.graphics.draw(gTextures['main'], positions[(y - 1) * x + x],
-                (x - 1) * TILE_WIDTH + boardOffsetX, (y - 1) * TILE_HIGHT + (TILE_HIGHT / 2))
+                (x - 1) * TILE_WIDTH + boardOffsetX, (y - 1) * TILE_HEIGHT + (TILE_HEIGHT / 2))
         end
     end
 
@@ -216,7 +216,6 @@ function StartState:handleMouseClick(mouseX, mouseY)
     if gameX >= self.startX and gameX <= self.startX + self.menuWidth and
         gameY >= self.quitY and gameY <= self.quitY + self.menuItemHeight then
         -- "Quit Game" was clicked
-        print("Quit Game clicked")
         self.currentMenuItem = 2
         self:navigateTo(self.currentMenuItem)
     end

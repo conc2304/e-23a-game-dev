@@ -99,7 +99,6 @@ function love.keyboard.wasPressed(key)
 end
 
 function love.mousepressed(x, y, button, istouch, presses)
-    print(button, x, y)
     love.mouse.buttonsPressed[button] = { x = x, y = y }
 end
 

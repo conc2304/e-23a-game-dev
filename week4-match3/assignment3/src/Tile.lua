@@ -14,7 +14,7 @@
 Tile = Class {}
 
 TILE_WIDTH = 32
-TILE_HIGHT = 32
+TILE_HEIGHT = 32
 
 TILE_VARIETY_MAX = 6
 TILE_VARIETY_MIN = 1
@@ -35,7 +35,7 @@ function Tile:init(x, y, color, variety, powerupType)
 
     -- coordinate positions
     self.x = (self.gridX - 1) * TILE_WIDTH
-    self.y = (self.gridY - 1) * TILE_HIGHT
+    self.y = (self.gridY - 1) * TILE_HEIGHT
 
     -- tile appearance/points
     self.color = color
@@ -57,7 +57,7 @@ function Tile:render(x, y)
         self.x + x, self.y + y)
 
     if self.powerupType ~= nil and self.psystem ~= nil then
-        love.graphics.draw(self.psystem, self.x + x + (TILE_WIDTH / 2), self.y + y + (TILE_HIGHT / 2))
+        love.graphics.draw(self.psystem, self.x + x + (TILE_WIDTH / 2), self.y + y + (TILE_HEIGHT / 2))
     end
 end
 
@@ -77,13 +77,14 @@ function Tile:initializePSystem()
     love.graphics.setCanvas()         -- Reset the canvas
 
     -- Initialize the particle system
-    particleSystem = love.graphics.newParticleSystem(particleImage, 20)
-    particleSystem:setParticleLifetime(1, 2)               -- Particles live at least 1s and at most 2s.
-    particleSystem:setEmissionRate(20)                     -- Increase the emission rate
+    particleSystem = love.graphics.newParticleSystem(particleImage, 10)
+    particleSystem:setParticleLifetime(1, 2)           -- Particles live at least 1s and at most 2s.
+    particleSystem:setEmissionRate(12)                 -- Increase the emission rate
     particleSystem:setSizeVariation(1)
-    particleSystem:setSizes(1, 3)                          -- Make particles bigger
-    particleSystem:setLinearAcceleration(-10, -10, 10, 10) -- Random movement in all directions.
-    particleSystem:setColors(1, 1, 1, 1, 1, 1, 1, 1)       -- Start white, fade to transparent.
+    particleSystem:setSizes(0.5, 3)                    -- Make particles bigger
+    particleSystem:setLinearAcceleration(-5, -5, 5, 5) -- Random movement in all directions.
+    particleSystem:setColors(1, 1, 1, 1, 1, 1, 1, 0)   -- Start white, fade to transparent.
+    particleSystem:setAreaSpread('normal', TILE_WIDTH / 4, TILE_HEIGHT / 4)
 
     return particleSystem
 end

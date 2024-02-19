@@ -374,7 +374,7 @@ function Board:getFallingTiles()
 
                     -- tween the Y position to 32 x its grid position
                     tweens[tile] = {
-                        y = (tile.gridY - 1) * TILE_HIGHT
+                        y = (tile.gridY - 1) * TILE_HEIGHT
                     }
 
                     -- set Y to spaceY so we start back from here again
@@ -412,12 +412,12 @@ function Board:getFallingTiles()
                 local tileVarietyMaxIndex = TILE_DIFFICULTY_VARIETY_MAP[self.difficulty]
 
                 local tile = Tile(x, y, tileColor, math.random(tileVarietyMaxIndex))
-                tile.y = -TILE_HIGHT
+                tile.y = -TILE_HEIGHT
                 self.tiles[y][x] = tile
 
                 -- create a new tween to return for this tile to fall down
                 tweens[tile] = {
-                    y = (tile.gridY - 1) * TILE_HIGHT
+                    y = (tile.gridY - 1) * TILE_HEIGHT
                 }
             end
         end
