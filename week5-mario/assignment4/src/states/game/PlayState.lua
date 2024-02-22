@@ -5,7 +5,7 @@
     -- PlayState Class --
 ]]
 
-PlayState = Class{__includes = BaseState}
+PlayState = Class { __includes = BaseState }
 
 function PlayState:init()
     self.camX = 0
@@ -19,8 +19,10 @@ function PlayState:init()
     self.gravityAmount = 6
 
     self.player = Player({
-        x = 0, y = 0,
-        width = 16, height = 20,
+        x = self:GetFirstGroundX(),
+        y = 0,
+        width = 16,
+        height = 20,
         texture = 'green-alien',
         stateMachine = StateMachine {
             ['idle'] = function() return PlayerIdleState(self.player) end,
@@ -58,21 +60,24 @@ end
 
 function PlayState:render()
     love.graphics.push()
-    love.graphics.draw(gTextures['backgrounds'], gFrames['backgrounds'][self.background], math.floor(-self.backgroundX), 0)
+    love.graphics.draw(gTextures['backgrounds'], gFrames['backgrounds'][self.background], math.floor(-self.backgroundX),
+        0)
     love.graphics.draw(gTextures['backgrounds'], gFrames['backgrounds'][self.background], math.floor(-self.backgroundX),
         gTextures['backgrounds']:getHeight() / 3 * 2, 0, 1, -1)
-    love.graphics.draw(gTextures['backgrounds'], gFrames['backgrounds'][self.background], math.floor(-self.backgroundX + 256), 0)
-    love.graphics.draw(gTextures['backgrounds'], gFrames['backgrounds'][self.background], math.floor(-self.backgroundX + 256),
+    love.graphics.draw(gTextures['backgrounds'], gFrames['backgrounds'][self.background],
+        math.floor(-self.backgroundX + 256), 0)
+    love.graphics.draw(gTextures['backgrounds'], gFrames['backgrounds'][self.background],
+        math.floor(-self.backgroundX + 256),
         gTextures['backgrounds']:getHeight() / 3 * 2, 0, 1, -1)
-    
+
     -- translate the entire view of the scene to emulate a camera
     love.graphics.translate(-math.floor(self.camX), -math.floor(self.camY))
-    
+
     self.level:render()
 
     self.player:render()
     love.graphics.pop()
-    
+
     -- render score
     love.graphics.setFont(gFonts['medium'])
     love.graphics.setColor(0, 0, 0, 1)
@@ -86,7 +91,7 @@ function PlayState:updateCamera()
     -- setting it half the screen to the left of the player so they are in the center
     self.camX = math.max(0,
         math.min(TILE_SIZE * self.tileMap.width - VIRTUAL_WIDTH,
-        self.player.x - (VIRTUAL_WIDTH / 2 - 8)))
+            self.player.x - (VIRTUAL_WIDTH / 2 - 8)))
 
     -- adjust background X to move a third the rate of the camera for parallax
     self.backgroundX = (self.camX / 3) % 256
@@ -98,7 +103,6 @@ end
 function PlayState:spawnEnemies()
     -- spawn snails in the level
     for x = 1, self.tileMap.width do
-
         -- flag for whether there's ground on this column of the level
         local groundFound = false
 
@@ -109,7 +113,6 @@ function PlayState:spawnEnemies()
 
                     -- random chance, 1 in 20
                     if math.random(20) == 1 then
-                        
                         -- instantiate snail, declaring in advance so we can pass it into state machine
                         local snail
                         snail = Snail {
@@ -131,6 +134,17 @@ function PlayState:spawnEnemies()
                         table.insert(self.level.entities, snail)
                     end
                 end
+            end
+        end
+    end
+end
+
+function PlayState:GetFirstGroundX()
+    for x = 1, self.tileMap.width do
+        for y = 1, self.tileMap.height do
+            if self.tileMap.tiles[y][x].id == TILE_ID_GROUND then
+                --  we have the first sighting of land
+                return (x - 1) * TILE_SIZE
             end
         end
     end
