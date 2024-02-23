@@ -79,8 +79,11 @@ function LevelMaker.generate(width, height)
             end
 
             -- chance to spawn a block
-            if math.random(10) == 1 then
-                SpawnBlock(x, blockHeight, objects)
+            if math.random(5) == 1 then
+                local blockX = (x - 1) * TILE_SIZE
+                local blockY = (blockHeight - 1) * TILE_SIZE
+                SpawnBlock(blockX, blockY, objects)
+                -- SpawnBlock(x, blockHeight, objects)
             end
         end
     end
@@ -91,11 +94,12 @@ function LevelMaker.generate(width, height)
     return GameLevel(entities, objects, map)
 end
 
-function SpawnBlock(x, blockHeight, objects)
+-- function SpawnBlock(x, blockHeight, objects)
+function SpawnBlock(x, y, objects)
     local jumpBlock = GameObject {
         texture = 'jump-blocks',
-        x = (x - 1) * TILE_SIZE,
-        y = (blockHeight - 1) * TILE_SIZE,
+        x = x,
+        y = y,
         width = 16,
         height = 16,
 
@@ -105,36 +109,25 @@ function SpawnBlock(x, blockHeight, objects)
         hit = false,
         solid = true,
         onCollide = function(obj)
-            HandleBlockCollision(obj, x, blockHeight, objects)
+            -- TODO NEED TO UPDATE this to not use block height
+            local blockContentY = y - 4
+            HandleBlockCollision(x, blockContentY, obj, objects)
+            -- HandleBlockCollision(obj, x, blockHeight, objects)
         end
     }
 
     table.insert(objects, jumpBlock)
 end
 
-function SpawnBush(x, y, objects)
-    local bush =
-        GameObject {
-            texture = 'bushes',
-            x = x,
-            y = y,
-            width = 16,
-            height = 16,
-            frame = BUSH_IDS[math.random(#BUSH_IDS)] + (math.random(4) - 1) * 7,
-            collidable = false
-        }
-
-    table.insert(objects, bush)
-end
-
-function HandleBlockCollision(obj, x, blockHeight, objects)
+function HandleBlockCollision(x, y, obj, objects)
+    -- function HandleBlockCollision(obj, x, blockHeight, objects)
     -- spawn a gem if we haven't already hit the block
     if not obj.hit then
         -- chance to spawn gem, not guaranteed
         if math.random(5) == 1 then
-            local gemX = (x - 1) * TILE_SIZE
-            local gemY = (blockHeight - 1) * TILE_SIZE - 4
-            local gemYFinish = (blockHeight - 2) * TILE_SIZE
+            local gemX = x
+            local gemY = y
+            local gemYFinish = y - TILE_SIZE + 4
             SpawnGem(gemX, gemY, gemYFinish, objects)
         end
         obj.hit = true
@@ -168,4 +161,19 @@ function SpawnGem(x, y, gemYFinish, objects)
     gSounds['powerup-reveal']:play()
 
     table.insert(objects, gem)
+end
+
+function SpawnBush(x, y, objects)
+    local bush =
+        GameObject {
+            texture = 'bushes',
+            x = x,
+            y = y,
+            width = 16,
+            height = 16,
+            frame = BUSH_IDS[math.random(#BUSH_IDS)] + (math.random(4) - 1) * 7,
+            collidable = false
+        }
+
+    table.insert(objects, bush)
 end

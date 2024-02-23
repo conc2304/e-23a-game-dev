@@ -8,7 +8,7 @@
     cogden@cs50.harvard.edu
 ]]
 
-StartState = Class{__includes = BaseState}
+StartState = Class { __includes = BaseState }
 
 function StartState:init()
     self.map = LevelMaker.generate(100, 10)
@@ -26,6 +26,8 @@ function StartState:render()
     love.graphics.draw(gTextures['backgrounds'], gFrames['backgrounds'][self.background], 0,
         gTextures['backgrounds']:getHeight() / 3 * 2, 0, 1, -1)
     self.map:render()
+
+
 
     love.graphics.setFont(gFonts['title'])
     love.graphics.setColor(0, 0, 0, 255)

@@ -54,7 +54,7 @@ PLAYER_WALK_SPEED = 60
 PLAYER_JUMP_VELOCITY = -255
 
 -- player size ... dont some of these comments seem rather redundant??
-PLAYER_SIZE = 15
+PLAYER_SIZE = 16
 
 -- snail movement speed
 SNAIL_MOVE_SPEED = 10
@@ -89,7 +89,13 @@ GEMS = {
     1, 2, 3, 4, 5, 6, 7, 8
 }
 
+LOCKED_BOX_COMBOS = { 1, 2, 3, 4 }
+
 JUMP_BLOCKS = {}
+
+KEY_BLOCK_IDS = {
+    1, 2, 3, 4
+}
 
 for i = 1, 30 do
     table.insert(JUMP_BLOCKS, i)

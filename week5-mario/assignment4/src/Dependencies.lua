@@ -60,6 +60,7 @@ gSounds = {
     ['music'] = love.audio.newSource('sounds/music.wav', 'static'),
     ['powerup-reveal'] = love.audio.newSource('sounds/powerup-reveal.wav', 'static'),
     ['pickup'] = love.audio.newSource('sounds/pickup.wav', 'static'),
+    ['pickup-key'] = love.audio.newSource('sounds/pickup-key.wav', 'static'),
     ['empty-block'] = love.audio.newSource('sounds/empty-block.wav', 'static'),
     ['kill'] = love.audio.newSource('sounds/kill.wav', 'static'),
     ['kill2'] = love.audio.newSource('sounds/kill2.wav', 'static')
@@ -70,6 +71,7 @@ gTextures = {
     ['toppers'] = love.graphics.newImage('graphics/tile_tops.png'),
     ['bushes'] = love.graphics.newImage('graphics/bushes_and_cacti.png'),
     ['jump-blocks'] = love.graphics.newImage('graphics/jump_blocks.png'),
+    ['key-blocks'] = love.graphics.newImage('graphics/keys_and_locks.png'),
     ['gems'] = love.graphics.newImage('graphics/gems.png'),
     ['backgrounds'] = love.graphics.newImage('graphics/backgrounds.png'),
     ['green-alien'] = love.graphics.newImage('graphics/green_alien.png'),
@@ -78,9 +80,8 @@ gTextures = {
 
 gFrames = {
     ['tiles'] = GenerateQuads(gTextures['tiles'], TILE_SIZE, TILE_SIZE),
-    
+    ['key-blocks'] = GenerateQuads(gTextures['key-blocks'], TILE_SIZE, TILE_SIZE),
     ['toppers'] = GenerateQuads(gTextures['toppers'], TILE_SIZE, TILE_SIZE),
-    
     ['bushes'] = GenerateQuads(gTextures['bushes'], 16, 16),
     ['jump-blocks'] = GenerateQuads(gTextures['jump-blocks'], 16, 16),
     ['gems'] = GenerateQuads(gTextures['gems'], 16, 16),
@@ -90,10 +91,10 @@ gFrames = {
 }
 
 -- these need to be added after gFrames is initialized because they refer to gFrames from within
-gFrames['tilesets'] = GenerateTileSets(gFrames['tiles'], 
+gFrames['tilesets'] = GenerateTileSets(gFrames['tiles'],
     TILE_SETS_WIDE, TILE_SETS_TALL, TILE_SET_WIDTH, TILE_SET_HEIGHT)
 
-gFrames['toppersets'] = GenerateTileSets(gFrames['toppers'], 
+gFrames['toppersets'] = GenerateTileSets(gFrames['toppers'],
     TOPPER_SETS_WIDE, TOPPER_SETS_TALL, TILE_SET_WIDTH, TILE_SET_HEIGHT)
 
 gFonts = {

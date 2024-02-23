@@ -149,3 +149,14 @@ function PlayState:GetFirstGroundX()
         end
     end
 end
+
+function PlayState:GetLastGroundX()
+    for x = self.tileMap.width, self.tileMap.width, -1 do
+        for y = 1, self.tileMap.height do
+            if self.tileMap.tiles[y][x].id == TILE_ID_GROUND then
+                --  we have the last sighting of land
+                return (x - 1) * TILE_SIZE
+            end
+        end
+    end
+end
