@@ -111,6 +111,7 @@ function LevelMaker.generate(width, height)
     local keyId = math.random(#LOCKED_BOX_COMBOS)
     AddKeysToBlocks(keyId, objects)
     AddLockBlock(keyId, map.tiles, objects)
+    SpawnFlag(objects)
 
     return GameLevel(entities, objects, map)
 end
@@ -300,4 +301,30 @@ function AddLockBlock(keyId, tiles, objects)
     local blockHeight = 3
     local x, y = groundPos.x, groundPos.y
     SpawnLockedBlock(x, y - (blockHeight * TILE_SIZE), keyId, objects)
+end
+
+function SpawnFlag(objects)
+    local flagPole = GameObject {
+        texture = 'flags',
+        x = 200,
+        y = 200,
+        width = 16,
+        height = 48,
+        frame = FLAG_POLE_IDS,
+        collidable = false
+    }
+
+    local flag = GameObject {
+        texture = 'flags',
+        x = 200,
+        y = 200,
+        width = 16,
+        height = 48,
+        frame = FLAG_POLE_IDS,
+        collidable = false
+    }
+
+
+    table.insert(objects, flagPole)
+    table.insert(objects, flag)
 end

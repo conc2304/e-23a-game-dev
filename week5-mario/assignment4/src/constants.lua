@@ -91,12 +91,15 @@ GEMS = {
 
 LOCKED_BOX_COMBOS = { 1, 2, 3, 4 }
 
-JUMP_BLOCKS = {}
-
 KEY_BLOCK_IDS = {
     1, 2, 3, 4
 }
 
+FLAG_POLE_IDS = {
+    1, 2, 3, 4, 5, 6
+}
+
+JUMP_BLOCKS = {}
 for i = 1, 30 do
     table.insert(JUMP_BLOCKS, i)
 end

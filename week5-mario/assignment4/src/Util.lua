@@ -34,6 +34,38 @@ function GenerateQuads(atlas, tilewidth, tileheight)
     return spritesheet
 end
 
+function GenerateFlagPoleQuads(atlas, flagPoleWidth, flagPoleHeight)
+    return table.slice(GenerateQuads(atlas, flagPoleWidth, flagPoleHeight), 1, 6)
+end
+
+function GenerateFlagQuads(atlas, flagWidth, flagHeight)
+    local flagPoleWidth = 16
+    local totalFlagPoleTypes = 6
+
+
+    local xOffset = flagPoleWidth * totalFlagPoleTypes
+    local yOffset = 0
+
+    local quads = {}
+    local totalFlagTypes = 4
+    local totalFlagFrames = 3
+    for col = 1, totalFlagTypes do
+        table.insert(quads, {})
+        for row = 1, totalFlagFrames do
+            local x = xOffset + ((row - 1) * flagWidth)
+            local y = yOffset + ((col - 1) * flagHeight)
+
+            quads[col][row] = love.graphics.newQuad(x, y, flagWidth, flagHeight, atlas:getDimensions())
+        end
+    end
+
+    return quads
+end
+
+function GenerateFlagSets(quads, setsX, setsY, sizeX, sizeY)
+
+end
+
 --[[
     Divides quads we've generated via slicing our tile sheet into separate tile sets.
 ]]
@@ -129,11 +161,11 @@ function GetLastGroundX(tiles)
 end
 
 function GetGroundBetweenXRange(xStart, xEnd, tiles)
-    -- if our given range is not valid bail out
-    if xStart < 1 or xEnd > #tiles[1] then return nil end
-
     local tilesWide = #tiles[1]
     local tileTall = #tiles
+    -- if our given range is not valid bail out with the last Ground Available
+    if xStart < 1 or xEnd > tilesWide then return GetLastGroundX(tiles) end
+
 
     -- we dont want to forever get stuck finding a random position, so create a bail out system
     local maxAttempts = xEnd - xStart;
@@ -155,4 +187,19 @@ function GetGroundBetweenXRange(xStart, xEnd, tiles)
 
     -- if searching randomly didnt work then just go from finish to start to find ground
     return GetLastGroundX(tiles)
+end
+
+--[[
+    Utility function for slicing tables, a la Python.
+
+    https://stackoverflow.com/questions/24821045/does-lua-have-something-like-pythons-slice
+]]
+function table.slice(tbl, first, last, step)
+    local sliced = {}
+
+    for i = first or 1, last or #tbl, step or 1 do
+        sliced[#sliced + 1] = tbl[i]
+    end
+
+    return sliced
 end
