@@ -26,7 +26,7 @@ function GenerateQuads(atlas, tilewidth, tileheight)
         for x = 0, sheetWidth - 1 do
             spritesheet[sheetCounter] =
                 love.graphics.newQuad(x * tilewidth, y * tileheight, tilewidth,
-                tileheight, atlas:getDimensions())
+                    tileheight, atlas:getDimensions())
             sheetCounter = sheetCounter + 1
         end
     end
@@ -46,7 +46,6 @@ function GenerateTileSets(quads, setsX, setsY, sizeX, sizeY)
     -- for each tile set on the X and Y
     for tilesetY = 1, setsY do
         for tilesetX = 1, setsX do
-            
             -- tileset table
             table.insert(tilesets, {})
             tableCounter = tableCounter + 1
@@ -66,36 +65,97 @@ end
     Recursive table printing function.
     https://coronalabs.com/blog/2014/09/02/tutorial-printing-table-contents/
 ]]
-function print_r ( t )
-    local print_r_cache={}
-    local function sub_print_r(t,indent)
+function print_r(t)
+    local print_r_cache = {}
+    local function sub_print_r(t, indent)
         if (print_r_cache[tostring(t)]) then
-            print(indent.."*"..tostring(t))
+            print(indent .. "*" .. tostring(t))
         else
-            print_r_cache[tostring(t)]=true
-            if (type(t)=="table") then
-                for pos,val in pairs(t) do
-                    if (type(val)=="table") then
-                        print(indent.."["..pos.."] => "..tostring(t).." {")
-                        sub_print_r(val,indent..string.rep(" ",string.len(pos)+8))
-                        print(indent..string.rep(" ",string.len(pos)+6).."}")
-                    elseif (type(val)=="string") then
-                        print(indent.."["..pos..'] => "'..val..'"')
+            print_r_cache[tostring(t)] = true
+            if (type(t) == "table") then
+                for pos, val in pairs(t) do
+                    if (type(val) == "table") then
+                        print(indent .. "[" .. pos .. "] => " .. tostring(t) .. " {")
+                        sub_print_r(val, indent .. string.rep(" ", string.len(pos) + 8))
+                        print(indent .. string.rep(" ", string.len(pos) + 6) .. "}")
+                    elseif (type(val) == "string") then
+                        print(indent .. "[" .. pos .. '] => "' .. val .. '"')
                     else
-                        print(indent.."["..pos.."] => "..tostring(val))
+                        print(indent .. "[" .. pos .. "] => " .. tostring(val))
                     end
                 end
             else
-                print(indent..tostring(t))
+                print(indent .. tostring(t))
             end
         end
     end
-    if (type(t)=="table") then
-        print(tostring(t).." {")
-        sub_print_r(t,"  ")
+    if (type(t) == "table") then
+        print(tostring(t) .. " {")
+        sub_print_r(t, "  ")
         print("}")
     else
-        sub_print_r(t,"  ")
+        sub_print_r(t, "  ")
     end
     print()
+end
+
+function GetFirstGroundX(tileMap)
+    for x = 1, tileMap.width do
+        for y = 1, tileMap.height do
+            if tileMap.tiles[y][x].id == TILE_ID_GROUND then
+                --  we have the first sighting of land
+                return (x - 1) * TILE_SIZE
+            end
+        end
+    end
+end
+
+function GetLastGroundX(tileMap)
+    for x = tileMap.width, tileMap.width, -1 do
+        for y = 1, tileMap.height do
+            if tileMap.tiles[y][x].id == TILE_ID_GROUND then
+                --  we have the last sighting of land
+                return (x - 1) * TILE_SIZE
+            end
+        end
+    end
+end
+
+function GetGroundBetweenXRange(xStart, xEnd, tileMap)
+    -- if our given range is not valid bail out
+    if xStart < 1 or xEnd > #tileMap then return nil end
+
+    -- we dont want to forever get stuck finding a random position, so create a bail out system
+    local maxAttempts = xEnd - xStart;
+    local totalAttempts = 0
+    local groundFound = false
+    while groundFound == false and totalAttempts < maxAttempts do
+        local randomX = math.random(xStart, xEnd)
+        for y = 1, tileMap.height do
+            if tileMap.tiles[y][x].id == TILE_ID_GROUND then
+                --  we have the first sighting of land
+                groundFound = true
+                return {
+                    x = (randomX - 1) * TILE_SIZE,
+                    y = (y - 1) * TILE_SIZE
+                }
+            end
+            totalAttempts = totalAttempts + 1
+        end
+    end
+
+    -- if searching randomly didnt work then just go from start to finish to find ground
+    for x = xStart, xEnd do
+        for y = 1, tileMap.height do
+            if tileMap.tiles[y][x].id == TILE_ID_GROUND then
+                --  we have the first sighting of land
+                return {
+                    x = (x - 1) * TILE_SIZE,
+                    y = (y - 1) * TILE_SIZE
+                }
+            end
+        end
+    end
+
+    return nil
 end

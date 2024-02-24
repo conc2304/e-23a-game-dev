@@ -6,7 +6,7 @@
     cogden@cs50.harvard.edu
 ]]
 
-GameObject = Class{}
+GameObject = Class {}
 
 function GameObject:init(def)
     self.x = def.x
@@ -25,7 +25,7 @@ end
 
 function GameObject:collides(target)
     return not (target.x > self.x + self.width or self.x > target.x + target.width or
-            target.y > self.y + self.height or self.y > target.y + target.height)
+        target.y > self.y + self.height or self.y > target.y + target.height)
 end
 
 function GameObject:update(dt)

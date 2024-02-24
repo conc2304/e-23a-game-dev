@@ -19,7 +19,7 @@ function PlayState:init()
     self.gravityAmount = 6
 
     self.player = Player({
-        x = self:GetFirstGroundX(),
+        x = GetFirstGroundX(self.tileMap),
         y = 0,
         width = 16,
         height = 20,
@@ -84,6 +84,15 @@ function PlayState:render()
     love.graphics.print(tostring(self.player.score), 5, 5)
     love.graphics.setColor(1, 1, 1, 1)
     love.graphics.print(tostring(self.player.score), 4, 4)
+
+    -- render keys acquired
+    local numKeys = #self.player.keys
+    local itemsPadding = TILE_SIZE/2
+    local i = 1
+    for keyId, value in pairs(self.player.keys) do
+        love.graphics.draw(gTextures['key-blocks'], gFrames['key-blocks'][keyId], VIRTUAL_WIDTH - (TILE_SIZE * i) - itemsPadding)
+        i = i + 1
+    end
 end
 
 function PlayState:updateCamera()
@@ -134,28 +143,6 @@ function PlayState:spawnEnemies()
                         table.insert(self.level.entities, snail)
                     end
                 end
-            end
-        end
-    end
-end
-
-function PlayState:GetFirstGroundX()
-    for x = 1, self.tileMap.width do
-        for y = 1, self.tileMap.height do
-            if self.tileMap.tiles[y][x].id == TILE_ID_GROUND then
-                --  we have the first sighting of land
-                return (x - 1) * TILE_SIZE
-            end
-        end
-    end
-end
-
-function PlayState:GetLastGroundX()
-    for x = self.tileMap.width, self.tileMap.width, -1 do
-        for y = 1, self.tileMap.height do
-            if self.tileMap.tiles[y][x].id == TILE_ID_GROUND then
-                --  we have the last sighting of land
-                return (x - 1) * TILE_SIZE
             end
         end
     end

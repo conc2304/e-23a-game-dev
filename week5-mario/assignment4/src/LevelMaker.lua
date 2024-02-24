@@ -10,12 +10,17 @@
 
 LevelMaker = Class {}
 
+OBJECT_KEY_ID = 'KEY'
+OBJECT_LOCK_BLOCK_ID = 'LOCK_BLOCK'
+
 function LevelMaker.generate(width, height)
     local tiles = {}
     local entities = {}
     local objects = {}
 
     local tileID = TILE_ID_GROUND
+
+
 
     -- whether we should draw our tiles with toppers
     local topper = true
@@ -74,7 +79,6 @@ function LevelMaker.generate(width, height)
             elseif math.random(8) == 1 then
                 local bushX = (x - 1) * TILE_SIZE
                 local bushY = (6 - 1) * TILE_SIZE
-
                 SpawnBush(bushX, bushY, objects)
             end
 
@@ -83,7 +87,6 @@ function LevelMaker.generate(width, height)
                 local blockX = (x - 1) * TILE_SIZE
                 local blockY = (blockHeight - 1) * TILE_SIZE
                 SpawnBlock(blockX, blockY, objects)
-                -- SpawnBlock(x, blockHeight, objects)
             end
         end
     end
@@ -91,10 +94,33 @@ function LevelMaker.generate(width, height)
     local map = TileMap(width, height)
     map.tiles = tiles
 
+    -- make one of the jump blocks about around the 40-60% mark hold a key to pop up like a gem
+    -- local blockStartSearch = math.floor(#objects * 0.40)
+    local blockStartSearch = 1
+    for i = blockStartSearch, #objects do
+        -- we only care about jump blocks
+        if objects[i].texture == 'jump-blocks' then
+            -- update the block to spawn a key on hit
+            objects[i].onCollide = function(obj)
+                if not obj.hit then
+                    local keyX = objects[i].x
+                    local keyY = objects[i].y
+                    local keyYFinish = keyY - TILE_SIZE + 4
+                    local lockColorId = math.random(4)
+
+                    -- local levelHasKey = false;
+                    -- local levelHasLockedBlock = false;
+                    SpawnKey(keyX, keyY, lockColorId, objects)
+                    obj.hit = true
+                end
+                gSounds['empty-block']:play()
+            end
+        end
+    end
+
     return GameLevel(entities, objects, map)
 end
 
--- function SpawnBlock(x, blockHeight, objects)
 function SpawnBlock(x, y, objects)
     local jumpBlock = GameObject {
         texture = 'jump-blocks',
@@ -109,14 +135,33 @@ function SpawnBlock(x, y, objects)
         hit = false,
         solid = true,
         onCollide = function(obj)
-            -- TODO NEED TO UPDATE this to not use block height
             local blockContentY = y - 4
             HandleBlockCollision(x, blockContentY, obj, objects)
-            -- HandleBlockCollision(obj, x, blockHeight, objects)
         end
     }
 
     table.insert(objects, jumpBlock)
+end
+
+function SpawnLockedBlock(x, y, keyId, objects)
+    local lockBlock = GameObject {
+        texture = 'key-blocks',
+        x = x,
+        y = y,
+        width = TILE_SIZE,
+        height = TILE_SIZE,
+
+        frame = keyId + #LOCKED_BOX_COMBOS, -- locked block of corresponding color is on the second row, so we add the number of color options to get us on the next row
+        collidable = true,
+        hit = false,
+        solid = true,
+        onCollide = function(obj)
+            -- todo
+            -- on block collision, destroy the block, then spawn a flag near the end
+            HandleBlockCollision(x, y, obj, objects)
+        end
+    }
+    table.insert(objects, lockBlock)
 end
 
 function HandleBlockCollision(x, y, obj, objects)
@@ -176,4 +221,46 @@ function SpawnBush(x, y, objects)
         }
 
     table.insert(objects, bush)
+end
+
+function SpawnKey(x, y, keyId, objects)
+    local key = GameObject {
+        texture = 'key-blocks',
+        x = x,
+        y = y - 2,
+        width = TILE_SIZE,
+        height = TILE_SIZE,
+        frame = keyId,
+        collidable = true,
+        consumable = true,
+        solid = false,
+
+        -- key has its own function to add to the player's score
+        onConsume = function(player, self)
+            print(self.texture, self.storable, self.solid)
+            gSounds['pickup-key']:play()
+            player.score = player.score + 150
+            -- lets move this key to the object items collection
+            player.keys[keyId] = keyId
+            
+            -- table.insert(player.keys, keyId)
+
+            -- insert an object into objects
+            Timer.tween(1, {
+                [self] = {
+                    -- on consume move to upper right
+                    x = VIRTUAL_WIDTH - (keyId * TILE_SIZE),
+                    y = 0 + TILE_SIZE
+                }
+            })
+        end
+    }
+    -- animate in over block
+    Timer.tween(0.1, {
+        [key] = { y = key.y - TILE_SIZE + 4 }
+    })
+
+    gSounds['powerup-reveal']:play()
+
+    table.insert(objects, key)
 end
