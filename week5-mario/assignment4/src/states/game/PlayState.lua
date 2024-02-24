@@ -1,11 +1,14 @@
 --[[
-    GD50
-    Super Mario Bros. Remake
+   GD50
+   Super Mario Bros. Remake
 
-    -- PlayState Class --
+
+   -- PlayState Class --
 ]]
 
+
 PlayState = Class { __includes = BaseState }
+
 
 function PlayState:init()
     self.camX = 0
@@ -15,8 +18,10 @@ function PlayState:init()
     self.background = math.random(3)
     self.backgroundX = 0
 
+
     self.gravityOn = true
     self.gravityAmount = 6
+
 
     self.player = Player({
         x = GetFirstGroundX(self.tileMap),
@@ -34,7 +39,9 @@ function PlayState:init()
         level = self.level
     })
 
+
     self:spawnEnemies()
+
 
     self.player:changeState('falling')
 end
@@ -42,13 +49,16 @@ end
 function PlayState:update(dt)
     Timer.update(dt)
 
+
     -- remove any nils from pickups, etc.
     self.level:clear()
+
 
     -- update player and level
     self.player:update(dt)
     self.level:update(dt)
     self:updateCamera()
+
 
     -- constrain player X no matter which state
     if self.player.x <= 0 then
@@ -70,13 +80,17 @@ function PlayState:render()
         math.floor(-self.backgroundX + 256),
         gTextures['backgrounds']:getHeight() / 3 * 2, 0, 1, -1)
 
+
     -- translate the entire view of the scene to emulate a camera
     love.graphics.translate(-math.floor(self.camX), -math.floor(self.camY))
 
+
     self.level:render()
+
 
     self.player:render()
     love.graphics.pop()
+
 
     -- render score
     love.graphics.setFont(gFonts['medium'])
@@ -85,12 +99,13 @@ function PlayState:render()
     love.graphics.setColor(1, 1, 1, 1)
     love.graphics.print(tostring(self.player.score), 4, 4)
 
+
     -- render keys acquired
-    local numKeys = #self.player.keys
-    local itemsPadding = TILE_SIZE/2
+    local itemsPadding = TILE_SIZE / 2
     local i = 1
     for keyId, value in pairs(self.player.keys) do
-        love.graphics.draw(gTextures['key-blocks'], gFrames['key-blocks'][keyId], VIRTUAL_WIDTH - (TILE_SIZE * i) - itemsPadding)
+        love.graphics.draw(gTextures['key-blocks'], gFrames['key-blocks'][keyId],
+            VIRTUAL_WIDTH - (TILE_SIZE * i) - itemsPadding)
         i = i + 1
     end
 end
@@ -102,12 +117,13 @@ function PlayState:updateCamera()
         math.min(TILE_SIZE * self.tileMap.width - VIRTUAL_WIDTH,
             self.player.x - (VIRTUAL_WIDTH / 2 - 8)))
 
+
     -- adjust background X to move a third the rate of the camera for parallax
     self.backgroundX = (self.camX / 3) % 256
 end
 
 --[[
-    Adds a series of enemies to the level randomly.
+   Adds a series of enemies to the level randomly.
 ]]
 function PlayState:spawnEnemies()
     -- spawn snails in the level
@@ -115,10 +131,12 @@ function PlayState:spawnEnemies()
         -- flag for whether there's ground on this column of the level
         local groundFound = false
 
+
         for y = 1, self.tileMap.height do
             if not groundFound then
                 if self.tileMap.tiles[y][x].id == TILE_ID_GROUND then
                     groundFound = true
+
 
                     -- random chance, 1 in 20
                     if math.random(20) == 1 then
@@ -139,6 +157,7 @@ function PlayState:spawnEnemies()
                         snail:changeState('idle', {
                             wait = math.random(5)
                         })
+
 
                         table.insert(self.level.entities, snail)
                     end
