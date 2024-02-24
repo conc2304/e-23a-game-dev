@@ -23,19 +23,14 @@ function LevelMaker.generate(width, height)
     local entities = {}
     local objects = {}
 
-
     local tileID = TILE_ID_GROUND
-
-
-
-
-
 
     -- whether we should draw our tiles with toppers
     local topper = true
     local tileset = math.random(20)
     local topperset = math.random(20)
 
+    local jumpBlocksQty = 0
 
     -- insert blank tables into tiles for later access
     for x = 1, height do
@@ -107,6 +102,7 @@ function LevelMaker.generate(width, height)
                 local blockX = (x - 1) * TILE_SIZE
                 local blockY = (blockHeight - 1) * TILE_SIZE
                 SpawnBlock(blockX, blockY, objects)
+                jumpBlocksQty = jumpBlocksQty + 1
             end
         end
     end
@@ -115,32 +111,7 @@ function LevelMaker.generate(width, height)
     local map = TileMap(width, height)
     map.tiles = tiles
 
-
-    -- make one of the jump blocks about around the 40-60% mark hold a key to pop up like a gem
-    -- local blockStartSearch = math.floor(#objects * 0.40)
-    local blockStartSearch = 1
-    for i = blockStartSearch, #objects do
-        -- we only care about jump blocks
-        if objects[i].texture == 'jump-blocks' then
-            -- update the block to spawn a key on hit
-            objects[i].onCollide = function(obj)
-                if not obj.hit then
-                    local keyX = objects[i].x
-                    local keyY = objects[i].y
-                    local keyYFinish = keyY - TILE_SIZE + 4
-                    local lockColorId = math.random(4)
-
-
-                    -- local levelHasKey = false;
-                    -- local levelHasLockedBlock = false;
-                    SpawnKey(keyX, keyY, lockColorId, objects)
-                    obj.hit = true
-                end
-                gSounds['empty-block']:play()
-            end
-        end
-    end
-
+    AddKeysToBlocks(objects)
 
     return GameLevel(entities, objects, map)
 end
@@ -152,7 +123,6 @@ function SpawnBlock(x, y, objects)
         y = y,
         width = 16,
         height = 16,
-
 
         -- make it a random variant
         frame = math.random(#JUMP_BLOCKS),
@@ -176,7 +146,6 @@ function SpawnLockedBlock(x, y, keyId, objects)
         y = y,
         width = TILE_SIZE,
         height = TILE_SIZE,
-
 
         frame = keyId + #LOCKED_BOX_COMBOS, -- locked block of corresponding color is on the second row, so we add the number of color options to get us on the next row
         collidable = true,
@@ -266,33 +235,49 @@ function SpawnKey(x, y, keyId, objects)
         consumable = true,
         solid = false,
 
-
-        -- key has its own function to add to the player's score
+        -- key has its own function to add to the player's score and to add to inventory
         onConsume = function(player, self)
             gSounds['pickup-key']:play()
             player.score = player.score + 150
 
-
             -- lets move this key to the object items collection for rendering
             player.keys[keyId] = keyId
-
-            Timer.tween(1, {
-                [self] = {
-                    -- on consume move to upper right
-                    x = VIRTUAL_WIDTH - (keyId * TILE_SIZE),
-                    y = 0 + TILE_SIZE
-                }
-            })
         end
     }
-    -- animate in over block
+
+    -- animate in over collided block
     Timer.tween(0.1, {
         [key] = { y = key.y - TILE_SIZE + 4 }
     })
 
-
     gSounds['powerup-reveal']:play()
 
-
     table.insert(objects, key)
+end
+
+function AddKeysToBlocks(objects)
+    -- lets have 3 chances for a key since some of these blocks are unreachable
+    local blocksToGiveKeys = {
+        math.floor(#objects * 0.30), -- one at the 30% mark,
+        math.floor(#objects * 0.60), -- one at the 60% mark,
+        #objects - 1,                -- the secdond to last brick
+    }
+
+    for _, objIndex in pairs(blocksToGiveKeys) do
+        -- we only care about jump blocks
+        if objects[objIndex].texture == 'jump-blocks' then
+            -- update the block to spawn a key on hit
+            objects[objIndex].onCollide = function(obj)
+                if not obj.hit then
+                    local keyX = objects[objIndex].x
+                    local keyY = objects[objIndex].y
+                    local lockColorId = math.random(#LOCKED_BOX_COMBOS)
+
+                    SpawnKey(keyX, keyY, lockColorId, objects)
+                    obj.hit = true
+                end
+                gSounds['empty-block']:play()
+            end
+        end
+    end
 end

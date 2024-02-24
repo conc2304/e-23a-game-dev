@@ -33,5 +33,10 @@ function GameObject:update(dt)
 end
 
 function GameObject:render()
+    if self.texture == nil or self.frame == nil or gFrames[self.texture][self.frame] == nil then
+        print("no texture")
+        print_r(self)
+    end
+
     love.graphics.draw(gTextures[self.texture], gFrames[self.texture][self.frame], self.x, self.y)
 end

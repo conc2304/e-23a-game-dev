@@ -84,9 +84,7 @@ function PlayState:render()
     -- translate the entire view of the scene to emulate a camera
     love.graphics.translate(-math.floor(self.camX), -math.floor(self.camY))
 
-
     self.level:render()
-
 
     self.player:render()
     love.graphics.pop()
@@ -101,13 +99,7 @@ function PlayState:render()
 
 
     -- render keys acquired
-    local itemsPadding = TILE_SIZE / 2
-    local i = 1
-    for keyId, value in pairs(self.player.keys) do
-        love.graphics.draw(gTextures['key-blocks'], gFrames['key-blocks'][keyId],
-            VIRTUAL_WIDTH - (TILE_SIZE * i) - itemsPadding)
-        i = i + 1
-    end
+    self:RenderCollectedKeys()
 end
 
 function PlayState:updateCamera()
@@ -123,7 +115,7 @@ function PlayState:updateCamera()
 end
 
 --[[
-   Adds a series of enemies to the level randomly.
+    Adds a series of enemies to the level randomly.
 ]]
 function PlayState:spawnEnemies()
     -- spawn snails in the level
@@ -164,5 +156,15 @@ function PlayState:spawnEnemies()
                 end
             end
         end
+    end
+end
+
+function PlayState:RenderCollectedKeys()
+    local itemsPadding = TILE_SIZE / 2
+    local i = 1
+    for keyId in pairs(self.player.keys) do
+        love.graphics.draw(gTextures['key-blocks'], gFrames['key-blocks'][keyId],
+            VIRTUAL_WIDTH - (TILE_SIZE * i) - itemsPadding)
+        i = i + 1
     end
 end
