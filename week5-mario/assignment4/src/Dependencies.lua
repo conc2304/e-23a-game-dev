@@ -62,6 +62,8 @@ gSounds = {
     ['pickup'] = love.audio.newSource('sounds/pickup.wav', 'static'),
     ['pickup-key'] = love.audio.newSource('sounds/pickup-key.wav', 'static'),
     ['empty-block'] = love.audio.newSource('sounds/empty-block.wav', 'static'),
+    ['missing-key'] = love.audio.newSource('sounds/missing-key.wav', 'static'),
+    ['lock-box-unlock'] = love.audio.newSource('sounds/lock-box-unlock.wav', 'static'),
     ['kill'] = love.audio.newSource('sounds/kill.wav', 'static'),
     ['kill2'] = love.audio.newSource('sounds/kill2.wav', 'static')
 }

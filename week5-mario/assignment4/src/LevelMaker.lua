@@ -1,13 +1,13 @@
 --[[
-   GD50
-   Super Mario Bros. Remake
+    GD50
+    Super Mario Bros. Remake
 
 
-   -- LevelMaker Class --
+    -- LevelMaker Class --
 
 
-   Author: Colton Ogden
-   cogden@cs50.harvard.edu
+    Author: Colton Ogden
+    cogden@cs50.harvard.edu
 ]]
 
 
@@ -42,13 +42,11 @@ function LevelMaker.generate(width, height)
     for x = 1, width do
         local tileID = TILE_ID_EMPTY
 
-
         -- lay out the empty space
         for y = 1, 6 do
             table.insert(tiles[y],
                 Tile(x, y, tileID, nil, tileset, topperset))
         end
-
 
         -- chance to just be emptiness
         if math.random(7) == 1 then
@@ -59,10 +57,8 @@ function LevelMaker.generate(width, height)
         else
             tileID = TILE_ID_GROUND
 
-
             -- height at which we would spawn a potential jump block
             local blockHeight = 4
-
 
             for y = 7, height do
                 table.insert(tiles[y],
@@ -111,7 +107,10 @@ function LevelMaker.generate(width, height)
     local map = TileMap(width, height)
     map.tiles = tiles
 
-    AddKeysToBlocks(objects)
+
+    local keyId = math.random(#LOCKED_BOX_COMBOS)
+    AddKeysToBlocks(keyId, objects)
+    AddLockBlock(keyId, map.tiles, objects)
 
     return GameLevel(entities, objects, map)
 end
@@ -135,26 +134,39 @@ function SpawnBlock(x, y, objects)
         end
     }
 
-
     table.insert(objects, jumpBlock)
 end
 
 function SpawnLockedBlock(x, y, keyId, objects)
+    local frameId = keyId + #LOCKED_BOX_COMBOS
     local lockBlock = GameObject {
         texture = 'key-blocks',
         x = x,
         y = y,
         width = TILE_SIZE,
         height = TILE_SIZE,
-
-        frame = keyId + #LOCKED_BOX_COMBOS, -- locked block of corresponding color is on the second row, so we add the number of color options to get us on the next row
+        frame = frameId, -- locked block of corresponding color is on the second row, so we add the number of color options to get us on the next row
         collidable = true,
         hit = false,
         solid = true,
-        onCollide = function(obj)
-            -- todo
+        consumable = true,
+        onCollide = function(obj, player, objRefKey)
             -- on block collision, destroy the block, then spawn a flag near the end
-            HandleBlockCollision(x, y, obj, objects)
+            local hasMatchingKey = player:hasKey(keyId)
+
+            if not hasMatchingKey then
+                gSounds['missing-key']:play()
+                return
+            end
+
+            Timer.every(0.1, function()
+                obj.frame = math.random(5, 8)
+            end
+            ):limit(6):finish(function()
+                gSounds['lock-box-unlock']:play()
+                table.remove(objects, objRefKey)
+                -- spawn a flag near the end of the game
+            end)
         end
     }
     table.insert(objects, lockBlock)
@@ -188,14 +200,12 @@ function SpawnGem(x, y, gemYFinish, objects)
         consumable = true,
         solid = false,
 
-
         -- gem has its own function to add to the player's score
         onConsume = function(player, object)
             gSounds['pickup']:play()
             player.score = player.score + 100
         end
     }
-
 
     -- make the gem move up from the block and play a sound
     Timer.tween(0.1, {
@@ -255,7 +265,7 @@ function SpawnKey(x, y, keyId, objects)
     table.insert(objects, key)
 end
 
-function AddKeysToBlocks(objects)
+function AddKeysToBlocks(keyId, objects)
     -- lets have 3 chances for a key since some of these blocks are unreachable
     local blocksToGiveKeys = {
         math.floor(#objects * 0.30), -- one at the 30% mark,
@@ -271,13 +281,23 @@ function AddKeysToBlocks(objects)
                 if not obj.hit then
                     local keyX = objects[objIndex].x
                     local keyY = objects[objIndex].y
-                    local lockColorId = math.random(#LOCKED_BOX_COMBOS)
+                    -- local lockColorId = math.random(#LOCKED_BOX_COMBOS)
 
-                    SpawnKey(keyX, keyY, lockColorId, objects)
+                    SpawnKey(keyX, keyY, keyId, objects)
                     obj.hit = true
                 end
                 gSounds['empty-block']:play()
             end
         end
     end
+end
+
+function AddLockBlock(keyId, tiles, objects)
+    -- put a lock block randomly over the ground between the 70%-100% of the game completion
+    local levelWidth = #tiles[1]
+
+    local groundPos = GetGroundBetweenXRange(math.floor(levelWidth * 0.7), levelWidth, tiles)
+    local blockHeight = 3
+    local x, y = groundPos.x, groundPos.y
+    SpawnLockedBlock(x, y - (blockHeight * TILE_SIZE), keyId, objects)
 end

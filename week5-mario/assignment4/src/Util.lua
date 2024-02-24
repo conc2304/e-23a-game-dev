@@ -110,52 +110,49 @@ function GetFirstGroundX(tileMap)
     end
 end
 
-function GetLastGroundX(tileMap)
-    for x = tileMap.width, tileMap.width, -1 do
-        for y = 1, tileMap.height do
-            if tileMap.tiles[y][x].id == TILE_ID_GROUND then
+function GetLastGroundX(tiles)
+    local tilesWide = #tiles[1]
+    local tileTall = #tiles
+    for x = tilesWide, 1, -1 do
+        for y = 1, tileTall do
+            if tiles.tiles[y][x].id == TILE_ID_GROUND then
                 --  we have the last sighting of land
-                return (x - 1) * TILE_SIZE
+                return { x = (x - 1) * TILE_SIZE, y = y }
             end
         end
     end
+    -- we should have found someting, but if not just retun the 4th to last tile space at our 6th height
+    return {
+        x = (#tiles[0] - 4) * TILE_SIZE,
+        y = 6 * TILE_SIZE
+    }
 end
 
-function GetGroundBetweenXRange(xStart, xEnd, tileMap)
+function GetGroundBetweenXRange(xStart, xEnd, tiles)
     -- if our given range is not valid bail out
-    if xStart < 1 or xEnd > #tileMap then return nil end
+    if xStart < 1 or xEnd > #tiles[1] then return nil end
+
+    local tilesWide = #tiles[1]
+    local tileTall = #tiles
 
     -- we dont want to forever get stuck finding a random position, so create a bail out system
     local maxAttempts = xEnd - xStart;
     local totalAttempts = 0
-    local groundFound = false
-    while groundFound == false and totalAttempts < maxAttempts do
+    while totalAttempts < maxAttempts do
         local randomX = math.random(xStart, xEnd)
-        for y = 1, tileMap.height do
-            if tileMap.tiles[y][x].id == TILE_ID_GROUND then
+        totalAttempts = totalAttempts + 1
+        for y = 1, tileTall, 1 do
+            -- print(randomX, y)
+            if tiles[y][randomX].id == TILE_ID_GROUND then
                 --  we have the first sighting of land
-                groundFound = true
                 return {
                     x = (randomX - 1) * TILE_SIZE,
                     y = (y - 1) * TILE_SIZE
                 }
             end
-            totalAttempts = totalAttempts + 1
         end
     end
 
-    -- if searching randomly didnt work then just go from start to finish to find ground
-    for x = xStart, xEnd do
-        for y = 1, tileMap.height do
-            if tileMap.tiles[y][x].id == TILE_ID_GROUND then
-                --  we have the first sighting of land
-                return {
-                    x = (x - 1) * TILE_SIZE,
-                    y = (y - 1) * TILE_SIZE
-                }
-            end
-        end
-    end
-
-    return nil
+    -- if searching randomly didnt work then just go from finish to start to find ground
+    return GetLastGroundX(tiles)
 end

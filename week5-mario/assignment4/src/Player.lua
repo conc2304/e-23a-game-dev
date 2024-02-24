@@ -83,3 +83,10 @@ function Player:checkObjectCollisions()
 
     return collidedObjects
 end
+
+function Player:hasKey(keyId)
+    for kId in pairs(self.keys) do
+        if keyId == kId then return true end
+    end
+    return false
+end
