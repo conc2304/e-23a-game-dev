@@ -17,6 +17,7 @@ LevelMaker = Class {}
 OBJECT_KEY_ID = 'KEY'
 OBJECT_LOCK_BLOCK_ID = 'LOCK_BLOCK'
 
+DEFAULT_LVL_WIDTH = 100
 
 function LevelMaker.generate(width, height)
     local tiles = {}
@@ -78,12 +79,10 @@ function LevelMaker.generate(width, height)
                     SpawnBush(bushX, bushY, objects)
                 end
 
-
                 -- pillar tiles
                 tiles[5][x] = Tile(x, 5, tileID, topper, tileset, topperset)
                 tiles[6][x] = Tile(x, 6, tileID, nil, tileset, topperset)
                 tiles[7][x].topper = nil
-
 
                 -- chance to generate bushes
             elseif math.random(8) == 1 then
@@ -111,7 +110,9 @@ function LevelMaker.generate(width, height)
     local keyId = math.random(#LOCKED_BOX_COMBOS)
     AddKeysToBlocks(keyId, objects)
     AddLockBlock(keyId, map.tiles, objects)
-    SpawnFlag(objects)
+
+    SpawnLockedBlock(100, 50, 1, map.tiles, objects)
+    SpawnFlag(100, 100, tiles, objects)
 
     return GameLevel(entities, objects, map)
 end
@@ -138,7 +139,7 @@ function SpawnBlock(x, y, objects)
     table.insert(objects, jumpBlock)
 end
 
-function SpawnLockedBlock(x, y, keyId, objects)
+function SpawnLockedBlock(x, y, keyId, tiles, objects)
     local frameId = keyId + #LOCKED_BOX_COMBOS
     local lockBlock = GameObject {
         texture = 'key-blocks',
@@ -155,18 +156,24 @@ function SpawnLockedBlock(x, y, keyId, objects)
             -- on block collision, destroy the block, then spawn a flag near the end
             local hasMatchingKey = player:hasKey(keyId)
 
+            -- if player does not have the the matching key to unlock it then bail out
             if not hasMatchingKey then
                 gSounds['missing-key']:play()
                 return
             end
 
             Timer.every(0.1, function()
+                -- rainbow strobe for exit animation
                 obj.frame = math.random(5, 8)
             end
             ):limit(6):finish(function()
+                -- remove block
                 gSounds['lock-box-unlock']:play()
                 table.remove(objects, objRefKey)
                 -- spawn a flag near the end of the game
+                local levelWidth = #tiles
+                local groundPos = GetGroundBetweenXRange(math.floor(levelWidth * 0.8), levelWidth, tiles)
+                SpawnFlag(groundPos.x, groundPos.y, tiles, objects)
             end)
         end
     }
@@ -282,7 +289,6 @@ function AddKeysToBlocks(keyId, objects)
                 if not obj.hit then
                     local keyX = objects[objIndex].x
                     local keyY = objects[objIndex].y
-                    -- local lockColorId = math.random(#LOCKED_BOX_COMBOS)
 
                     SpawnKey(keyX, keyY, keyId, objects)
                     obj.hit = true
@@ -300,30 +306,84 @@ function AddLockBlock(keyId, tiles, objects)
     local groundPos = GetGroundBetweenXRange(math.floor(levelWidth * 0.7), levelWidth, tiles)
     local blockHeight = 3
     local x, y = groundPos.x, groundPos.y
-    SpawnLockedBlock(x, y - (blockHeight * TILE_SIZE), keyId, objects)
+    y = y - (blockHeight * TILE_SIZE)
+    SpawnLockedBlock(x, y, keyId, tiles, objects)
 end
 
-function SpawnFlag(objects)
+function SpawnFlag(x, y, tiles, objects)
+    local poleW, poleH = 16, 48
+    local flagW, flagH = 16, 16
+    local poleVarieties = 6
     local flagPole = GameObject {
         texture = 'flags',
-        x = 200,
-        y = 200,
-        width = 16,
-        height = 48,
-        frame = FLAG_POLE_IDS,
-        collidable = false
+        x = x - poleW,
+        y = y - poleH,
+        width = poleW,
+        height = poleH,
+        frame = math.random(poleVarieties),
+        collidable = false,
+        solid = false,
+        consumable = false
     }
+
+    local flagColor = math.random(4)
+    local flagFrames = 3
+    local flagStartingFrame = poleVarieties + 1 + ((flagColor - 1) * flagFrames)
+    local flagAnimFrames = {}
+    for i = 1, flagFrames - 1 do
+        table.insert(flagAnimFrames, flagStartingFrame + i - 1)
+    end
+
+    local function HandleFlagCollision(player, obj)
+        -- play sound,
+        local levelClearedBonus = 500
+        player.score = player.score + levelClearedBonus
+        local soundDuration = gSounds['stage-clear']:getDuration()
+
+        gSounds['stage-clear']:play()
+
+        -- after stage clear sound ends, clear the stage and create a new level
+        Timer.after(soundDuration, function()
+            -- increase the next level length by 20%
+            local levelWidth = #tiles
+            local nextLevelWidth = levelWidth * 1.2
+            gStateMachine:change('play', {
+                levelWidth = nextLevelWidth,
+                score = player.score
+            })
+        end)
+    end
 
     local flag = GameObject {
         texture = 'flags',
-        x = 200,
-        y = 200,
-        width = 16,
-        height = 48,
-        frame = FLAG_POLE_IDS,
-        collidable = false
+        x = x - flagW + (poleW / 2) + 2, -- offset x by 2px to account for dif in pole size vs pole with base/top
+        y = y - flagH,
+        width = flagW,
+        height = flagH,
+        -- flags start at 7, because we have 6 flag poles
+        frame = flagStartingFrame + (flagFrames - 1), -- use last frame of color set to animate in
+        animation = nil,
+        collidable = true,
+        consumable = true,
+        solid = false,
+        onConsume = function(obj, player, objRefKey)
+            HandleFlagCollision(obj, player, objRefKey)
+        end
     }
 
+    -- animate the raising of the flag
+    local flagEntryDuration = 0.3
+    Timer.tween(flagEntryDuration, {
+        [flag] = { y = y - poleH + 6 }
+    })
+
+    -- once raised set the animation state
+    Timer.after(flagEntryDuration, function()
+        flag.animation = Animation {
+            frames = flagAnimFrames,
+            interval = 0.5
+        }
+    end)
 
     table.insert(objects, flagPole)
     table.insert(objects, flag)

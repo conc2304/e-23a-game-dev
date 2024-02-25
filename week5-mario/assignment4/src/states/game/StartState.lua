@@ -17,7 +17,9 @@ end
 
 function StartState:update(dt)
     if love.keyboard.wasPressed('enter') or love.keyboard.wasPressed('return') then
-        gStateMachine:change('play')
+        gStateMachine:change('play', {
+            levelWidth = DEFAULT_LVL_WIDTH,
+        })
     end
 end
 
@@ -26,8 +28,6 @@ function StartState:render()
     love.graphics.draw(gTextures['backgrounds'], gFrames['backgrounds'][self.background], 0,
         gTextures['backgrounds']:getHeight() / 3 * 2, 0, 1, -1)
     self.map:render()
-
-
 
 
     love.graphics.setFont(gFonts['title'])
@@ -41,9 +41,4 @@ function StartState:render()
     love.graphics.printf('Press Enter', 1, VIRTUAL_HEIGHT / 2 + 17, VIRTUAL_WIDTH, 'center')
     love.graphics.setColor(255, 255, 255, 255)
     love.graphics.printf('Press Enter', 0, VIRTUAL_HEIGHT / 2 + 16, VIRTUAL_WIDTH, 'center')
-
-
-
-    -- love.graphics.draw(gTextures['flags'], gFrames['flag-poles'][6], VIRTUAL_WIDTH / 2, VIRTUAL_HEIGHT / 2)
-    love.graphics.draw(gTextures['flags'], gFrames['flagsets'][4][3], VIRTUAL_WIDTH / 2, VIRTUAL_HEIGHT / 2)
 end

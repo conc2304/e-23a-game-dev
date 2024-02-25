@@ -15,6 +15,7 @@ function GameObject:init(def)
     self.width = def.width
     self.height = def.height
     self.frame = def.frame
+    self.animation = def.animation
     self.solid = def.solid
     self.collidable = def.collidable
     self.consumable = def.consumable
@@ -29,7 +30,11 @@ function GameObject:collides(target)
 end
 
 function GameObject:update(dt)
-
+    -- print("GO UPDATE")
+    if self.animation then
+        -- print("update-animation")
+        self.animation:update(dt)
+    end
 end
 
 function GameObject:render()
@@ -38,5 +43,10 @@ function GameObject:render()
         print_r(self)
     end
 
-    love.graphics.draw(gTextures[self.texture], gFrames[self.texture][self.frame], self.x, self.y)
+    if self.animation then
+        love.graphics.draw(gTextures[self.texture], gFrames[self.texture][self.animation:getCurrentFrame()], self.x,
+            self.y)
+    else
+        love.graphics.draw(gTextures[self.texture], gFrames[self.texture][self.frame], self.x, self.y)
+    end
 end

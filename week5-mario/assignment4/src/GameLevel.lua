@@ -8,7 +8,7 @@
     cogden@cs50.harvard.edu
 ]]
 
-GameLevel = Class{}
+GameLevel = Class {}
 
 function GameLevel:init(entities, objects, tilemap)
     self.entities = entities

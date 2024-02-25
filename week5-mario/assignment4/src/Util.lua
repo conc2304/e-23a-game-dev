@@ -42,7 +42,6 @@ function GenerateFlagQuads(atlas, flagWidth, flagHeight)
     local flagPoleWidth = 16
     local totalFlagPoleTypes = 6
 
-
     local xOffset = flagPoleWidth * totalFlagPoleTypes
     local yOffset = 0
 
@@ -50,12 +49,38 @@ function GenerateFlagQuads(atlas, flagWidth, flagHeight)
     local totalFlagTypes = 4
     local totalFlagFrames = 3
     for col = 1, totalFlagTypes do
-        table.insert(quads, {})
         for row = 1, totalFlagFrames do
             local x = xOffset + ((row - 1) * flagWidth)
             local y = yOffset + ((col - 1) * flagHeight)
 
-            quads[col][row] = love.graphics.newQuad(x, y, flagWidth, flagHeight, atlas:getDimensions())
+            table.insert(quads, love.graphics.newQuad(x, y, flagWidth, flagHeight, atlas:getDimensions()))
+        end
+    end
+
+    return quads
+end
+
+function GenerateFlagsetQuads(atlas)
+    --     ['flag-poles'] = GenerateFlagPoleQuads(gTextures['flags'], 16, 48),
+    local poleW, poleH = 16, 48
+    local poleVarieties = 6
+    local flagW, flagH = 16, 16
+
+    -- add flag poles to quad sheet
+    local quads = table.slice(GenerateQuads(atlas, poleW, poleH), 1, poleVarieties)
+
+    local xOffset = poleW * poleVarieties
+    local yOffset = 0
+
+    local totalFlagTypes = 4
+    local totalFlagFrames = 3
+    -- add flags to quad sheet
+    for col = 1, totalFlagTypes do
+        for row = 1, totalFlagFrames do
+            local x = xOffset + ((row - 1) * flagW)
+            local y = yOffset + ((col - 1) * flagH)
+
+            table.insert(quads, love.graphics.newQuad(x, y, flagW, flagH, atlas:getDimensions()))
         end
     end
 

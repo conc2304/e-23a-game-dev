@@ -64,6 +64,7 @@ gSounds = {
     ['empty-block'] = love.audio.newSource('sounds/empty-block.wav', 'static'),
     ['missing-key'] = love.audio.newSource('sounds/missing-key.wav', 'static'),
     ['lock-box-unlock'] = love.audio.newSource('sounds/lock-box-unlock.wav', 'static'),
+    ['stage-clear'] = love.audio.newSource('sounds/stage-clear.wav', 'static'),
     ['kill'] = love.audio.newSource('sounds/kill.wav', 'static'),
     ['kill2'] = love.audio.newSource('sounds/kill2.wav', 'static')
 }
@@ -74,6 +75,7 @@ gTextures = {
     ['bushes'] = love.graphics.newImage('graphics/bushes_and_cacti.png'),
     ['jump-blocks'] = love.graphics.newImage('graphics/jump_blocks.png'),
     ['key-blocks'] = love.graphics.newImage('graphics/keys_and_locks.png'),
+    -- ['flag-poles'] = love.graphics.newImage('graphics/flags.png'),
     ['flags'] = love.graphics.newImage('graphics/flags.png'),
     ['gems'] = love.graphics.newImage('graphics/gems.png'),
     ['backgrounds'] = love.graphics.newImage('graphics/backgrounds.png'),
@@ -87,13 +89,20 @@ gFrames = {
     ['toppers'] = GenerateQuads(gTextures['toppers'], TILE_SIZE, TILE_SIZE),
     ['bushes'] = GenerateQuads(gTextures['bushes'], 16, 16),
     ['jump-blocks'] = GenerateQuads(gTextures['jump-blocks'], 16, 16),
-    ['flag-poles'] = GenerateFlagPoleQuads(gTextures['flags'], 16, 48),
-    ['flagsets'] = GenerateFlagQuads(gTextures['flags'], 16, 16),
+    -- ['flag-poles'] = GenerateFlagPoleQuads(gTextures['flags'], 16, 48),
+    -- ['flags'] = GenerateFlagQuads(gTextures['flags'], 16, 16),
+    ['flags'] = GenerateFlagsetQuads(gTextures['flags']),
     ['gems'] = GenerateQuads(gTextures['gems'], 16, 16),
     ['backgrounds'] = GenerateQuads(gTextures['backgrounds'], 256, 128),
     ['green-alien'] = GenerateQuads(gTextures['green-alien'], 16, 20),
     ['creatures'] = GenerateQuads(gTextures['creatures'], 16, 16)
 }
+
+local x, y = VIRTUAL_WIDTH / 2, VIRTUAL_HEIGHT / 2
+
+--      love.graphics.draw(gTextures[self.texture], gFrames[self.texture][self.frame], x, y)
+
+--      love.graphics.draw(gTextures['flags'], gFrames['flag-poles'][6], x, y)
 
 -- these need to be added after gFrames is initialized because they refer to gFrames from within
 gFrames['tilesets'] = GenerateTileSets(gFrames['tiles'],
