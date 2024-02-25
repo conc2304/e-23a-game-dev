@@ -112,7 +112,7 @@ function LevelMaker.generate(width, height)
     AddLockBlock(keyId, map.tiles, objects)
 
     SpawnLockedBlock(100, 50, 1, map.tiles, objects)
-    SpawnFlag(100, 100, tiles, objects)
+    -- SpawnFlag(100, 100, tiles, objects)
 
     return GameLevel(entities, objects, map)
 end
