@@ -30,7 +30,6 @@ function LevelMaker.generate(width, height)
             text = 'Level Completed!',
             x = 1,
             y = -70,
-            -- y = VIRTUAL_HEIGHT / 2 - 40,
             font = 'title',
             color = { 255, 255, 255, 255 },
             alignment = 'center',
@@ -354,9 +353,8 @@ function SpawnFlag(x, y, tiles, objects)
         local soundDuration = gSounds['stage-clear']:getDuration()
 
         gSounds['stage-clear']:play()
-        -- TODO i do not know why they is not causing it to render on complete
         player.level.text['lvl-done'].visible = true
-        Timer.tween(0.3,
+        Timer.tween(1,
             { [player.level.text['lvl-done']] = { y = 30 } }
         )
         -- after stage clear sound ends, clear the stage and create a new level
