@@ -164,7 +164,7 @@ function SpawnLockedBlock(x, y, keyId, tiles, objects)
         consumable = true,
         onCollide = function(obj, player, objRefKey)
             -- on block collision, destroy the block, then spawn a flag near the end
-            if (obj.hit) then return end
+            if (obj.hit) then return end -- prevent double hitting while its still in view
             local hasMatchingKey = player:hasKey(keyId)
             -- if player does not have the the matching key to unlock it then bail out
             if not hasMatchingKey then
@@ -193,7 +193,6 @@ function SpawnLockedBlock(x, y, keyId, tiles, objects)
 end
 
 function HandleBlockCollision(x, y, obj, objects)
-    -- function HandleBlockCollision(obj, x, blockHeight, objects)
     -- spawn a gem if we haven't already hit the block
     if not obj.hit then
         -- chance to spawn gem, not guaranteed
@@ -288,15 +287,15 @@ end
 function AddKeysToBlocks(keyId, objects)
     -- lets have 3 chances for a key since some of these blocks are unreachable
     local blocksToGiveKeys = {
-        math.floor(#objects * 0.30), -- one at the 30% mark,
+        math.floor(#objects * 0.30), -- one around the 30% mark,
         math.floor(#objects * 0.60), -- one at the 60% mark,
-        #objects - 1,                -- the secdond to last brick
+        #objects - math.random(5),   -- one of the last brick
     }
 
     for _, objIndex in pairs(blocksToGiveKeys) do
         -- we only care about jump blocks
         if objects[objIndex].texture == 'jump-blocks' then
-            -- update the block to spawn a key on hit
+            -- update the block to spawn a key on hit if it hasnt been hit before
             objects[objIndex].onCollide = function(obj)
                 if not obj.hit then
                     local keyX = objects[objIndex].x
@@ -312,10 +311,10 @@ function AddKeysToBlocks(keyId, objects)
 end
 
 function AddLockBlock(keyId, tiles, objects)
-    -- put a lock block randomly over the ground between the 60%-90% of the game completion
+    -- put a lock block randomly over the ground between the 60%-80% of the game completion
     local levelWidth = #tiles[1]
 
-    local groundPos = GetGroundBetweenXRange(math.floor(levelWidth * 0.6), math.floor(levelWidth * 0.9), tiles)
+    local groundPos = GetGroundBetweenXRange(math.floor(levelWidth * 0.6), math.floor(levelWidth * 0.8), tiles)
     local blockHeight = 3
     local x, y = groundPos.x, groundPos.y
     y = y - (blockHeight * TILE_SIZE)
@@ -326,6 +325,7 @@ function SpawnFlag(x, y, tiles, objects)
     local poleW, poleH = 16, 48
     local flagW, flagH = 16, 16
     local poleVarieties = 6
+    -- make the flag pole obj
     local flagPole = GameObject {
         texture = 'flags',
         x = x - poleW,
@@ -338,6 +338,8 @@ function SpawnFlag(x, y, tiles, objects)
         consumable = false
     }
 
+    -- make the flag object - this is the collidable/consumable
+
     local flagColor = math.random(4)
     local flagFrames = 3
     local flagStartingFrame = poleVarieties + 1 + ((flagColor - 1) * flagFrames)
@@ -346,19 +348,24 @@ function SpawnFlag(x, y, tiles, objects)
         table.insert(flagAnimFrames, flagStartingFrame + i - 1)
     end
 
+
     local function HandleFlagCollision(player, obj)
-        -- play sound,
+        -- - give points and play sound
         local levelClearedBonus = 500
         player.score = player.score + levelClearedBonus
-        local soundDuration = gSounds['stage-clear']:getDuration()
 
+        -- use sound duration as the length of tweening
+        local soundDuration = gSounds['stage-clear']:getDuration()
         gSounds['stage-clear']:play()
+
+        -- display level complete text
         player.level.text['lvl-done'].visible = true
         Timer.tween(1,
             { [player.level.text['lvl-done']] = { y = 30 } }
         )
+
         -- after stage clear sound ends, clear the stage and create a new level
-        Timer.after(soundDuration / 2, function()
+        Timer.after(soundDuration, function()
             -- increase the next level length by 20%
             local levelWidth = #tiles[1]
             local nextLevelWidth = levelWidth * 1.2
@@ -369,6 +376,7 @@ function SpawnFlag(x, y, tiles, objects)
         end)
     end
 
+    -- make the flag object
     local flag = GameObject {
         texture = 'flags',
         x = x - flagW + (poleW / 2) + 2, -- offset x by 2px to account for dif in pole size vs pole with base/top
@@ -386,13 +394,13 @@ function SpawnFlag(x, y, tiles, objects)
         end
     }
 
-    -- animate the raising of the flag
+    -- animate the raising of the flag when it spawsn
     local flagEntryDuration = 0.3
     Timer.tween(flagEntryDuration, {
         [flag] = { y = y - poleH + 6 }
     })
 
-    -- once raised set the animation state
+    -- once raised set the animation state so that the flag waves
     Timer.after(flagEntryDuration, function()
         flag.animation = Animation {
             frames = flagAnimFrames,

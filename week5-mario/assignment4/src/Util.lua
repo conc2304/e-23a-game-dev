@@ -61,7 +61,6 @@ function GenerateFlagQuads(atlas, flagWidth, flagHeight)
 end
 
 function GenerateFlagsetQuads(atlas)
-    --     ['flag-poles'] = GenerateFlagPoleQuads(gTextures['flags'], 16, 48),
     local poleW, poleH = 16, 48
     local poleVarieties = 6
     local flagW, flagH = 16, 16
@@ -85,10 +84,6 @@ function GenerateFlagsetQuads(atlas)
     end
 
     return quads
-end
-
-function GenerateFlagSets(quads, setsX, setsY, sizeX, sizeY)
-
 end
 
 --[[
@@ -156,6 +151,8 @@ function print_r(t)
     print()
 end
 
+-- find the first point of ground from left to right
+-- return the x and y position
 function GetFirstGroundX(tileMap)
     for x = 1, tileMap.width do
         for y = 1, tileMap.height do
@@ -167,6 +164,8 @@ function GetFirstGroundX(tileMap)
     end
 end
 
+-- find the first point of ground from right to left
+-- return the x and y position
 function GetLastGroundX(tiles)
     local tilesWide = #tiles[1]
     local tileTall = #tiles
@@ -185,6 +184,8 @@ function GetLastGroundX(tiles)
     }
 end
 
+-- find the first point of ground randomly with a given range
+-- return the x and y position
 function GetGroundBetweenXRange(xStart, xEnd, tiles)
     local tilesWide = #tiles[1]
     local tileTall = #tiles
