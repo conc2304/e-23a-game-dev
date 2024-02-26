@@ -199,7 +199,6 @@ function GetGroundBetweenXRange(xStart, xEnd, tiles)
         local randomX = math.random(xStart, xEnd)
         totalAttempts = totalAttempts + 1
         for y = 1, tileTall, 1 do
-            -- print(randomX, y)
             if tiles[y][randomX].id == TILE_ID_GROUND then
                 --  we have the first sighting of land
                 return {

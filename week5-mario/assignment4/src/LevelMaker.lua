@@ -19,10 +19,25 @@ OBJECT_LOCK_BLOCK_ID = 'LOCK_BLOCK'
 
 DEFAULT_LVL_WIDTH = 100
 
+-- local GameAssets = {}
+
 function LevelMaker.generate(width, height)
     local tiles = {}
     local entities = {}
     local objects = {}
+    local text = {
+        ['lvl-done'] = Text {
+            text = 'Level Completed!',
+            x = 1,
+            y = -70,
+            -- y = VIRTUAL_HEIGHT / 2 - 40,
+            font = 'title',
+            color = { 255, 255, 255, 255 },
+            alignment = 'center',
+            hasShadow = true,
+            visible = false
+        }
+    }
 
     local tileID = TILE_ID_GROUND
 
@@ -110,11 +125,7 @@ function LevelMaker.generate(width, height)
     local keyId = math.random(#LOCKED_BOX_COMBOS)
     AddKeysToBlocks(keyId, objects)
     AddLockBlock(keyId, map.tiles, objects)
-
-    SpawnLockedBlock(100, 50, 1, map.tiles, objects)
-    -- SpawnFlag(100, 100, tiles, objects)
-
-    return GameLevel(entities, objects, map)
+    return GameLevel(entities, objects, map, text)
 end
 
 function SpawnBlock(x, y, objects)
@@ -154,13 +165,15 @@ function SpawnLockedBlock(x, y, keyId, tiles, objects)
         consumable = true,
         onCollide = function(obj, player, objRefKey)
             -- on block collision, destroy the block, then spawn a flag near the end
+            if (obj.hit) then return end
             local hasMatchingKey = player:hasKey(keyId)
-
             -- if player does not have the the matching key to unlock it then bail out
             if not hasMatchingKey then
                 gSounds['missing-key']:play()
                 return
             end
+
+            obj.hit = true
 
             Timer.every(0.1, function()
                 -- rainbow strobe for exit animation
@@ -171,9 +184,9 @@ function SpawnLockedBlock(x, y, keyId, tiles, objects)
                 gSounds['lock-box-unlock']:play()
                 table.remove(objects, objRefKey)
                 -- spawn a flag near the end of the game
-                local levelWidth = #tiles
-                local groundPos = GetGroundBetweenXRange(math.floor(levelWidth * 0.8), levelWidth, tiles)
-                SpawnFlag(groundPos.x, groundPos.y, tiles, objects)
+                local levelWidth = #tiles[1]
+                local flagPos = GetGroundBetweenXRange(math.floor(levelWidth * 0.8), levelWidth, tiles)
+                SpawnFlag(flagPos.x + TILE_SIZE, flagPos.y, tiles, objects)
             end)
         end
     }
@@ -300,10 +313,10 @@ function AddKeysToBlocks(keyId, objects)
 end
 
 function AddLockBlock(keyId, tiles, objects)
-    -- put a lock block randomly over the ground between the 70%-100% of the game completion
+    -- put a lock block randomly over the ground between the 60%-90% of the game completion
     local levelWidth = #tiles[1]
 
-    local groundPos = GetGroundBetweenXRange(math.floor(levelWidth * 0.7), levelWidth, tiles)
+    local groundPos = GetGroundBetweenXRange(math.floor(levelWidth * 0.6), math.floor(levelWidth * 0.9), tiles)
     local blockHeight = 3
     local x, y = groundPos.x, groundPos.y
     y = y - (blockHeight * TILE_SIZE)
@@ -341,11 +354,15 @@ function SpawnFlag(x, y, tiles, objects)
         local soundDuration = gSounds['stage-clear']:getDuration()
 
         gSounds['stage-clear']:play()
-
+        -- TODO i do not know why they is not causing it to render on complete
+        player.level.text['lvl-done'].visible = true
+        Timer.tween(0.3,
+            { [player.level.text['lvl-done']] = { y = 30 } }
+        )
         -- after stage clear sound ends, clear the stage and create a new level
-        Timer.after(soundDuration, function()
+        Timer.after(soundDuration / 2, function()
             -- increase the next level length by 20%
-            local levelWidth = #tiles
+            local levelWidth = #tiles[1]
             local nextLevelWidth = levelWidth * 1.2
             gStateMachine:change('play', {
                 levelWidth = nextLevelWidth,
@@ -366,8 +383,8 @@ function SpawnFlag(x, y, tiles, objects)
         collidable = true,
         consumable = true,
         solid = false,
-        onConsume = function(obj, player, objRefKey)
-            HandleFlagCollision(obj, player, objRefKey)
+        onConsume = function(player, obj)
+            HandleFlagCollision(player, obj)
         end
     }
 

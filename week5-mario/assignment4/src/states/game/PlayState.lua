@@ -46,13 +46,23 @@ function PlayState:init(def)
     self.player:changeState('falling')
 end
 
+function PlayState:enter(def)
+    def = def or {}
+
+    local levelWidth = def.levelWidth or DEFAULT_LVL_WIDTH
+    self.level = LevelMaker.generate(levelWidth, 10)
+    self.tileMap = self.level.tileMap
+    self.player.score = def.score or 0
+    self.player.x = GetFirstGroundX(self.tileMap)
+    self.player.map = self.tileMap
+    self.player.level = self.level
+end
+
 function PlayState:update(dt)
     Timer.update(dt)
 
-
     -- remove any nils from pickups, etc.
     self.level:clear()
-
 
     -- update player and level
     self.player:update(dt)
@@ -89,6 +99,10 @@ function PlayState:render()
     self.player:render()
     love.graphics.pop()
 
+    for k, text in pairs(self.level.text) do
+        text:render()
+    end
+
 
     -- render score
     love.graphics.setFont(gFonts['medium'])
@@ -96,7 +110,6 @@ function PlayState:render()
     love.graphics.print(tostring(self.player.score), 5, 5)
     love.graphics.setColor(1, 1, 1, 1)
     love.graphics.print(tostring(self.player.score), 4, 4)
-
 
     -- render keys acquired
     self:RenderCollectedKeys()

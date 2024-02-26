@@ -15,7 +15,6 @@ function Player:init(def)
     Entity.init(self, def)
     self.score = def.score or 0
     self.keys = {}
-    self.keys = { 1, 2, 3, 4 }
 end
 
 function Player:update(dt)

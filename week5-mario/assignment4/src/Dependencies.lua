@@ -45,6 +45,7 @@ require 'src/states/entity/snail/SnailMovingState'
 -- general
 require 'src/Animation'
 require 'src/Entity'
+require 'src/Text'
 require 'src/GameObject'
 require 'src/GameLevel'
 require 'src/LevelMaker'

@@ -30,19 +30,12 @@ function GameObject:collides(target)
 end
 
 function GameObject:update(dt)
-    -- print("GO UPDATE")
     if self.animation then
-        -- print("update-animation")
         self.animation:update(dt)
     end
 end
 
 function GameObject:render()
-    if self.texture == nil or self.frame == nil or gFrames[self.texture][self.frame] == nil then
-        print("no texture")
-        print_r(self)
-    end
-
     if self.animation then
         love.graphics.draw(gTextures[self.texture], gFrames[self.texture][self.animation:getCurrentFrame()], self.x,
             self.y)
