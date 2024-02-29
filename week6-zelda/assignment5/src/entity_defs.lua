@@ -6,6 +6,11 @@
     cogden@cs50.harvard.edu
 ]]
 
+NPC_ENTITY_WIDTH, NPC_ENNTITY_HEIGHT = 16, 16
+NPC_WALK_SPEED = 20
+
+POWER_UP_PROB_MAX = 10
+
 ENTITY_DEFS = {
     ['player'] = {
         walkSpeed = PLAYER_WALK_SPEED,
@@ -73,6 +78,9 @@ ENTITY_DEFS = {
         }
     },
     ['skeleton'] = {
+        health = 3,
+        walkSpeed = NPC_WALK_SPEED * 1,
+        probOfExtraLife = 7,
         texture = 'entities',
         animations = {
             ['walk-left'] = {
@@ -106,6 +114,9 @@ ENTITY_DEFS = {
         }
     },
     ['slime'] = {
+        health = 2,
+        walkSpeed = NPC_WALK_SPEED * 0.5,
+        probOfExtraLife = 4,
         texture = 'entities',
         animations = {
             ['walk-left'] = {
@@ -139,6 +150,9 @@ ENTITY_DEFS = {
         }
     },
     ['bat'] = {
+        health = 1,
+        walkSpeed = NPC_WALK_SPEED * 1.5,
+        probOfExtraLife = 2,
         texture = 'entities',
         animations = {
             ['walk-left'] = {
@@ -176,6 +190,9 @@ ENTITY_DEFS = {
         }
     },
     ['ghost'] = {
+        health = 2,
+        walkSpeed = NPC_WALK_SPEED * 1.25,
+        probOfExtraLife = 3,
         texture = 'entities',
         animations = {
             ['walk-left'] = {
@@ -209,6 +226,9 @@ ENTITY_DEFS = {
         }
     },
     ['spider'] = {
+        health = 1,
+        walkSpeed = NPC_WALK_SPEED,
+        probOfExtraLife = 1,
         texture = 'entities',
         animations = {
             ['walk-left'] = {
@@ -249,28 +269,28 @@ ENTITY_DEFS = {
                 interval = 0.2
             },
             ['walk-right'] = {
-                frames = { 25, 26, 27, 26 },
+                frames = { 82, 83, 84, 83 },
                 interval = 0.2
             },
             ['walk-down'] = {
-                frames = { 1, 2, 3, 2 },
+                frames = { 58, 59, 60, 59 },
                 interval = 0.2
             },
             ['walk-up'] = {
-                frames = { 37, 38, 39, 38 },
+                frames = { 94, 95, 96, 95 },
                 interval = 0.2
             },
             ['idle-left'] = {
-                frames = { 14 }
+                frames = { 71 }
             },
             ['idle-right'] = {
-                frames = { 26 }
+                frames = { 83 }
             },
             ['idle-down'] = {
-                frames = { 2 }
+                frames = { 59 }
             },
             ['idle-up'] = {
-                frames = { 38 }
+                frames = { 95 }
             }
         }
     }

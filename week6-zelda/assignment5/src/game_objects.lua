@@ -24,6 +24,27 @@ GAME_OBJECT_DEFS = {
             }
         }
     },
+    ['life'] = {
+        type = 'life',
+        texture = 'heart',
+        frame = 5,
+        width = 16,
+        height = 16,
+        solid = false,
+        consumable = true,
+        onCollide = function()
+            print("give heart")
+        end,
+        defaultState = 'unconsumed',
+        states = {
+            ['unconsumed'] = {
+                frame = 5
+            },
+            ['consumed'] = {
+                frame = 1
+            }
+        }
+    },
     ['pot'] = {
         -- TODO
     }

@@ -6,10 +6,9 @@
     cogden@cs50.harvard.edu
 ]]
 
-GameObject = Class{}
+GameObject = Class {}
 
 function GameObject:init(def, x, y)
-    
     -- string identifying this object type
     self.type = def.type
 
@@ -22,6 +21,7 @@ function GameObject:init(def, x, y)
     self.defaultState = def.defaultState
     self.state = self.defaultState
     self.states = def.states
+    self.consumable = def.consumable
 
     -- dimensions
     self.x = x
@@ -30,7 +30,7 @@ function GameObject:init(def, x, y)
     self.height = def.height
 
     -- default empty collision callback
-    self.onCollide = function() end
+    self.onCollide = def.onCollide or function() end
 end
 
 function GameObject:update(dt)

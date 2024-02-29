@@ -46,13 +46,13 @@ end
     Randomly creates an assortment of enemies for the player to fight.
 ]]
 function Room:generateEntities()
-    local types = { 'baby', 'skeleton', 'slime', 'bat', 'ghost', 'spider' }
+    local types = { 'skeleton', 'slime', 'bat', 'ghost', 'spider' }
 
     for i = 1, 10 do
         local type = types[math.random(#types)]
-        local health = type == 'baby' and math.random(1000) or 1
-        print(type, health)
-        table.insert(self.entities, Entity {
+
+        local entity = Entity {
+            class = type,
             animations = ENTITY_DEFS[type].animations,
             walkSpeed = ENTITY_DEFS[type].walkSpeed or 20,
 
@@ -62,11 +62,23 @@ function Room:generateEntities()
             y = math.random(MAP_RENDER_OFFSET_Y + TILE_SIZE,
                 VIRTUAL_HEIGHT - (VIRTUAL_HEIGHT - MAP_HEIGHT * TILE_SIZE) + MAP_RENDER_OFFSET_Y - TILE_SIZE - 16),
 
-            width = 16,
-            height = 16,
+            width = ENTITY_DEFS[type].width or 16,
+            height = ENTITY_DEFS[type].height or 16,
 
-            health = health
-        })
+            health = ENTITY_DEFS[type].health or 1,
+            probOfExtraLife = ENTITY_DEFS[type].health or nil
+        }
+
+        -- just add all the stuff i want in the entities
+        -- for key, value in pairs(ENTITY_DEFS[type]) do
+        --     print(key)
+        --     entity[key] = value
+        -- end
+
+        -- print_r(entity)
+
+
+        table.insert(self.entities, entity)
 
         self.entities[i].stateMachine = StateMachine {
             ['walk'] = function() return EntityWalkState(self.entities[i]) end,
@@ -90,7 +102,7 @@ function Room:generateObjects()
     )
 
     -- define a function for the switch that will open all doors in the room
-    switch.onCollide = function()
+    switch.onCollide = function(switch)
         if switch.state == 'unpressed' then
             switch.state = 'pressed'
 
@@ -158,7 +170,11 @@ function Room:update(dt)
 
         -- remove entity from the table if health is <= 0
         if entity.health <= 0 then
-            entity.dead = true
+            if entity.onDeath ~= nil and not entity.dead then
+                print("handle death")
+                entity:onDeath(self.objects)
+                entity.dead = true
+            end
         elseif not entity.dead then
             entity:processAI({ room = self }, dt)
             entity:update(dt)

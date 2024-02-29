@@ -6,15 +6,14 @@
     cogden@cs50.harvard.edu
 ]]
 
-Entity = Class{}
+Entity = Class {}
 
 function Entity:init(def)
-
     -- in top-down games, there are four directions instead of two
     self.direction = 'down'
 
     self.animations = self:createAnimations(def.animations)
-
+    self.class = def.class
     -- dimensions
     self.x = def.x
     self.y = def.y
@@ -28,6 +27,7 @@ function Entity:init(def)
     self.walkSpeed = def.walkSpeed
 
     self.health = def.health
+    self.probOfExtraLife = def.probOfExtraLife or 0
 
     -- flags for flashing the entity when hit
     self.invulnerable = false
@@ -59,7 +59,7 @@ end
 ]]
 function Entity:collides(target)
     return not (self.x + self.width < target.x or self.x > target.x + target.width or
-                self.y + self.height < target.y or self.y > target.y + target.height)
+        self.y + self.height < target.y or self.y > target.y + target.height)
 end
 
 function Entity:damage(dmg)
@@ -104,15 +104,38 @@ function Entity:processAI(params, dt)
 end
 
 function Entity:render(adjacentOffsetX, adjacentOffsetY)
-    
     -- draw sprite slightly transparent if invulnerable every 0.04 seconds
     if self.invulnerable and self.flashTimer > 0.06 then
         self.flashTimer = 0
-        love.graphics.setColor(1, 1, 1, 64/255)
+        love.graphics.setColor(1, 1, 1, 64 / 255)
     end
 
     self.x, self.y = self.x + (adjacentOffsetX or 0), self.y + (adjacentOffsetY or 0)
     self.stateMachine:render()
     love.graphics.setColor(1, 1, 1, 1)
     self.x, self.y = self.x - (adjacentOffsetX or 0), self.y - (adjacentOffsetY or 0)
+end
+
+function Entity:onDeath(gameObjects)
+    -- spawn an extra life to pick up
+    local chance = math.random(POWER_UP_PROB_MAX)
+    print(chance, self.probOfExtraLife)
+    -- if chance > self.probOfExtraLife then return end
+    local x, y = self.x, self.y
+
+    print("spawn new life")
+    local extraLife = GameObject {
+        GAME_OBJECT_DEFS['life'],
+        math.random(MAP_RENDER_OFFSET_X + TILE_SIZE,
+            VIRTUAL_WIDTH - TILE_SIZE * 2 - 16),
+        math.random(MAP_RENDER_OFFSET_Y + TILE_SIZE,
+            VIRTUAL_HEIGHT - (VIRTUAL_HEIGHT - MAP_HEIGHT * TILE_SIZE) + MAP_RENDER_OFFSET_Y - TILE_SIZE - 16)
+    }
+
+    -- for key, value in ipairs(GAME_OBJECT_DEFS['life']) do
+    --     extraLife[key] = value
+    -- end
+
+
+    -- table.insert(gameObjects, extraLife)
 end
