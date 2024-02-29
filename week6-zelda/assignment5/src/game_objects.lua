@@ -36,23 +36,45 @@ GAME_OBJECT_DEFS = {
             -- cap how much heart we can give
             player.health = player.health + HEALTH_PER_HEART
             player.health = math.min(player.health, MAX_HEALTH)
-            self.visible = false
+
+            -- remove from game
             table.remove(gameObjects, objIndex)
 
             gSounds['health-up']:play()
         end,
-        defaultState = 'unconsumed',
+        defaultState = 'default',
         states = {
-            ['unconsumed'] = {
+            ['default'] = {
                 frame = 5
             },
-            ['consumed'] = {
-                frame = 1
-            }
         }
 
     },
     ['pot'] = {
         -- TODO
+
+        type = 'life',
+        texture = 'hearts',
+        frame = 5,
+        width = 16,
+        height = 16,
+        solid = false,
+        consumable = true,
+        onCollide = function(self, player, gameObjects, objIndex)
+            -- cap how much heart we can give
+            player.health = player.health + HEALTH_PER_HEART
+            player.health = math.min(player.health, MAX_HEALTH)
+
+            -- remove from game
+            table.remove(gameObjects, objIndex)
+
+            gSounds['health-up']:play()
+        end,
+        defaultState = 'default',
+        states = {
+            ['default'] = {
+                frame = 5
+            },
+        }
     }
 }
