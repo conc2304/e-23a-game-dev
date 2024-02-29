@@ -11,6 +11,7 @@ NPC_WALK_SPEED = 20
 
 POWER_UP_PROB_MAX = 10
 
+-- lets not have multiple places in the code where we define our entities
 ENTITY_DEFS = {
     ['player'] = {
         walkSpeed = PLAYER_WALK_SPEED,

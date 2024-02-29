@@ -58,28 +58,7 @@ function Room:generateEntities()
         entityDef.y = math.random(MAP_RENDER_OFFSET_Y + TILE_SIZE,
             VIRTUAL_HEIGHT - (VIRTUAL_HEIGHT - MAP_HEIGHT * TILE_SIZE) + MAP_RENDER_OFFSET_Y - TILE_SIZE - 16)
 
-        local entity = Entity(entityDef)
-        -- local entity = Entity {
-        --     class = type,
-        --     animations = ENTITY_DEFS[type].animations,
-        --     walkSpeed = ENTITY_DEFS[type].walkSpeed or 20,
-
-        --     -- ensure X and Y are within bounds of the map
-        --     x = math.random(MAP_RENDER_OFFSET_X + TILE_SIZE,
-        --         VIRTUAL_WIDTH - TILE_SIZE * 2 - 16),
-        --     y = math.random(MAP_RENDER_OFFSET_Y + TILE_SIZE,
-        --         VIRTUAL_HEIGHT - (VIRTUAL_HEIGHT - MAP_HEIGHT * TILE_SIZE) + MAP_RENDER_OFFSET_Y - TILE_SIZE - 16),
-
-        --     width = ENTITY_DEFS[type].width or 16,
-        --     height = ENTITY_DEFS[type].height or 16,
-
-        --     health = ENTITY_DEFS[type].health or 1,
-        --     probOfExtraLife = ENTITY_DEFS[type].health or nil
-        -- }
-
-
-
-        table.insert(self.entities, entity)
+        table.insert(self.entities, Entity(entityDef))
 
         self.entities[i].stateMachine = StateMachine {
             ['walk'] = function() return EntityWalkState(self.entities[i]) end,

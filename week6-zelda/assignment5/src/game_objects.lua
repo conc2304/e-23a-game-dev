@@ -26,7 +26,7 @@ GAME_OBJECT_DEFS = {
     },
     ['life'] = {
         type = 'life',
-        texture = 'heart',
+        texture = 'hearts',
         frame = 5,
         width = 16,
         height = 16,
