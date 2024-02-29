@@ -83,8 +83,10 @@ function Room:generateObjects()
 
     -- define a function for the switch that will open all doors in the room
     switch.onCollide = function(switch)
+        print("switch collide")
         if switch.state == 'unpressed' then
             switch.state = 'pressed'
+            print("switch pressing")
 
             -- open every door in the room if we press the switch
             for k, doorway in pairs(self.doorways) do
@@ -176,7 +178,7 @@ function Room:update(dt)
         object:update(dt)
 
         -- trigger collision callback on object
-        if object.visible and self.player:collides(object) then
+        if self.player:collides(object) then
             object:onCollide(self.player, self.objects, k)
         end
     end
