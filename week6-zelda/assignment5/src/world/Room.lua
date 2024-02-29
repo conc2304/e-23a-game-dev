@@ -176,8 +176,8 @@ function Room:update(dt)
         object:update(dt)
 
         -- trigger collision callback on object
-        if self.player:collides(object) then
-            object:onCollide()
+        if object.visible and self.player:collides(object) then
+            object:onCollide(self.player, self.objects, k)
         end
     end
 end

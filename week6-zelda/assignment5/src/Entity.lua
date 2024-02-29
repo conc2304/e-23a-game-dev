@@ -119,21 +119,15 @@ end
 function Entity:onDeath(gameObjects)
     -- spawn an extra life to pick up
     local chance = math.random(POWER_UP_PROB_MAX)
-    print(chance, self.probOfExtraLife)
-    -- if chance > self.probOfExtraLife then return end
-    local x, y = self.x, self.y
+    if chance < self.probOfExtraLife then return end
 
-    print("entity at", x, y)
-    print("spawn new life")
-
+    -- use object def and then add in a random drop position
     local lifeDef = GAME_OBJECT_DEFS['life']
     local x = math.random(MAP_RENDER_OFFSET_X + TILE_SIZE,
         VIRTUAL_WIDTH - TILE_SIZE * 2 - 16)
     local y = math.random(MAP_RENDER_OFFSET_Y + TILE_SIZE,
         VIRTUAL_HEIGHT - (VIRTUAL_HEIGHT - MAP_HEIGHT * TILE_SIZE) + MAP_RENDER_OFFSET_Y - TILE_SIZE - 16)
     local extraLife = GameObject(lifeDef, x, y)
-
-    print_r(extraLife)
 
     table.insert(gameObjects, extraLife)
 end

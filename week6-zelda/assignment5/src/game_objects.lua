@@ -32,8 +32,14 @@ GAME_OBJECT_DEFS = {
         height = 16,
         solid = false,
         consumable = true,
-        onCollide = function()
-            print("give heart")
+        onCollide = function(self, player, gameObjects, objIndex)
+            -- cap how much heart we can give
+            player.health = player.health + HEALTH_PER_HEART
+            player.health = math.min(player.health, MAX_HEALTH)
+            self.visible = false
+            table.remove(gameObjects, objIndex)
+
+            gSounds['health-up']:play()
         end,
         defaultState = 'unconsumed',
         states = {
@@ -44,6 +50,7 @@ GAME_OBJECT_DEFS = {
                 frame = 1
             }
         }
+
     },
     ['pot'] = {
         -- TODO
