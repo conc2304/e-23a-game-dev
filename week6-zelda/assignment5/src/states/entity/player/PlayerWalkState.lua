@@ -23,6 +23,7 @@ function PlayerWalkState:update(dt)
     -- perform base collision detection against walls
     EntityWalkState.update(self, dt)
 
+
     -- if we bumped something when checking collision, check any object collisions
     if self.bumped then
         if self.entity.direction == 'left' then

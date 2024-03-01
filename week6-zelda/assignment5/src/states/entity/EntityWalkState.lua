@@ -14,10 +14,6 @@ function EntityWalkState:init(entity, dungeon)
 
     self.dungeon = dungeon
 
-    print("init walk state")
-    print_r(self.entity)
-    print_r(self.dungeon)
-
     -- used for AI control
     self.moveDuration = 0
     self.movementTimer = 0
@@ -110,11 +106,13 @@ function EntityWalkState:checkBoundaryCollsion(dt)
 end
 
 function EntityWalkState:checkObjectCollisions(dt)
+    local dungeon = self.dungeon.currentRoom or self.dungeon
+    if dungeon == nil or dungeon.objects == nil then return {} end
+
     local collidedObjects = {}
-    if self.dungeon == nil or self.dungeon.objects == nil then return {} end
 
     -- check for collision with solid game objects
-    for k, object in pairs(self.dungeon.objects) do
+    for k, object in pairs(dungeon.objects) do
         if object.solid and self.entity:collides(object) then
             table.insert(collidedObjects, object)
             self.bumped = true
@@ -124,13 +122,13 @@ function EntityWalkState:checkObjectCollisions(dt)
     -- force entity to not be on or in the bumped objects
     if #collidedObjects > 0 then
         if self.entity.direction == 'left' then
-            self.entity.x = self.entity.x - self.entity.walkSpeed * dt
+            self.entity.x = self.entity.x + (self.entity.walkSpeed * dt)
         elseif self.entity.direction == 'right' then
-            self.entity.x = self.entity.x + self.entity.walkSpeed * dt
+            self.entity.x = self.entity.x - (self.entity.walkSpeed * dt)
         elseif self.entity.direction == 'up' then
-            self.entity.y = self.entity.y - self.entity.walkSpeed * dt
+            self.entity.y = self.entity.y + (self.entity.walkSpeed * dt)
         elseif self.entity.direction == 'down' then
-            self.entity.y = self.entity.y + self.entity.walkSpeed * dt
+            self.entity.y = self.entity.y - (self.entity.walkSpeed * dt)
         end
     end
 
