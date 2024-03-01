@@ -85,7 +85,7 @@ function Room:generateObjects()
     -- add to list of objects in scene (only one switch for now)
     table.insert(self.objects, switch)
 
-    self:generatePots(switchPos, self.objects)
+    self:generatePots(switch, self.objects)
 end
 
 --[[
@@ -151,24 +151,11 @@ function Room:update(dt)
         for _, obj in ipairs(self.objects) do
             if obj.solid and entity:collides(obj) then
                 entity.bumped = true
-                -- update the entities tragectory
-                -- entity:processAI({ room = self }, dt)
             end
         end
 
         entity:processAI({ room = self }, dt)
         entity:update(dt)
-
-        -- collision between entity and solid objects
-        -- for _, obj in ipairs(self.objects) do
-        --     if obj.solid and entity:collides(obj) then
-        --         entity.bumped = true
-        --         -- update the entities tragectory
-        --         entity:processAI({ room = self }, dt)
-        --     end
-        -- end
-
-
 
         -- collision between the player and entities in the room
         if self.player:collides(entity) and not self.player.invulnerable then
@@ -272,26 +259,41 @@ function Room:render()
     -- love.graphics.setColor(255, 255, 255, 255)
 end
 
-function Room:generatePots(switchPos, entities)
+function Room:generatePots(switch, entities)
     -- generate some pots and put them in places
     local potsQty = math.random(3, 10)
     for i = 1, potsQty do
         local potPos = GetRandomInGameXY()
 
-        local objectOnSwitch = potPos.x == switchPos.x and potPos.y == switchPos.y
-        local objectOnEntity = false
+        -- test collision instead of x and y so objects dont get stuck inside of solids
+        local collisionPadding = 10;
+        local testPot = {
+            x = potPos.x - (collisionPadding / 2),
+            y = potPos.y - (collisionPadding / 2),
+            width = GAME_OBJECT_DEFS['pot'].width + collisionPadding,
+            height = GAME_OBJECT_DEFS['pot'].height + collisionPadding
+        }
 
-        -- no pots on entities
-        for _, entity in pairs(entities) do
-            objectOnEntity = entity.x == potPos.x and entity.y == potPos.y
-
-            if objectOnEntity then break end
-        end
+        local objectOnSwitch = Collides(testPot, switch)
+        local objectOnEntity = true
 
         -- make sure we dont put a pot on top of the switch
         while objectOnSwitch or objectOnEntity do
             potPos = GetRandomInGameXY()
+
+            testPot.x = potPos.x
+            testPot.y = potPos.y
+
+            objectOnSwitch = not not Collides(testPot, switch)
+
+            for _, entity in pairs(entities) do
+                local collides = Collides(testPot, entity)
+                print("collides", collides)
+                objectOnEntity = not not collides
+                if objectOnEntity then break end
+            end
         end
+
 
         local pot = GameObject(
             GAME_OBJECT_DEFS['pot'],

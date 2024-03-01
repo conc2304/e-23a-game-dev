@@ -79,3 +79,8 @@ function GetRandomInGameXY()
             VIRTUAL_HEIGHT - (VIRTUAL_HEIGHT - MAP_HEIGHT * TILE_SIZE) + MAP_RENDER_OFFSET_Y - TILE_SIZE - 16)
     }
 end
+
+function Collides(self, target)
+    return not (self.x + self.width < target.x or self.x > target.x + target.width or
+        self.y + self.height < target.y or self.y > target.y + target.height)
+end

@@ -105,32 +105,31 @@ function EntityWalkState:checkBoundaryCollsion(dt)
     end
 end
 
+-- check for collision with solid objects and adjust entities position on collision
 function EntityWalkState:checkObjectCollisions(dt)
+    -- depending on who (entity vs. player) is making this call
+    -- the access to the dungeon object differs, but we just need to objects
     local dungeon = self.dungeon.currentRoom or self.dungeon
+
     if dungeon == nil or dungeon.objects == nil then return {} end
 
-    local collidedObjects = {}
-
     -- check for collision with solid game objects
-    for k, object in pairs(dungeon.objects) do
+    for _, object in pairs(dungeon.objects) do
         if object.solid and self.entity:collides(object) then
-            table.insert(collidedObjects, object)
+            -- set bump to true mainly for ai entities
             self.bumped = true
+
+            -- readjust entity position
+            if self.entity.direction == 'left' then
+                self.entity.x = object.x + self.entity.width + (self.entity.walkSpeed * dt)
+            elseif self.entity.direction == 'right' then
+                self.entity.x = object.x - self.entity.width - (self.entity.walkSpeed * dt)
+            elseif self.entity.direction == 'up' then
+                -- we are allowing some overlap hereby so that it looks like there feet are at the base of the object
+                self.entity.y = self.entity.y + (self.entity.walkSpeed * dt)
+            elseif self.entity.direction == 'down' then
+                self.entity.y = object.y - self.entity.height - (self.entity.walkSpeed * dt)
+            end
         end
     end
-
-    -- force entity to not be on or in the bumped objects
-    if #collidedObjects > 0 then
-        if self.entity.direction == 'left' then
-            self.entity.x = self.entity.x + (self.entity.walkSpeed * dt)
-        elseif self.entity.direction == 'right' then
-            self.entity.x = self.entity.x - (self.entity.walkSpeed * dt)
-        elseif self.entity.direction == 'up' then
-            self.entity.y = self.entity.y + (self.entity.walkSpeed * dt)
-        elseif self.entity.direction == 'down' then
-            self.entity.y = self.entity.y - (self.entity.walkSpeed * dt)
-        end
-    end
-
-    return collidedObjects
 end
