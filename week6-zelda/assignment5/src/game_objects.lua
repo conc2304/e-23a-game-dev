@@ -68,7 +68,7 @@ GAME_OBJECT_DEFS = {
     },
     ['pot'] = {
         type = 'pot',
-        texture = 'hearts',
+        texture = 'tiles',
         frame = 14,
         width = 16,
         height = 16,
@@ -82,6 +82,9 @@ GAME_OBJECT_DEFS = {
             ['default'] = {
                 frame = 14
             },
+            ['broken'] = {
+                frame = 52
+            }
         }
     }
 }

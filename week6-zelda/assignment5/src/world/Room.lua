@@ -8,6 +8,8 @@
 
 Room = Class {}
 
+DOOR_LOCATIONS = { 'top', 'bottom', 'left', 'right' }
+
 function Room:init(player)
     self.width = MAP_WIDTH
     self.height = MAP_HEIGHT
@@ -25,10 +27,10 @@ function Room:init(player)
 
     -- doorways that lead to other dungeon rooms
     self.doorways = {}
-    table.insert(self.doorways, Doorway('top', false, self))
-    table.insert(self.doorways, Doorway('bottom', false, self))
-    table.insert(self.doorways, Doorway('left', false, self))
-    table.insert(self.doorways, Doorway('right', false, self))
+
+    for _, location in ipairs(DOOR_LOCATIONS) do
+        table.insert(self.doorways, Doorway(location, false, self))
+    end
 
     -- reference to player for collisions, etc.
     self.player = player
@@ -51,12 +53,11 @@ function Room:generateEntities()
     for i = 1, 10 do
         local type = types[math.random(#types)]
 
+        local entityPos = GetRandomInGameXY()
         local entityDef = ENTITY_DEFS[type]
         -- ensure X and Y are within bounds of the map
-        entityDef.x = math.random(MAP_RENDER_OFFSET_X + TILE_SIZE,
-            VIRTUAL_WIDTH - TILE_SIZE * 2 - 16)
-        entityDef.y = math.random(MAP_RENDER_OFFSET_Y + TILE_SIZE,
-            VIRTUAL_HEIGHT - (VIRTUAL_HEIGHT - MAP_HEIGHT * TILE_SIZE) + MAP_RENDER_OFFSET_Y - TILE_SIZE - 16)
+        entityDef.x = entityPos.x
+        entityDef.y = entityPos.y
 
         table.insert(self.entities, Entity(entityDef))
 
@@ -73,31 +74,17 @@ end
     Randomly creates an assortment of obstacles for the player to navigate around.
 ]]
 function Room:generateObjects()
+    local switchPos = GetRandomInGameXY()
     local switch = GameObject(
         GAME_OBJECT_DEFS['switch'],
-        math.random(MAP_RENDER_OFFSET_X + TILE_SIZE,
-            VIRTUAL_WIDTH - TILE_SIZE * 2 - 16),
-        math.random(MAP_RENDER_OFFSET_Y + TILE_SIZE,
-            VIRTUAL_HEIGHT - (VIRTUAL_HEIGHT - MAP_HEIGHT * TILE_SIZE) + MAP_RENDER_OFFSET_Y - TILE_SIZE - 16)
+        switchPos.x,
+        switchPos.y
     )
-
-    -- -- define a function for the switch that will open all doors in the room
-    -- switch.onCollide = function(switch)
-    --     if switch.state == 'unpressed' then
-    --         switch.state = 'pressed'
-    --         print("switch pressing")
-
-    --         -- open every door in the room if we press the switch
-    --         for k, doorway in pairs(self.doorways) do
-    --             doorway.open = true
-    --         end
-
-    --         gSounds['door']:play()
-    --     end
-    -- end
 
     -- add to list of objects in scene (only one switch for now)
     table.insert(self.objects, switch)
+
+    self:generatePots(switchPos)
 end
 
 --[[
@@ -256,4 +243,24 @@ function Room:render()
     --     VIRTUAL_HEIGHT - TILE_SIZE - 6, TILE_SIZE * 2, TILE_SIZE * 2 + 12)
 
     -- love.graphics.setColor(255, 255, 255, 255)
+end
+
+function Room:generatePots(switchPos)
+    -- generate some pots and put them in places
+    local potsQty = math.random(3, 10)
+    for i = 1, potsQty do
+        local potPos = GetRandomInGameXY()
+
+        -- make sure we dont put a pot on top of the switch
+        while potPos.x == switchPos.x and potPos.y == switchPos.y do
+            potPos = GetRandomInGameXY()
+        end
+
+        local pot = GameObject(
+            GAME_OBJECT_DEFS['pot'],
+            potPos.x,
+            potPos.y
+        )
+        table.insert(self.objects, pot)
+    end
 end
