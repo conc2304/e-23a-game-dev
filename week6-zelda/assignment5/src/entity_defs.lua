@@ -11,6 +11,12 @@ NPC_WALK_SPEED = 20
 
 POWER_UP_PROB_MAX = 100
 
+-- Texture Vars
+CHAR_WALK_TXTR = 'character-walk'
+CHAR_SWORD_TXTR = 'character-swing-sword'
+CHAR_ITEM_LIFT_TXTR = 'character-item-lift'
+CHAR_ITEM_WALK_TXTR = 'character-item-walk'
+
 -- lets not have multiple places in the code where we define our entities
 ENTITY_DEFS = {
     ['player'] = {
@@ -19,67 +25,135 @@ ENTITY_DEFS = {
             ['walk-left'] = {
                 frames = { 13, 14, 15, 16 },
                 interval = 0.155,
-                texture = 'character-walk'
+                texture = CHAR_WALK_TXTR
             },
             ['walk-right'] = {
                 frames = { 5, 6, 7, 8 },
                 interval = 0.15,
-                texture = 'character-walk'
+                texture = CHAR_WALK_TXTR
             },
             ['walk-down'] = {
                 frames = { 1, 2, 3, 4 },
                 interval = 0.15,
-                texture = 'character-walk'
+                texture = CHAR_WALK_TXTR
             },
             ['walk-up'] = {
                 frames = { 9, 10, 11, 12 },
                 interval = 0.15,
-                texture = 'character-walk'
+                texture = CHAR_WALK_TXTR
             },
             ['idle-left'] = {
                 frames = { 13 },
-                texture = 'character-walk'
+                texture = CHAR_WALK_TXTR
             },
             ['idle-right'] = {
                 frames = { 5 },
-                texture = 'character-walk'
+                texture = CHAR_WALK_TXTR
             },
             ['idle-down'] = {
                 frames = { 1 },
-                texture = 'character-walk'
+                texture = CHAR_WALK_TXTR
             },
             ['idle-up'] = {
                 frames = { 9 },
-                texture = 'character-walk'
+                texture = CHAR_WALK_TXTR
             },
+            -- SWORD SWING
             ['sword-left'] = {
                 frames = { 13, 14, 15, 16 },
                 interval = 0.05,
                 looping = false,
-                texture = 'character-swing-sword'
+                texture = CHAR_SWORD_TXTR
             },
             ['sword-right'] = {
                 frames = { 9, 10, 11, 12 },
                 interval = 0.05,
                 looping = false,
-                texture = 'character-swing-sword'
+                texture = CHAR_SWORD_TXTR
             },
             ['sword-down'] = {
                 frames = { 1, 2, 3, 4 },
                 interval = 0.05,
                 looping = false,
-                texture = 'character-swing-sword'
+                texture = CHAR_SWORD_TXTR
             },
             ['sword-up'] = {
                 frames = { 5, 6, 7, 8 },
                 interval = 0.05,
                 looping = false,
-                texture = 'character-swing-sword'
-            }
+                texture = CHAR_SWORD_TXTR
+            },
+            -- ITEM LIFTER
+            ['carry-lift-down'] = {
+                frames = { 1, 2, 3 },
+                interval = 0.3,
+                looping = false,
+                texture = CHAR_ITEM_LIFT_TXTR
+            },
+            ['carry-lift-right'] = {
+                frames = { 4, 5, 6 },
+                interval = 0.3,
+                looping = false,
+                texture = CHAR_ITEM_LIFT_TXTR
+            },
+            ['carry-lift-up'] = {
+                frames = { 7, 8, 9 },
+                interval = 0.3,
+                looping = false,
+                texture = CHAR_ITEM_LIFT_TXTR
+            },
+            ['carry-lift-left'] = {
+                frames = { 10, 11, 12 },
+                interval = 0.3,
+                looping = false,
+                texture = CHAR_ITEM_LIFT_TXTR
+            },
+            -- CARRY ITEM WALKER
+            ['carry-walk-down'] = {
+                frames = { 1, 2, 3, 4 },
+                interval = 0.3,
+                looping = true,
+                texture = CHAR_ITEM_WALK_TXTR
+            },
+            ['carry-walk-right'] = {
+                frames = { 5, 6, 7, 8 },
+                interval = 0.3,
+                looping = true,
+                texture = CHAR_ITEM_WALK_TXTR
+            },
+            ['carry-walk-up'] = {
+                frames = { 9, 10, 11, 12 },
+                interval = 0.3,
+                looping = true,
+                texture = CHAR_ITEM_WALK_TXTR
+            },
+            ['carry-walk-left'] = {
+                frames = { 13, 14, 15, 16 },
+                interval = 0.3,
+                looping = true,
+                texture = CHAR_ITEM_WALK_TXTR
+            },
+            -- ITEM CARRY IDLER
+            ['carry-idle-down'] = {
+                frames = { 1 },
+                texture = CHAR_ITEM_WALK_TXTR
+            },
+            ['carry-idle-right'] = {
+                frames = { 5 },
+                texture = CHAR_ITEM_WALK_TXTR
+            },
+            ['carry-idle-up'] = {
+                frames = { 9 },
+                texture = CHAR_ITEM_WALK_TXTR
+            },
+            ['carry-idle-left'] = {
+                frames = { 13 },
+                texture = CHAR_ITEM_WALK_TXTR
+            },
         }
     },
     ['skeleton'] = {
-        health = 3,
+        health = 10,
         walkSpeed = NPC_WALK_SPEED * 1,
         probOfExtraLife = 55,
         width = NPC_ENTITY_WIDTH,

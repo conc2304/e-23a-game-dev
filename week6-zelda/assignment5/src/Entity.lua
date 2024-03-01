@@ -34,10 +34,16 @@ function Entity:init(def)
     self.invulnerableDuration = 0
     self.invulnerableTimer = 0
 
+    self.liftedItem = nil
+    self.liftedItemKey = nil
+
     -- timer for turning transparency on and off, flashing
     self.flashTimer = 0
 
     self.dead = false
+
+    -- like a hurtbox, but for ablility to lift things
+    self.liftBox = self:getLiftBox()
 end
 
 function Entity:createAnimations(animations)
@@ -63,6 +69,12 @@ end
 
 function Entity:damage(dmg)
     self.health = self.health - dmg
+end
+
+-- store the object and the key, in case we need to delete iteme later
+function Entity:onLift(object, key)
+    self.liftedItem = object
+    self.liftedItemKey = key
 end
 
 function Entity:goInvulnerable(duration)
@@ -96,6 +108,15 @@ function Entity:update(dt)
     if self.currentAnimation then
         self.currentAnimation:update(dt)
     end
+
+    if self.liftedItem ~= nil then
+        -- position lifted item centered over entity head
+        -- local itemWidth = self.liftedItem.width
+        self.liftedItem.x = self.x + ((self.liftedItem.width - self.width) / 2)
+        self.liftedItem.y = self.y - self.liftedItem.height
+    end
+
+    self.liftBox = self:getLiftBox(self.direction, 2)
 end
 
 function Entity:processAI(params, dt)
@@ -113,6 +134,13 @@ function Entity:render(adjacentOffsetX, adjacentOffsetY)
     self.stateMachine:render()
     love.graphics.setColor(1, 1, 1, 1)
     self.x, self.y = self.x - (adjacentOffsetX or 0), self.y - (adjacentOffsetY or 0)
+
+
+    love.graphics.setColor(255, 0, 255, 255)
+    love.graphics.rectangle('line', self.x, self.y, self.width, self.height)
+    love.graphics.rectangle('line', self.liftBox.x, self.liftBox.y,
+        self.liftBox.width, self.liftBox.height)
+    love.graphics.setColor(255, 255, 255, 255)
 end
 
 function Entity:onDeath(gameObjects)
@@ -128,4 +156,50 @@ function Entity:onDeath(gameObjects)
     local extraLife = GameObject(lifeDef, lifePos.x, lifePos.y)
 
     table.insert(gameObjects, extraLife)
+end
+
+-- check if our lift box collides with an liftable object and then lift bro
+function Entity:lift(objects)
+    if not objects then return end
+
+    for key, object in pairs(objects) do
+        if object.liftable and Collides(self.liftBox, object) then
+            object:onLift()
+            self:onLift(object, key)
+        end
+    end
+end
+
+-- make an area in which items are liftable
+function Entity:getLiftBox(direction, range)
+    local liftBoxX, liftBoxY, liftBoxWidth, liftBoxHeight
+    local pickupRange = range or 4
+    -- liftBox should be infront of player
+    if direction == 'left' then
+        liftBoxWidth = pickupRange
+        liftBoxHeight = self.height
+        liftBoxX = self.x - liftBoxWidth
+        liftBoxY = self.y
+    elseif direction == 'right' then
+        liftBoxWidth = pickupRange
+        liftBoxHeight = self.height
+        liftBoxX = self.x + self.width
+        liftBoxY = self.y
+    elseif direction == 'up' then
+        liftBoxWidth = self.width
+        liftBoxHeight = pickupRange
+        liftBoxX = self.x
+        liftBoxY = self.y - liftBoxHeight
+    else
+        liftBoxWidth = self.width
+        liftBoxHeight = pickupRange
+        liftBoxX = self.x
+        liftBoxY = self.y + self.height
+    end
+
+
+    local liftBox = Hitbox(liftBoxX, liftBoxY, liftBoxWidth, liftBoxHeight)
+
+    self.liftBox = liftBox
+    return liftBox
 end

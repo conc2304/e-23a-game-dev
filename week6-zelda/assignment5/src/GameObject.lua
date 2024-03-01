@@ -22,6 +22,8 @@ function GameObject:init(def, x, y)
     self.state = self.defaultState
     self.states = def.states
     self.consumable = def.consumable
+    self.liftable = def.liftable
+    self.lifted = def.lifted or false
 
     -- dimensions
     self.x = x
@@ -40,4 +42,9 @@ end
 function GameObject:render(adjacentOffsetX, adjacentOffsetY)
     love.graphics.draw(gTextures[self.texture], gFrames[self.texture][self.states[self.state].frame or self.frame],
         self.x + adjacentOffsetX, self.y + adjacentOffsetY)
+end
+
+-- once lifted it shouldnt block entities
+function GameObject:onLift()
+    self.solid = false
 end

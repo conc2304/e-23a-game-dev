@@ -64,7 +64,6 @@ GAME_OBJECT_DEFS = {
                 frame = 5
             },
         }
-
     },
     ['pot'] = {
         type = 'pot',
@@ -74,6 +73,7 @@ GAME_OBJECT_DEFS = {
         height = 16,
         solid = true,
         consumable = false,
+        liftable = true,
         onCollide = function(self, room, objIndex)
             print("Pot Collision")
         end,

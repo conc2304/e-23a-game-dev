@@ -9,8 +9,8 @@
 -- Texture Vars
 CHAR_WALK_TXTR = 'character-walk'
 CHAR_SWORD_TXTR = 'character-swing-sword'
-CHAR_POT_LIFT_TXTR = 'character-pot-lift'
-CHAR_POT_WALK_TXTR = 'character-pot-walk'
+CHAR_ITEM_LIFT_TXTR = 'character-item-lift'
+CHAR_ITEM_WALK_TXTR = 'character-item-walk'
 
 ENTITY_DEFS = {
     ['player'] = {

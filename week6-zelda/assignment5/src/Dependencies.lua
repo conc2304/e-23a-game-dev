@@ -29,6 +29,8 @@ require 'src/states/entity/EntityWalkState'
 
 require 'src/states/entity/player/PlayerIdleState'
 require 'src/states/entity/player/PlayerSwingSwordState'
+require 'src/states/entity/player/PlayerCarryItemIdleState'
+require 'src/states/entity/player/PlayerCarryItemWalkState'
 require 'src/states/entity/player/PlayerWalkState'
 
 require 'src/states/game/GameOverState'

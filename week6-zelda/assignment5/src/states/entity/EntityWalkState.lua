@@ -26,8 +26,6 @@ function EntityWalkState:update(dt)
     -- assume we didn't hit a wall
     self.bumped = false
 
-    -- print("entity walk", self.entity.type)
-
     self:checkBoundaryCollsion(dt)
     self:checkObjectCollisions(dt)
 end

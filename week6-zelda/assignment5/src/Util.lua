@@ -36,9 +36,16 @@ end
     Recursive table printing function.
     https://coronalabs.com/blog/2014/09/02/tutorial-printing-table-contents/
 ]]
-function print_r(t)
+
+function print_r(t, depth)
     local print_r_cache = {}
-    local function sub_print_r(t, indent)
+
+    local function sub_print_r(t, indent, depth)
+        if depth < 1 then
+            print(indent .. "...")
+            return
+        end
+
         if (print_r_cache[tostring(t)]) then
             print(indent .. "*" .. tostring(t))
         else
@@ -47,8 +54,8 @@ function print_r(t)
                 for pos, val in pairs(t) do
                     if (type(val) == "table") then
                         print(indent .. "[" .. pos .. "] => " .. tostring(t) .. " {")
-                        sub_print_r(val, indent .. string.rep(" ", string.len(pos) + 8))
-                        print(indent .. string.rep(" ", string.len(pos) + 6) .. "}")
+                        sub_print_r(val, indent .. string.rep(" ", string.len(tostring(pos)) + 8), depth - 1)
+                        print(indent .. string.rep(" ", string.len(tostring(pos)) + 6) .. "}")
                     elseif (type(val) == "string") then
                         print(indent .. "[" .. pos .. '] => "' .. val .. '"')
                     else
@@ -60,12 +67,13 @@ function print_r(t)
             end
         end
     end
+
     if (type(t) == "table") then
         print(tostring(t) .. " {")
-        sub_print_r(t, "  ")
+        sub_print_r(t, "  ", depth or math.huge) -- Use math.huge as default depth if none is provided
         print("}")
     else
-        sub_print_r(t, "  ")
+        sub_print_r(t, "  ", depth or math.huge)
     end
     print()
 end

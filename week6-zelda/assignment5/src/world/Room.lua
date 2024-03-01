@@ -288,7 +288,6 @@ function Room:generatePots(switch, entities)
 
             for _, entity in pairs(entities) do
                 local collides = Collides(testPot, entity)
-                print("collides", collides)
                 objectOnEntity = not not collides
                 if objectOnEntity then break end
             end
