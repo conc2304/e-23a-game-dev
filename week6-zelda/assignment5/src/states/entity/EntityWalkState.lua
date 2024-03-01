@@ -111,10 +111,9 @@ end
 
 function EntityWalkState:checkObjectCollisions(dt)
     local collidedObjects = {}
-    print('checkObjectCollisions', self.entity.type)
     if self.dungeon == nil or self.dungeon.objects == nil then return {} end
 
-    print('2--checkObjectCollisions--2', self.entity.type)
+    -- check for collision with solid game objects
     for k, object in pairs(self.dungeon.objects) do
         if object.solid and self.entity:collides(object) then
             table.insert(collidedObjects, object)
@@ -122,6 +121,7 @@ function EntityWalkState:checkObjectCollisions(dt)
         end
     end
 
+    -- force entity to not be on or in the bumped objects
     if #collidedObjects > 0 then
         if self.entity.direction == 'left' then
             self.entity.x = self.entity.x - self.entity.walkSpeed * dt
