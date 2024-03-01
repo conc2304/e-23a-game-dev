@@ -55,14 +55,15 @@ function Room:generateEntities()
 
         local entityPos = GetRandomInGameXY()
         local entityDef = ENTITY_DEFS[type]
-        -- ensure X and Y are within bounds of the map
+        entityDef.type = type
         entityDef.x = entityPos.x
         entityDef.y = entityPos.y
 
         table.insert(self.entities, Entity(entityDef))
 
+        local dungeon = self
         self.entities[i].stateMachine = StateMachine {
-            ['walk'] = function() return EntityWalkState(self.entities[i]) end,
+            ['walk'] = function() return EntityWalkState(self.entities[i], dungeon) end,
             ['idle'] = function() return EntityIdleState(self.entities[i]) end
         }
 
@@ -136,19 +137,32 @@ function Room:update(dt)
     for i = #self.entities, 1, -1 do
         local entity = self.entities[i]
 
-        -- remove entity from the table if health is <= 0
+        -- skip to end if entity is dead
+        if entity.dead then goto continue end
+
         if entity.health <= 0 then
+            -- do onDeath from the game if died
             if entity.onDeath ~= nil and not entity.dead then
                 entity:onDeath(self.objects)
-                entity.dead = true
+                goto continue
             end
-        elseif not entity.dead then
-            entity:processAI({ room = self }, dt)
-            entity:update(dt)
         end
 
+        entity:processAI({ room = self }, dt)
+        entity:update(dt)
+        for _, obj in ipairs(self.objects) do
+            if obj.solid and entity:collides(obj) then
+                print("solid collision", entity.type, obj.type)
+                entity.bumped = true
+                entity:processAI({ room = self }, dt)
+            end
+        end
+
+        -- collision between entity and solid objects
+
+
         -- collision between the player and entities in the room
-        if not entity.dead and self.player:collides(entity) and not self.player.invulnerable then
+        if self.player:collides(entity) and not self.player.invulnerable then
             gSounds['hit-player']:play()
             self.player:damage(1)
             self.player:goInvulnerable(1.5)
@@ -157,13 +171,17 @@ function Room:update(dt)
                 gStateMachine:change('game-over')
             end
         end
+
+        ::continue::
     end
+
 
     for k, object in pairs(self.objects) do
         object:update(dt)
 
         -- trigger collision callback on object
         if self.player:collides(object) then
+            if object.solid then self.player.bumped = true end
             object:onCollide(self, k)
         end
     end

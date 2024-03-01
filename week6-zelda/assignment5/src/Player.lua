@@ -30,3 +30,17 @@ function Player:render()
     -- love.graphics.rectangle('line', self.x, self.y, self.width, self.height)
     -- love.graphics.setColor(255, 255, 255, 255)
 end
+
+function Player:checkObjectCollisions()
+    local collidedObjects = {}
+
+    for k, object in pairs(self.dungeon.rooms[1].objects) do
+        if object:collides(self) then
+            if object.solid then
+                table.insert(collidedObjects, object)
+            end
+        end
+    end
+
+    return collidedObjects
+end

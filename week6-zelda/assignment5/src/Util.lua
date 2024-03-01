@@ -71,6 +71,7 @@ function print_r(t)
 end
 
 function GetRandomInGameXY()
+    -- ensure X and Y are within bounds of the map
     return {
         x = math.random(MAP_RENDER_OFFSET_X + TILE_SIZE,
             VIRTUAL_WIDTH - TILE_SIZE * 2 - 16),

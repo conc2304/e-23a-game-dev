@@ -74,8 +74,8 @@ GAME_OBJECT_DEFS = {
         height = 16,
         solid = true,
         consumable = false,
-        onCollide = function(self, player, gameObjects, objIndex)
-
+        onCollide = function(self, room, objIndex)
+            print("Pot Collision")
         end,
         defaultState = 'default',
         states = {

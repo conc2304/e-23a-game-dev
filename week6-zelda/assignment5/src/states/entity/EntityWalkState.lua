@@ -6,13 +6,17 @@
     cogden@cs50.harvard.edu
 ]]
 
-EntityWalkState = Class{__includes = BaseState}
+EntityWalkState = Class { __includes = BaseState }
 
 function EntityWalkState:init(entity, dungeon)
     self.entity = entity
     self.entity:changeAnimation('walk-down')
 
     self.dungeon = dungeon
+
+    print("init walk state")
+    print_r(self.entity)
+    print_r(self.dungeon)
 
     -- used for AI control
     self.moveDuration = 0
@@ -23,51 +27,21 @@ function EntityWalkState:init(entity, dungeon)
 end
 
 function EntityWalkState:update(dt)
-    
     -- assume we didn't hit a wall
     self.bumped = false
 
-    -- boundary checking on all sides, allowing us to avoid collision detection on tiles
-    if self.entity.direction == 'left' then
-        self.entity.x = self.entity.x - self.entity.walkSpeed * dt
-        
-        if self.entity.x <= MAP_RENDER_OFFSET_X + TILE_SIZE then 
-            self.entity.x = MAP_RENDER_OFFSET_X + TILE_SIZE
-            self.bumped = true
-        end
-    elseif self.entity.direction == 'right' then
-        self.entity.x = self.entity.x + self.entity.walkSpeed * dt
+    -- print("entity walk", self.entity.type)
 
-        if self.entity.x + self.entity.width >= VIRTUAL_WIDTH - TILE_SIZE * 2 then
-            self.entity.x = VIRTUAL_WIDTH - TILE_SIZE * 2 - self.entity.width
-            self.bumped = true
-        end
-    elseif self.entity.direction == 'up' then
-        self.entity.y = self.entity.y - self.entity.walkSpeed * dt
-
-        if self.entity.y <= MAP_RENDER_OFFSET_Y + TILE_SIZE - self.entity.height / 2 then 
-            self.entity.y = MAP_RENDER_OFFSET_Y + TILE_SIZE - self.entity.height / 2
-            self.bumped = true
-        end
-    elseif self.entity.direction == 'down' then
-        self.entity.y = self.entity.y + self.entity.walkSpeed * dt
-
-        local bottomEdge = VIRTUAL_HEIGHT - (VIRTUAL_HEIGHT - MAP_HEIGHT * TILE_SIZE) 
-            + MAP_RENDER_OFFSET_Y - TILE_SIZE
-
-        if self.entity.y + self.entity.height >= bottomEdge then
-            self.entity.y = bottomEdge - self.entity.height
-            self.bumped = true
-        end
-    end
+    self:checkBoundaryCollsion(dt)
+    self:checkObjectCollisions(dt)
 end
 
 function EntityWalkState:processAI(params, dt)
+    -- print("processAI", self.entity.type, self.bumped)
     local room = params.room
-    local directions = {'left', 'right', 'up', 'down'}
+    local directions = { 'left', 'right', 'up', 'down' }
 
     if self.moveDuration == 0 or self.bumped then
-        
         -- set an initial move duration and direction
         self.moveDuration = math.random(5)
         self.entity.direction = directions[math.random(#directions)]
@@ -92,9 +66,73 @@ function EntityWalkState:render()
     local anim = self.entity.currentAnimation
     love.graphics.draw(gTextures[anim.texture], gFrames[anim.texture][anim:getCurrentFrame()],
         math.floor(self.entity.x - self.entity.offsetX), math.floor(self.entity.y - self.entity.offsetY))
-    
+
     -- debug code
     -- love.graphics.setColor(255, 0, 255, 255)
     -- love.graphics.rectangle('line', self.entity.x, self.entity.y, self.entity.width, self.entity.height)
     -- love.graphics.setColor(255, 255, 255, 255)
+end
+
+function EntityWalkState:checkBoundaryCollsion(dt)
+    -- boundary checking on all sides, allowing us to avoid collision detection on tiles
+    if self.entity.direction == 'left' then
+        self.entity.x = self.entity.x - self.entity.walkSpeed * dt
+
+        if self.entity.x <= MAP_RENDER_OFFSET_X + TILE_SIZE then
+            self.entity.x = MAP_RENDER_OFFSET_X + TILE_SIZE
+            self.bumped = true
+        end
+    elseif self.entity.direction == 'right' then
+        self.entity.x = self.entity.x + self.entity.walkSpeed * dt
+
+        if self.entity.x + self.entity.width >= VIRTUAL_WIDTH - TILE_SIZE * 2 then
+            self.entity.x = VIRTUAL_WIDTH - TILE_SIZE * 2 - self.entity.width
+            self.bumped = true
+        end
+    elseif self.entity.direction == 'up' then
+        self.entity.y = self.entity.y - self.entity.walkSpeed * dt
+
+        if self.entity.y <= MAP_RENDER_OFFSET_Y + TILE_SIZE - self.entity.height / 2 then
+            self.entity.y = MAP_RENDER_OFFSET_Y + TILE_SIZE - self.entity.height / 2
+            self.bumped = true
+        end
+    elseif self.entity.direction == 'down' then
+        self.entity.y = self.entity.y + self.entity.walkSpeed * dt
+
+        local bottomEdge = VIRTUAL_HEIGHT - (VIRTUAL_HEIGHT - MAP_HEIGHT * TILE_SIZE)
+            + MAP_RENDER_OFFSET_Y - TILE_SIZE
+
+        if self.entity.y + self.entity.height >= bottomEdge then
+            self.entity.y = bottomEdge - self.entity.height
+            self.bumped = true
+        end
+    end
+end
+
+function EntityWalkState:checkObjectCollisions(dt)
+    local collidedObjects = {}
+    print('checkObjectCollisions', self.entity.type)
+    if self.dungeon == nil or self.dungeon.objects == nil then return {} end
+
+    print('2--checkObjectCollisions--2', self.entity.type)
+    for k, object in pairs(self.dungeon.objects) do
+        if object.solid and self.entity:collides(object) then
+            table.insert(collidedObjects, object)
+            self.bumped = true
+        end
+    end
+
+    if #collidedObjects > 0 then
+        if self.entity.direction == 'left' then
+            self.entity.x = self.entity.x - self.entity.walkSpeed * dt
+        elseif self.entity.direction == 'right' then
+            self.entity.x = self.entity.x + self.entity.walkSpeed * dt
+        elseif self.entity.direction == 'up' then
+            self.entity.y = self.entity.y - self.entity.walkSpeed * dt
+        elseif self.entity.direction == 'down' then
+            self.entity.y = self.entity.y + self.entity.walkSpeed * dt
+        end
+    end
+
+    return collidedObjects
 end

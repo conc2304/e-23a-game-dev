@@ -13,7 +13,7 @@ function Entity:init(def)
     self.direction = 'down'
 
     self.animations = self:createAnimations(def.animations)
-    self.class = def.class
+    self.type = def.type
     -- dimensions
     self.x = def.x
     self.y = def.y
@@ -117,17 +117,16 @@ function Entity:render(adjacentOffsetX, adjacentOffsetY)
 end
 
 function Entity:onDeath(gameObjects)
+    self.dead = true
     -- spawn an extra life to pick up
     local chance = math.random(POWER_UP_PROB_MAX)
     if chance < self.probOfExtraLife then return end
 
     -- use object def and then add in a random drop position
     local lifeDef = GAME_OBJECT_DEFS['life']
-    local x = math.random(MAP_RENDER_OFFSET_X + TILE_SIZE,
-        VIRTUAL_WIDTH - TILE_SIZE * 2 - 16)
-    local y = math.random(MAP_RENDER_OFFSET_Y + TILE_SIZE,
-        VIRTUAL_HEIGHT - (VIRTUAL_HEIGHT - MAP_HEIGHT * TILE_SIZE) + MAP_RENDER_OFFSET_Y - TILE_SIZE - 16)
-    local extraLife = GameObject(lifeDef, x, y)
+    local lifePos = GetRandomInGameXY()
+
+    local extraLife = GameObject(lifeDef, lifePos.x, lifePos.y)
 
     table.insert(gameObjects, extraLife)
 end
