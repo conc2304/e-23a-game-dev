@@ -81,21 +81,20 @@ function Room:generateObjects()
             VIRTUAL_HEIGHT - (VIRTUAL_HEIGHT - MAP_HEIGHT * TILE_SIZE) + MAP_RENDER_OFFSET_Y - TILE_SIZE - 16)
     )
 
-    -- define a function for the switch that will open all doors in the room
-    switch.onCollide = function(switch)
-        print("switch collide")
-        if switch.state == 'unpressed' then
-            switch.state = 'pressed'
-            print("switch pressing")
+    -- -- define a function for the switch that will open all doors in the room
+    -- switch.onCollide = function(switch)
+    --     if switch.state == 'unpressed' then
+    --         switch.state = 'pressed'
+    --         print("switch pressing")
 
-            -- open every door in the room if we press the switch
-            for k, doorway in pairs(self.doorways) do
-                doorway.open = true
-            end
+    --         -- open every door in the room if we press the switch
+    --         for k, doorway in pairs(self.doorways) do
+    --             doorway.open = true
+    --         end
 
-            gSounds['door']:play()
-        end
-    end
+    --         gSounds['door']:play()
+    --     end
+    -- end
 
     -- add to list of objects in scene (only one switch for now)
     table.insert(self.objects, switch)
@@ -153,7 +152,6 @@ function Room:update(dt)
         -- remove entity from the table if health is <= 0
         if entity.health <= 0 then
             if entity.onDeath ~= nil and not entity.dead then
-                print("handle death")
                 entity:onDeath(self.objects)
                 entity.dead = true
             end
@@ -179,7 +177,7 @@ function Room:update(dt)
 
         -- trigger collision callback on object
         if self.player:collides(object) then
-            object:onCollide(self.player, self.objects, k)
+            object:onCollide(self, k)
         end
     end
 end
