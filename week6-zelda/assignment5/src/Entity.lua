@@ -114,7 +114,6 @@ function Entity:update(dt)
 
     if self.liftedItem ~= nil then
         -- position lifted item centered over entity head
-        -- local itemWidth = self.liftedItem.width
         self.liftedItem.x = self.x + ((self.liftedItem.width - self.width) / 2)
         self.liftedItem.y = self.y - self.liftedItem.height
     end
@@ -134,7 +133,6 @@ function Entity:render(adjacentOffsetX, adjacentOffsetY)
     end
 
     self.x, self.y = self.x + (adjacentOffsetX or 0), self.y + (adjacentOffsetY or 0)
-    -- if self.stateMachine
     self.stateMachine:render()
     love.graphics.setColor(1, 1, 1, 1)
     self.x, self.y = self.x - (adjacentOffsetX or 0), self.y - (adjacentOffsetY or 0)
@@ -148,6 +146,7 @@ function Entity:render(adjacentOffsetX, adjacentOffsetY)
     -- love.graphics.setColor(255, 255, 255, 255)
 end
 
+-- handle what happens when an entity dies, like spawn a heart on the level randomly
 function Entity:onDeath(gameObjects)
     self.dead = true
     -- spawn an extra life to pick up
@@ -206,14 +205,6 @@ function Entity:dropItem()
 
     self.liftedItem = nil
     self.liftedItemKey = nil
-end
-
-function Entity:handleLiftToggle(objects)
-    if self.liftedItem == nil then
-        self:lift(objects)
-    else
-        self:dropItem()
-    end
 end
 
 -- make an area in which items are liftable

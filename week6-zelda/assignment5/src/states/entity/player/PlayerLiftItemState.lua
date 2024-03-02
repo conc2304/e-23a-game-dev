@@ -1,11 +1,3 @@
---[[
-    GD50
-    Legend of Zelda
-
-    Author: Colton Ogden
-    cogden@cs50.harvard.edu
-]]
-
 PlayerLiftItemState = Class { __includes = BaseState }
 
 function PlayerLiftItemState:init(player, dungeon)
@@ -23,18 +15,12 @@ function PlayerLiftItemState:init(player, dungeon)
 end
 
 function PlayerLiftItemState:enter(params)
-  -- restart sword swing sound for rapid swinging
-
-  gSounds['sword']:stop()
-  gSounds['sword']:play()
-
   -- restart lifting animation
-
   self.player.currentAnimation:refresh()
 end
 
 function PlayerLiftItemState:update(dt)
-  -- if we've fully elapsed through one cycle of animation, change back to idle state
+  -- if we've fully elapsed through one cycle of animation, go to its next state
   if self.player.currentAnimation.timesPlayed > 0 then
     self.player.currentAnimation.timesPlayed = 0
     self.player:changeState('carry-item-idle')

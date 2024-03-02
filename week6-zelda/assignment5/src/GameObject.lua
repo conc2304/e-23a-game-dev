@@ -23,17 +23,17 @@ function GameObject:init(def, x, y)
     self.states = def.states
     self.consumable = def.consumable
     self.liftable = def.liftable
-    self.lifted = def.lifted or false
-    self.canDamage = def.canCamage or false
-    self.health = def.health or false
+    -- self.lifted = def.lifted or false   -
+    self.health = def.health or false -- TODO was going to implement being able to hit pots to break them, but nah
 
     -- thrown item properties
     self.dx = 0
     self.dy = 0
+    self.canDamage = def.canCamage or false
     self.throwDistance = def.throwDistance or 0 -- how far it can be throw
     self.distanceThrown = 0                     -- how far it has been thrown
-    self.thrower = nil
-    self.damageAmount = def.damageAmount or 0
+    self.thrower = nil                          -- who did the throwing, so they dont get hurt by object thrown
+    self.damageAmount = def.damageAmount or 0   -- how much damage it can do
 
     -- dimensions
     self.x = x
@@ -46,6 +46,7 @@ function GameObject:init(def, x, y)
 end
 
 function GameObject:update(dt)
+    -- if its not able to move then there is nothing to update
     if not self.liftable then return end
 
     self.distanceThrown = self.distanceThrown + math.abs((self.dx * dt) + (self.dy * dt))
@@ -75,6 +76,7 @@ function GameObject:onRelease(x, y)
     self.y = y
 end
 
+-- handle thrown object behavior
 function GameObject:onThrown(throwSpeed, throwDirection, thrower)
     self.thrower = thrower
     self.canDamage = true
@@ -98,18 +100,15 @@ function GameObject:onThrown(throwSpeed, throwDirection, thrower)
         local padding = self.width * 1.2 -- a little space so it does not immediately do damage to player
         local time = (thrower.width + padding) / throwSpeed
 
-        -- move it closer to chest level
+        -- move it closer to chest level for a more realistic throw
         Timer.tween(time, {
             [self] = { y = self.y + (thrower.height / 2 + (self.height / 2)) },
         })
     end
 
-    -- move the thrown item infront of player
     if throwDirection == 'down' then
-        -- let it do damage after it has crossed our thrower's body
-        -- the time it takes to cross the player is distance over speed
-
-        self.throwDistance = self.throwDistance + thrower.height -- dont short change the throw
+        -- dont short change the throw by counting its distance crossing the body
+        self.throwDistance = self.throwDistance + thrower.height
     end
 end
 
@@ -124,7 +123,7 @@ function GameObject:checkBoundaryCollsion(dt)
         return
     end
 
-    -- get direction based on velocity vecgor
+    -- get direction based on velocity vector
     if self.dx > 0 then
         direction = 'right'
     elseif self.dx < 0 then
@@ -173,6 +172,7 @@ function GameObject:checkBoundaryCollsion(dt)
     end
 end
 
+-- handle state change when an object gets broken
 function GameObject:onBreak()
     self.state = 'broken'
     self.dx = 0

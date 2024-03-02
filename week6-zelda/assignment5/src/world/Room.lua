@@ -289,7 +289,7 @@ function Room:generatePots(switch, entities)
         local objectOnSwitch = Collides(testPot, switch)
         local objectOnEntity = true
 
-        -- make sure we dont put a pot on top of the switch
+        -- make sure we dont put a pot on top of other things
         while objectOnSwitch or objectOnEntity or objectOnPLayer do
             potPos = GetRandomInGameXY()
 
