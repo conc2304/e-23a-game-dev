@@ -69,6 +69,9 @@ end
 
 function Entity:damage(dmg)
     self.health = self.health - dmg
+    print("DAMAGE")
+    gSounds['hurt']:stop()
+    gSounds['hurt']:play()
 end
 
 -- store the object and the key, in case we need to delete iteme later
@@ -157,6 +160,8 @@ function Entity:onDeath(gameObjects)
 
     local extraLife = GameObject(lifeDef, lifePos.x, lifePos.y)
 
+    gSounds['game-die']:stop()
+    gSounds['game-die']:play()
     table.insert(gameObjects, extraLife)
 end
 
@@ -249,12 +254,13 @@ end
 function Entity:throwItem()
     if self.liftedItem == nil then return end
 
-    self:goInvulnerable(1) -- prevent player from being hit by pot
-
     local throwDirection = self.direction
     local throwSpeed = 150
 
-    self.liftedItem:onThrown(throwSpeed, throwDirection)
+    self.liftedItem:onThrown(throwSpeed, throwDirection, self)
     self.liftedItem = nil
     self.liftedItemKey = nil
+
+    gSounds['whoosh']:stop()
+    gSounds['whoosh']:play()
 end

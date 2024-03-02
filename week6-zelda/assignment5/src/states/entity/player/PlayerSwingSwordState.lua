@@ -16,6 +16,9 @@ function PlayerSwingSwordState:init(player, dungeon)
     self.player.offsetY = 5
     self.player.offsetX = 8
 
+    -- on each swing keep track of each person we hit and don't hit them again
+    self.damagedEntityIndexes = {}
+
     -- create hitbox based on where the player is and facing
     local direction = self.player.direction
     local hitboxX, hitboxY, hitboxWidth, hitboxHeight
@@ -51,6 +54,7 @@ end
 
 function PlayerSwingSwordState:enter(params)
     -- restart sword swing sound for rapid swinging
+    self.damagedEntityIndexes = {} -- reset who has been hit on swing
     gSounds['sword']:stop()
     gSounds['sword']:play()
 
@@ -60,11 +64,17 @@ end
 
 function PlayerSwingSwordState:update(dt)
     -- check if hitbox collides with any entities in the scene
+
+    -- only damage a entity once per sword swing
     for k, entity in pairs(self.dungeon.currentRoom.entities) do
-        if entity:collides(self.swordHitbox) then
+        -- if entity has been hit in this swing dont hit them again, thats not fair
+        local hasBeenHit = ValueInArray(k, self.damagedEntityIndexes)
+        if not hasBeenHit and entity:collides(self.swordHitbox) then
+            print("EMOTIONAL DAMAGAE")
             entity:damage(1)
-            entity:goInvulnerable(1)
+            entity:goInvulnerable(1.5)
             gSounds['hit-enemy']:play()
+            table.insert(self.damagedEntityIndexes, k)
         end
     end
 

@@ -21,7 +21,12 @@ function Room:init(player)
     self.entities = {}
     self:generateEntities()
 
+    -- reference to player for collisions, etc.
+    self.player = player
+
     -- game objects in the room
+    -- depends on player already having been created so we dont spawn
+    --   a game with entities inside of objects
     self.objects = {}
     self:generateObjects()
 
@@ -31,9 +36,6 @@ function Room:init(player)
     for _, location in ipairs(DOOR_LOCATIONS) do
         table.insert(self.doorways, Doorway(location, false, self))
     end
-
-    -- reference to player for collisions, etc.
-    self.player = player
 
     -- used for centering the dungeon rendering
     self.renderOffsetX = MAP_RENDER_OFFSET_X
@@ -154,6 +156,8 @@ function Room:update(dt)
                 entity.bumped = true
             end
 
+            -- this is where we handle pots that are thrown,
+            -- or any object that can do damage
             if obj.canDamage and collides then
                 entity:damage(obj.damageAmount)
                 obj:onBreak()
@@ -268,6 +272,7 @@ end
 function Room:generatePots(switch, entities)
     -- generate some pots and put them in places
     local potsQty = math.random(3, 10)
+
     for i = 1, potsQty do
         local potPos = GetRandomInGameXY()
 
@@ -280,17 +285,19 @@ function Room:generatePots(switch, entities)
             height = GAME_OBJECT_DEFS['pot'].height + collisionPadding
         }
 
+        local objectOnPLayer = self.player:collides(testPot)
         local objectOnSwitch = Collides(testPot, switch)
         local objectOnEntity = true
 
         -- make sure we dont put a pot on top of the switch
-        while objectOnSwitch or objectOnEntity do
+        while objectOnSwitch or objectOnEntity or objectOnPLayer do
             potPos = GetRandomInGameXY()
 
             testPot.x = potPos.x
             testPot.y = potPos.y
 
             objectOnSwitch = not not Collides(testPot, switch)
+            objectOnPLayer = Collides(testPot, self.player)
 
             for _, entity in pairs(entities) do
                 local collides = Collides(testPot, entity)

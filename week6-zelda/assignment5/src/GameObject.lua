@@ -25,6 +25,7 @@ function GameObject:init(def, x, y)
     self.liftable = def.liftable
     self.lifted = def.lifted or false
     self.canDamage = def.canCamage or false
+    self.health = def.health or false
 
     self.dx = 0
     self.dy = 0
@@ -38,8 +39,6 @@ function GameObject:init(def, x, y)
     self.width = def.width
     self.height = def.height
     self.distanceThrown = 0
-
-
 
     -- default empty collision callback
     self.onCollide = def.onCollide or function() end
@@ -73,7 +72,7 @@ function GameObject:onRelease(x, y)
     self.y = y
 end
 
-function GameObject:onThrown(throwSpeed, throwDirection)
+function GameObject:onThrown(throwSpeed, throwDirection, thrower)
     self.canDamage = true
     self.solid = true
     local directionsDelta = {
@@ -91,10 +90,29 @@ function GameObject:onThrown(throwSpeed, throwDirection)
     self.throwDirection = throwDirection;
 
     if throwDirection == 'left' or throwDirection == 'right' then
-        -- move it lower
+        self.canDamage = false
+        -- move it closer to chest level
         Timer.tween(0.01, {
-            [self] = { y = self.y + 10 },
+            [self] = { y = self.y + thrower.height / 2 },
         })
+        -- wait until the objkect crosses the throwers body to do damage
+        local padding = self.width * 1.2 -- a little space so it does not immediately do damage to player
+        local time = (thrower.width + padding) / throwSpeed
+        Timer.after(time, function() self.canDamage = true end)
+    end
+
+    -- move the item immediately infront of player
+    if throwDirection == 'down' then
+        -- let it do damage after it has crossed our thrower's body
+        -- the time it takes to cross the player is distance over speed
+        print("throwerHeight", thrower.height)
+        local padding = self.height * 1.2 -- a little space so it does not immediately do damage to player
+        local time = (thrower.height + padding) / throwSpeed
+
+        print('time', time)
+        self.canDamage = false
+        self.throwDistance = self.throwDistance + thrower.height -- dont short change the throw
+        Timer.after(time, function() self.canDamage = true end)
     end
 end
 
@@ -147,4 +165,8 @@ function GameObject:onBreak()
     self.solid = false
     self.liftable = false
     self.damageAmount = 0
+    self.canDamage = false
+
+    gSounds['break']:stop()
+    gSounds['break']:play()
 end

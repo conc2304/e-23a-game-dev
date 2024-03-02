@@ -17,15 +17,17 @@ function PlayerCarryItemWalkState:init(player, dungeon)
   -- render offset for spaced character sprite; negated in render function of state
   self.entity.offsetY = 5
   self.entity.offsetX = 0
-  print("INIT PlayerCarryItemWalkState")
+end
+
+function PlayerCarryItemWalkState:enter(dt)
+  -- todo handle animation enter
 end
 
 function PlayerCarryItemWalkState:update(dt)
   self:handleKeyboardInput()
 
-  -- perform base collision detection against walls
+  -- EntityWalkState performs base collision detection against walls
   EntityWalkState.update(self, dt)
-  print("UPDATE PlayerCarryItemWalkState")
 end
 
 function PlayerCarryItemWalkState:enter(params)
@@ -34,11 +36,10 @@ end
 
 function PlayerCarryItemWalkState:render()
   EntityWalkState.render(self)
-
-  print("Render PlayerCarryItemWalkState")
 end
 
 function PlayerCarryItemWalkState:handleKeyboardInput()
+  -- update character animation based on movement direction
   local keyboarDirections = { 'up', 'down', 'left', 'right' }
   local dirPressed = false
   for _, keyDir in pairs(keyboarDirections) do
@@ -50,6 +51,14 @@ function PlayerCarryItemWalkState:handleKeyboardInput()
     end
   end
 
+  -- if no direction then back to idling
+  if not dirPressed then
+    local animationKey = statePrefix .. 'idle-' .. self.entity.direction
+    self.entity:changeState('carry-item-idle')
+    self.entity:changeAnimation(animationKey)
+  end
+
+  -- handle dropping the item
   if love.keyboard.wasPressed('enter') or love.keyboard.wasPressed('return') then
     if self.entity.liftedItem then
       self.entity:dropItem()
@@ -57,13 +66,8 @@ function PlayerCarryItemWalkState:handleKeyboardInput()
     end
   end
 
-  if not dirPressed then
-    local animationKey = statePrefix .. 'idle-' .. self.entity.direction
-    self.entity:changeState('carry-item-idle')
-    self.entity:changeAnimation(animationKey)
-  end
 
-
+  -- handle throwing the item
   if love.keyboard.wasPressed('space') then
     self.entity:throwItem(self.entity.liftedItem)
     self.entity:changeState('walk')
