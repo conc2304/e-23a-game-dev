@@ -15,7 +15,6 @@ function PlayerWalkState:init(player, dungeon)
     -- render offset for spaced character sprite; negated in render function of state
     self.entity.offsetY = 5
     self.entity.offsetX = 0
-    self.entity.canSwing = true
 end
 
 function PlayerWalkState:update(dt)
@@ -91,24 +90,36 @@ function PlayerWalkState:update(dt)
 end
 
 function PlayerWalkState:handleKeyboardInput()
-    if love.keyboard.isDown('left') then
-        self.entity.direction = 'left'
-        self.entity:changeAnimation('walk-left')
-    elseif love.keyboard.isDown('right') then
-        self.entity.direction = 'right'
-        self.entity:changeAnimation('walk-right')
-    elseif love.keyboard.isDown('up') then
-        self.entity.direction = 'up'
-        self.entity:changeAnimation('walk-up')
-    elseif love.keyboard.isDown('down') then
-        self.entity.direction = 'down'
-        self.entity:changeAnimation('walk-down')
-    else
-        self.entity:changeState('idle')
+    local statePrefix = self.entity.liftedItem ~= nil and 'carry-' or ''
+
+    local keyboarDirections = { 'up', 'down', 'left', 'right' }
+    local dirPressed = false
+    for _, keyDir in pairs(keyboarDirections) do
+        if love.keyboard.isDown(keyDir) then
+            self.entity.direction = keyDir
+            local animationKey = statePrefix .. 'walk-' .. keyDir
+            print(animationKey)
+            self.entity:changeAnimation(animationKey)
+            dirPressed = true
+        end
     end
 
-    if self.entity.canSwing and love.keyboard.wasPressed('space') then
-        print("walk state swing")
+    if love.keyboard.wasPressed('enter') or love.keyboard.wasPressed('return') then
+        local objects = self.dungeon.currentRoom.objects or nil
+        if objects then
+            self.entity:handleLiftToggle(objects)
+        end
+    end
+
+    if not dirPressed then
+        local animationKey = statePrefix .. 'idle-' .. self.entity.direction
+        self.entity:changeState('idle')
+        print(animationKey)
+        self.entity:changeAnimation(animationKey)
+    end
+
+    -- play can only swing if they are not carrying anything
+    if self.entity.liftedItem == nil and love.keyboard.wasPressed('space') then
         self.entity:changeState('swing-sword')
     end
 end

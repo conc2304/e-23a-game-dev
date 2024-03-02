@@ -8,22 +8,18 @@
 
 PlayerCarryItemWalkState = Class { __includes = PlayerWalkState }
 
-function PlayerCarryItemWalkState:init(player, dungeon, objectRefId)
+function PlayerCarryItemWalkState:init(player, dungeon)
   self.player = player
   self.dungeon = dungeon
 
-  self.itemCarried = self.dungeon.currentRoom.objects[objectRefId] or nil
 
   -- render offset for spaced character sprite
-  self.player.offsetY = 5
-  self.player.offsetX = 8
-
-  self.player.canSwing = false
+  -- self.player.offsetY = 5
+  -- self.player.offsetX = 8
 end
 
 function PlayerCarryItemWalkState:enter(params)
   -- restart sword swing sound for rapid swinging
-  self.player.canSwing = false
   print("ENTER CARRY STATE")
 
   -- restart sword swing animation
@@ -36,7 +32,7 @@ function PlayerCarryItemWalkState:update(dt)
   EntityWalkState.update(self, dt)
 
   -- allow us to change into this state afresh if we swing within it, rapid swinging
-  if love.keyboard.wasPressed('return') then
+  if love.keyboard.wasPressed('space') then
     print("throw pot")
     -- todo handle pot throwing
   end

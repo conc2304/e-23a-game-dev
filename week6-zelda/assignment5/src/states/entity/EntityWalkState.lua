@@ -10,6 +10,9 @@ EntityWalkState = Class { __includes = BaseState }
 
 function EntityWalkState:init(entity, dungeon)
     self.entity = entity
+
+    -- todo check if we need this
+    -- local statePrefix = self.entity.liftedItem ~= nil and 'carry-' or ''
     self.entity:changeAnimation('walk-down')
 
     self.dungeon = dungeon

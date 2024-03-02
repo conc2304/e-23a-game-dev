@@ -174,8 +174,9 @@ function Entity:dropItem()
     -- put object back infront of entity at their feet
     local direction = self.direction;
     local object = self.liftedItem
-    print_r(object, 1)
     local x, y
+
+    -- TODO handle not dropping in into a wall - but out of scope for homework
     local offset = 0 -- 0 seems like it works here, but leaving here bc it could be useful for other things
     if direction == 'left' then
         x = self.x - object.width - offset
@@ -194,6 +195,14 @@ function Entity:dropItem()
     object:onRelease(x, y)
     self.liftedItem = nil
     self.liftedItemKey = nil
+end
+
+function Entity:handleLiftToggle(objects)
+    if self.liftedItem == nil then
+        self:lift(objects)
+    else
+        self:dropItem()
+    end
 end
 
 -- make an area in which items are liftable

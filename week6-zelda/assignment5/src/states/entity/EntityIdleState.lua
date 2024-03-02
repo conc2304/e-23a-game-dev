@@ -12,7 +12,8 @@ function EntityIdleState:init(entity, dungeon)
     self.entity = entity
     self.dungeon = dungeon
 
-    self.entity:changeAnimation('idle-' .. self.entity.direction)
+    local statePrefix = self.entity.liftedItem ~= nil and 'carry-' or ''
+    self.entity:changeAnimation(statePrefix .. 'idle-' .. self.entity.direction)
 
     -- used for AI waiting
     self.waitDuration = 0
