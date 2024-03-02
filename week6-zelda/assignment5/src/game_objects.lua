@@ -79,9 +79,10 @@ GAME_OBJECT_DEFS = {
         throwDistance = 4 * TILE_SIZE,
 
         onCollide = function(self, room, objIndex)
-            if self.canDamage then
-                self:onBreak()
-            end
+            -- if self.canDamage then
+            --     print("pot did damage")
+            --     self:onBreak()
+            -- end
         end,
         defaultState = 'default',
         states = {

@@ -69,7 +69,6 @@ end
 
 function Entity:damage(dmg)
     self.health = self.health - dmg
-    print("DAMAGE")
     gSounds['hurt']:stop()
     gSounds['hurt']:play()
 end
@@ -204,7 +203,6 @@ function Entity:dropItem()
 
     object:onRelease(x, y)
 
-    ::continue::
     self.liftedItem = nil
     self.liftedItemKey = nil
 end

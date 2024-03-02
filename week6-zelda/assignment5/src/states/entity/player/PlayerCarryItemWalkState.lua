@@ -66,7 +66,6 @@ function PlayerCarryItemWalkState:handleKeyboardInput()
     end
   end
 
-
   -- handle throwing the item
   if love.keyboard.wasPressed('space') then
     self.entity:throwItem(self.entity.liftedItem)
