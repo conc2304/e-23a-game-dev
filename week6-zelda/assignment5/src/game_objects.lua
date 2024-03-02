@@ -79,7 +79,7 @@ GAME_OBJECT_DEFS = {
         throwDistance = 4 * TILE_SIZE,
 
         onCollide = function(self, room, objIndex)
-            print("Pot Collision", self.canDamage)
+            -- print("Pot Collision", self.canDamage)
 
 
             if self.canDamage then

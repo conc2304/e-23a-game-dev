@@ -179,6 +179,8 @@ function Entity:dropItem()
     local object = self.liftedItem
     local x, y
 
+    if not object then return end
+
     -- TODO handle not dropping in into a wall - but out of scope for homework
     local offset = 0 -- 0 seems like it works here, but leaving here bc it could be useful for other things
     if direction == 'left' then
@@ -196,6 +198,8 @@ function Entity:dropItem()
     end
 
     object:onRelease(x, y)
+
+    ::continue::
     self.liftedItem = nil
     self.liftedItemKey = nil
 end

@@ -17,6 +17,7 @@ end
 
 function PlayerCarryItemIdleState:update(dt)
   -- print("UPDATE PlayerCarryItemIdleState")
+
   if love.keyboard.isDown('left') or love.keyboard.isDown('right') or
       love.keyboard.isDown('up') or love.keyboard.isDown('down') then
     local animationKey = statePrefix .. 'walk-' .. self.entity.direction
@@ -31,8 +32,10 @@ function PlayerCarryItemIdleState:update(dt)
     -- self.entity:changeState('throw-item')
 
     self.entity:throwItem(self.entity.liftedItem)
+    self.entity:changeState('idle')
   end
 
+  -- drop the item
   if love.keyboard.wasPressed('enter') or love.keyboard.wasPressed('return') then
     print("handleDropd")
 
