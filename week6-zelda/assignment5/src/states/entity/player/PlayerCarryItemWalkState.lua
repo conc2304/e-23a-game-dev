@@ -20,7 +20,7 @@ function PlayerCarryItemWalkState:init(player, dungeon)
 end
 
 function PlayerCarryItemWalkState:enter(dt)
-  -- todo handle animation enter
+  -- animation enter handled by the player lift item state
 end
 
 function PlayerCarryItemWalkState:update(dt)
@@ -28,10 +28,6 @@ function PlayerCarryItemWalkState:update(dt)
 
   -- EntityWalkState performs base collision detection against walls
   EntityWalkState.update(self, dt)
-end
-
-function PlayerCarryItemWalkState:enter(params)
-  print("Enter PlayerCarryItemWalkState")
 end
 
 function PlayerCarryItemWalkState:render()

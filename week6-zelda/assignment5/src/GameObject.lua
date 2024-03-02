@@ -113,19 +113,18 @@ function GameObject:onThrown(throwSpeed, throwDirection, thrower)
     end
 end
 
+-- modification of checkBoundaryCollision from class, not DRY too tired to refactor rn
 function GameObject:checkBoundaryCollsion(dt)
-    -- we really only need to do this when the object is moving
-
-    if self.dx > 0 and self.dy > 0 then return end
-
     -- boundary checking on all sides, allowing us to avoid collision detection on tiles
     local velocity = self.dx + self.dy -- since we are throwing straight one of these deltas should always be 0
     local direction = 'down'
+
+    -- we really only need to do this when the object is moving
     if velocity == 0 then
-        -- print("no throw velocity", velocity)
         return
     end
 
+    -- get direction based on velocity vecgor
     if self.dx > 0 then
         direction = 'right'
     elseif self.dx < 0 then
@@ -135,10 +134,6 @@ function GameObject:checkBoundaryCollsion(dt)
     elseif self.dy < 0 then
         direction = 'up'
     end
-
-    print("HERE")
-    print(self.dx, self.dy, direction)
-
 
     if direction == 'left' then
         local xNext = self.x - velocity * dt
@@ -174,8 +169,6 @@ function GameObject:checkBoundaryCollsion(dt)
     end
 
     if self.bumped then
-        print("check collision")
-        print("break object")
         self:onBreak()
     end
 end

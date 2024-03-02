@@ -6,6 +6,9 @@ function PlayerCarryItemIdleState:enter(params)
   self.entity.offsetY = 5
   self.entity.offsetX = 0
 
+  -- local prevState = params.prevState or nil
+  -- check if intering a lift from a non lift state
+
   -- todo handle animation enter
   local animationKey = statePrefix .. 'idle-' .. self.entity.direction
   self.entity:changeAnimation(animationKey)

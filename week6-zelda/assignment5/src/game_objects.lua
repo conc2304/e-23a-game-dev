@@ -77,13 +77,7 @@ GAME_OBJECT_DEFS = {
         canDamage = false,
         damageAmount = 1,
         throwDistance = 4 * TILE_SIZE,
-
-        onCollide = function(self, room, objIndex)
-            -- if self.canDamage then
-            --     print("pot did damage")
-            --     self:onBreak()
-            -- end
-        end,
+        -- no onCollide() necessary bc behavir is not universal to all pot instances
         defaultState = 'default',
         states = {
             ['default'] = {

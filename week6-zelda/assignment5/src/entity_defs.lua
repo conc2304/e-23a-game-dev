@@ -15,6 +15,7 @@ POWER_UP_PROB_MAX = 100
 CHAR_WALK_TXTR = 'character-walk'
 CHAR_SWORD_TXTR = 'character-swing-sword'
 CHAR_ITEM_LIFT_TXTR = 'character-item-lift'
+CHAR_ITEM_LIFT_INTERVAL = 0.08
 CHAR_ITEM_WALK_TXTR = 'character-item-walk'
 
 -- lets not have multiple places in the code where we define our entities
@@ -84,27 +85,27 @@ ENTITY_DEFS = {
                 texture = CHAR_SWORD_TXTR
             },
             -- ITEM LIFTER
-            ['carry-lift-down'] = {
+            ['lift-down'] = {
                 frames = { 1, 2, 3 },
-                interval = 0.3,
+                interval = CHAR_ITEM_LIFT_INTERVAL,
                 looping = false,
                 texture = CHAR_ITEM_LIFT_TXTR
             },
-            ['carry-lift-right'] = {
+            ['lift-right'] = {
                 frames = { 4, 5, 6 },
-                interval = 0.3,
+                interval = CHAR_ITEM_LIFT_INTERVAL,
                 looping = false,
                 texture = CHAR_ITEM_LIFT_TXTR
             },
-            ['carry-lift-up'] = {
+            ['lift-up'] = {
                 frames = { 7, 8, 9 },
-                interval = 0.3,
+                interval = CHAR_ITEM_LIFT_INTERVAL,
                 looping = false,
                 texture = CHAR_ITEM_LIFT_TXTR
             },
-            ['carry-lift-left'] = {
+            ['lift-left'] = {
                 frames = { 10, 11, 12 },
-                interval = 0.3,
+                interval = CHAR_ITEM_LIFT_INTERVAL,
                 looping = false,
                 texture = CHAR_ITEM_LIFT_TXTR
             },
@@ -112,13 +113,11 @@ ENTITY_DEFS = {
             ['carry-walk-down'] = {
                 frames = { 1, 2, 3, 4 },
                 interval = 0.3,
-                looping = true,
                 texture = CHAR_ITEM_WALK_TXTR
             },
             ['carry-walk-right'] = {
                 frames = { 5, 6, 7, 8 },
                 interval = 0.3,
-                looping = true,
                 texture = CHAR_ITEM_WALK_TXTR
             },
             ['carry-walk-up'] = {
@@ -130,7 +129,6 @@ ENTITY_DEFS = {
             ['carry-walk-left'] = {
                 frames = { 13, 14, 15, 16 },
                 interval = 0.3,
-                looping = true,
                 texture = CHAR_ITEM_WALK_TXTR
             },
             -- ITEM CARRY IDLER

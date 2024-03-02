@@ -157,9 +157,8 @@ function Room:update(dt)
             end
 
             -- this is where we handle pots that are thrown,
-            -- or any object that can do damage
+            -- or any object that can do damage and that its not doing damage to who threw it
             if obj.canDamage and obj.thrower ~= entity and collides then
-                print_r(entity, 1)
                 entity:damage(obj.damageAmount)
                 obj:onBreak()
             end

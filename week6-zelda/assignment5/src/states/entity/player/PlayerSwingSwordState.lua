@@ -70,7 +70,6 @@ function PlayerSwingSwordState:update(dt)
         -- if entity has been hit in this swing dont hit them again, thats not fair
         local hasBeenHit = ValueInArray(k, self.damagedEntityIndexes)
         if not hasBeenHit and entity:collides(self.swordHitbox) then
-            print("EMOTIONAL DAMAGAE")
             entity:damage(1)
             entity:goInvulnerable(1.5)
             gSounds['hit-enemy']:play()
@@ -86,7 +85,6 @@ function PlayerSwingSwordState:update(dt)
 
     -- allow us to change into this state afresh if we swing within it, rapid swinging
     if love.keyboard.wasPressed('space') then
-        print("swing sword state, swing")
         self.player:changeState('swing-sword')
     end
 end

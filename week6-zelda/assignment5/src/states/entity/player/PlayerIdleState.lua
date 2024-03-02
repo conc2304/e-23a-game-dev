@@ -15,7 +15,6 @@ function PlayerIdleState:enter(params)
     local statePrefix = self.entity.liftedItem ~= nil and 'carry-' or ''
     local animationKey = statePrefix .. 'idle-' .. self.entity.direction
 
-    -- print("enter idle", animationKey)
     self.entity:changeAnimation(animationKey)
 end
 
@@ -39,7 +38,7 @@ function PlayerIdleState:update(dt)
             if self.entity.liftedItem == nil then
                 local isLifting = self.entity:lift(objects)
                 if isLifting then
-                    self.entity:changeState('carry-item-idle')
+                    self.entity:changeState('lift-item')
                 end
             else
                 self.entity:dropItem()

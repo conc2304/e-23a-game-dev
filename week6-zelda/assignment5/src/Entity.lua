@@ -140,11 +140,12 @@ function Entity:render(adjacentOffsetX, adjacentOffsetY)
     self.x, self.y = self.x - (adjacentOffsetX or 0), self.y - (adjacentOffsetY or 0)
 
 
-    love.graphics.setColor(255, 0, 255, 255)
-    love.graphics.rectangle('line', self.x, self.y, self.width, self.height)
-    love.graphics.rectangle('line', self.liftBox.x, self.liftBox.y,
-        self.liftBox.width, self.liftBox.height)
-    love.graphics.setColor(255, 255, 255, 255)
+    -- Debugging the liftBox
+    -- love.graphics.setColor(255, 0, 255, 255)
+    -- love.graphics.rectangle('line', self.x, self.y, self.width, self.height)
+    -- love.graphics.rectangle('line', self.liftBox.x, self.liftBox.y,
+    --     self.liftBox.width, self.liftBox.height)
+    -- love.graphics.setColor(255, 255, 255, 255)
 end
 
 function Entity:onDeath(gameObjects)
