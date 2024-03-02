@@ -15,12 +15,12 @@ function PlayerIdleState:enter(params)
     local statePrefix = self.entity.liftedItem ~= nil and 'carry-' or ''
     local animationKey = statePrefix .. 'idle-' .. self.entity.direction
 
-    print("enter idle", animationKey)
+    -- print("enter idle", animationKey)
     self.entity:changeAnimation(animationKey)
 end
 
 function PlayerIdleState:update(dt)
-    local statePrefix = ''
+    local statePrefix = self.entity.liftedItem ~= nil and 'carry-' or ''
     -- local statePrefix = self.entity.liftedItem ~= nil and 'carry-' or ''
     if love.keyboard.isDown('left') or love.keyboard.isDown('right') or
         love.keyboard.isDown('up') or love.keyboard.isDown('down') then
@@ -36,7 +36,15 @@ function PlayerIdleState:update(dt)
     if love.keyboard.wasPressed('enter') or love.keyboard.wasPressed('return') then
         local objects = self.dungeon.currentRoom.objects or nil
         if objects then
-            self.entity:handleLiftToggle(objects)
+            if self.entity.liftedItem == nil then
+                local isLifting = self.entity:lift(objects)
+                if isLifting then
+                    self.entity:changeState('carry-item-idle')
+                end
+            else
+                self.entity:dropItem()
+                self.entity:changeState('carry-item-idle')
+            end
         end
     end
 end

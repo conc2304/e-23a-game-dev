@@ -34,7 +34,6 @@ function EntityWalkState:update(dt)
 end
 
 function EntityWalkState:processAI(params, dt)
-    -- print("processAI", self.entity.type, self.bumped)
     local room = params.room
     local directions = { 'left', 'right', 'up', 'down' }
 

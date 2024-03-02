@@ -149,8 +149,14 @@ function Room:update(dt)
         end
 
         for _, obj in ipairs(self.objects) do
-            if obj.solid and entity:collides(obj) then
+            local collides = entity:collides(obj)
+            if obj.solid and collides then
                 entity.bumped = true
+            end
+
+            if obj.canDamage and collides then
+                entity:damage(obj.damageAmount)
+                obj:onBreak()
             end
         end
 

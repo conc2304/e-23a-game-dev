@@ -74,8 +74,18 @@ GAME_OBJECT_DEFS = {
         solid = true,
         consumable = false,
         liftable = true,
+        canDamage = false,
+        damageAmount = 1,
+        throwDistance = 4 * TILE_SIZE,
+
         onCollide = function(self, room, objIndex)
-            -- print("Pot Collision")
+            print("Pot Collision", self.canDamage)
+
+
+            if self.canDamage then
+                print_r(room, 1)
+                self:onBreak()
+            end
         end,
         defaultState = 'default',
         states = {

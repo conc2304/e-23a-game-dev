@@ -98,7 +98,6 @@ function PlayerWalkState:handleKeyboardInput()
         if love.keyboard.isDown(keyDir) then
             self.entity.direction = keyDir
             local animationKey = statePrefix .. 'walk-' .. keyDir
-            print(animationKey)
             self.entity:changeAnimation(animationKey)
             dirPressed = true
         end
@@ -106,15 +105,26 @@ function PlayerWalkState:handleKeyboardInput()
 
     if love.keyboard.wasPressed('enter') or love.keyboard.wasPressed('return') then
         local objects = self.dungeon.currentRoom.objects or nil
+        -- if objects then
+        --     self.entity:handleLiftToggle(objects)
+        -- end
+
         if objects then
-            self.entity:handleLiftToggle(objects)
+            if self.entity.liftedItem == nil then
+                local isLifting = self.entity:lift(objects)
+                if isLifting then
+                    self.entity:changeState('carry-item-walk')
+                end
+            else
+                self.entity:dropItem()
+                self.entity:changeState('walk')
+            end
         end
     end
 
     if not dirPressed then
         local animationKey = statePrefix .. 'idle-' .. self.entity.direction
         self.entity:changeState('idle')
-        print(animationKey)
         self.entity:changeAnimation(animationKey)
     end
 

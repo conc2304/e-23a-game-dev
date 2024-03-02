@@ -132,6 +132,7 @@ function Entity:render(adjacentOffsetX, adjacentOffsetY)
     end
 
     self.x, self.y = self.x + (adjacentOffsetX or 0), self.y + (adjacentOffsetY or 0)
+    -- if self.stateMachine
     self.stateMachine:render()
     love.graphics.setColor(1, 1, 1, 1)
     self.x, self.y = self.x - (adjacentOffsetX or 0), self.y - (adjacentOffsetY or 0)
@@ -161,13 +162,15 @@ end
 
 -- check if our lift box collides with an liftable object and then lift bro
 function Entity:lift(objects)
-    if not objects then return end
+    if not objects then return false end
 
     for key, object in pairs(objects) do
         if object.liftable and Collides(self.liftBox, object) then
             self:onLift(object, key)
+            return true
         end
     end
+    return false
 end
 
 function Entity:dropItem()
@@ -237,4 +240,17 @@ function Entity:getLiftBox(direction, range)
 
     self.liftBox = liftBox
     return liftBox
+end
+
+function Entity:throwItem()
+    if self.liftedItem == nil then return end
+
+    self:goInvulnerable(1) -- prevent player from being hit by pot
+
+    local throwDirection = self.direction
+    local throwSpeed = 150
+
+    self.liftedItem:onThrown(throwSpeed, throwDirection)
+    self.liftedItem = nil
+    self.liftedItemKey = nil
 end
