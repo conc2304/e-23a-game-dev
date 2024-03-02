@@ -27,6 +27,11 @@ function PlayerIdleState:update(dt)
     if love.keyboard.wasPressed('enter') or love.keyboard.wasPressed('return') then
         local objects = self.dungeon.currentRoom.objects or nil
         if not objects then return end
-        self.entity:lift(objects)
+
+        if self.entity.liftedItem == nil then
+            self.entity:lift(objects)
+        else
+            self.entity:dropItem()
+        end
     end
 end

@@ -34,6 +34,9 @@ function Entity:init(def)
     self.invulnerableDuration = 0
     self.invulnerableTimer = 0
 
+    -- like a hurtbox, but for ablility to lift things
+    self.liftRange = def.liftRange or 4
+    self.liftBox = self:getLiftBox(self.direction, self.liftRange)
     self.liftedItem = nil
     self.liftedItemKey = nil
 
@@ -41,9 +44,6 @@ function Entity:init(def)
     self.flashTimer = 0
 
     self.dead = false
-
-    -- like a hurtbox, but for ablility to lift things
-    self.liftBox = self:getLiftBox()
 end
 
 function Entity:createAnimations(animations)
@@ -73,6 +73,7 @@ end
 
 -- store the object and the key, in case we need to delete iteme later
 function Entity:onLift(object, key)
+    object:onLifted()
     self.liftedItem = object
     self.liftedItemKey = key
 end
@@ -116,7 +117,7 @@ function Entity:update(dt)
         self.liftedItem.y = self.y - self.liftedItem.height
     end
 
-    self.liftBox = self:getLiftBox(self.direction, 2)
+    self.liftBox = self:getLiftBox(self.direction, self.liftRange)
 end
 
 function Entity:processAI(params, dt)
@@ -164,10 +165,35 @@ function Entity:lift(objects)
 
     for key, object in pairs(objects) do
         if object.liftable and Collides(self.liftBox, object) then
-            object:onLift()
             self:onLift(object, key)
         end
     end
+end
+
+function Entity:dropItem()
+    -- put object back infront of entity at their feet
+    local direction = self.direction;
+    local object = self.liftedItem
+    print_r(object, 1)
+    local x, y
+    local offset = 0 -- 0 seems like it works here, but leaving here bc it could be useful for other things
+    if direction == 'left' then
+        x = self.x - object.width - offset
+        y = self.y + (math.abs(object.height - self.height))
+    elseif direction == 'right' then
+        x = self.x + object.width + offset
+        y = self.y + (math.abs(object.height - self.height))
+    elseif direction == 'up' then
+        y = self.y - object.height - offset
+        x = self.x
+    else
+        y = self.y + self.height + offset
+        x = self.x
+    end
+
+    object:onRelease(x, y)
+    self.liftedItem = nil
+    self.liftedItemKey = nil
 end
 
 -- make an area in which items are liftable

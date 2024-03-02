@@ -45,6 +45,12 @@ function GameObject:render(adjacentOffsetX, adjacentOffsetY)
 end
 
 -- once lifted it shouldnt block entities
-function GameObject:onLift()
+function GameObject:onLifted()
     self.solid = false
+end
+
+function GameObject:onRelease(x, y)
+    self.solid = true
+    self.x = x
+    self.y = y
 end
