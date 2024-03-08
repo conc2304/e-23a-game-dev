@@ -53,33 +53,16 @@ function Level:init()
 end
 
 function Level:update(dt)
-    if love.keyboard.wasPressed('space') then
-        print("split it")
-    end
+    self:handleUserInput()
     -- update launch marker, which shows trajectory
     self.launchMarker:update(dt)
 
     -- Box2D world update code; resolves collisions and processes callbacks
     self.world:update(dt)
 
-    self:cleanupDestroyedBodies()
+    self:handleDestroyedBodies()
 
-    -- replace launch marker if original alien stopped moving
-    if self.launchMarker.launched then
-        local xPos, yPos = self.launchMarker.alien.body:getPosition()
-        local xVel, yVel = self.launchMarker.alien.body:getLinearVelocity()
-
-        -- if we fired our alien to the left or it's almost done rolling, respawn
-        if xPos < 0 or (math.abs(xVel) + math.abs(yVel) < 1.5) then
-            self.launchMarker.alien.body:destroy()
-            self.launchMarker = AlienLaunchMarker(self.world)
-
-            -- re-initialize level if we have no more aliens
-            if #self.aliens == 0 then
-                gStateMachine:change('start')
-            end
-        end
-    end
+    self:handleResetCheck()
 end
 
 function Level:render()
@@ -116,84 +99,18 @@ function Level:render()
     end
 end
 
-function Level:generateLevel()
-    -- shows alien before being launched and its trajectory arrow
-    self.launchMarker = AlienLaunchMarker(self.world)
+--
+-- HELPER FUNCTIONS
+--
 
-    -- aliens in our scene
-    self.aliens = {}
-
-    -- obstacles guarding aliens that we can destroy
-    self.obstacles = {}
-
-    -- simple edge shape to represent collision for ground
-    self.edgeShape = love.physics.newEdgeShape(0, 0, VIRTUAL_WIDTH * 3, 0)
-
-    -- spawn an alien to try and destroy
-    table.insert(self.aliens,
-        Alien(self.world, 'square', VIRTUAL_WIDTH - 80, VIRTUAL_HEIGHT - TILE_SIZE - ALIEN_SIZE / 2, 'Alien'))
-
-    self:generateObstacleFeature(VIRTUAL_WIDTH - 100, VIRTUAL_HEIGHT - TILE_SIZE, true)
-    self:generateObstacleFeature(VIRTUAL_WIDTH - 100, VIRTUAL_HEIGHT - TILE_SIZE - 110 - 35, true)
-
-    -- ground data
-    self.groundBody = love.physics.newBody(self.world, -VIRTUAL_WIDTH, VIRTUAL_HEIGHT - 35, 'static')
-    self.groundFixture = love.physics.newFixture(self.groundBody, self.edgeShape)
-    self.groundFixture:setFriction(0.5)
-    self.groundFixture:setUserData('Ground')
-
-    -- background graphics
-    self.background = Background()
-end
-
-function Level:cleanupDestroyedBodies()
-    -- destroy all bodies we calculated to destroy during the update call
-    for k, body in pairs(self.destroyedBodies) do
-        if not body:isDestroyed() then
-            body:destroy()
+function Level:handleUserInput()
+    -- if space was pressed and our launched guy has not collided or split
+    -- then split the alien
+    if love.keyboard.wasPressed('space') then
+        print("has collided/split: ", self.launchMarker.hasCollided, self.launchMarker.hasSplit)
+        if not self.launchMarker.hasCollided and not self.hasSplit then
+            print("split it")
         end
-    end
-
-    -- reset destroyed bodies to empty table for next update phase
-    self.destroyedBodies = {}
-
-    -- remove all destroyed obstacles from level
-    for i = #self.obstacles, 1, -1 do
-        if self.obstacles[i].body:isDestroyed() then
-            table.remove(self.obstacles, i)
-
-            -- play random wood sound effect
-            local soundNum = math.random(5)
-            gSounds['break' .. tostring(soundNum)]:stop()
-            gSounds['break' .. tostring(soundNum)]:play()
-        end
-    end
-
-    -- remove all destroyed aliens from level
-    for i = #self.aliens, 1, -1 do
-        if self.aliens[i].body:isDestroyed() then
-            table.remove(self.aliens, i)
-            gSounds['kill']:stop()
-            gSounds['kill']:play()
-        end
-    end
-end
-
-function Level:generateObstacleFeature(x, y, hasAlien)
-    -- spawn a few obstacles
-    local vertW, vertH = 35, 110
-    local horizW, horizH = 110, 35
-    local paddingX = 10
-    table.insert(self.obstacles, Obstacle(self.world, 'vertical',
-        x - horizW + (vertW / 2), y - vertH / 2))
-    table.insert(self.obstacles, Obstacle(self.world, 'vertical',
-        x, y - vertH / 2))
-    table.insert(self.obstacles, Obstacle(self.world, 'horizontal',
-        x - horizW / 2 + paddingX, y - vertH - horizH / 2))
-
-    if hasAlien then
-        table.insert(self.aliens,
-            Alien(self.world, 'square', x - horizW / 2 + paddingX, y - ALIEN_SIZE / 2, 'Alien'))
     end
 end
 
@@ -204,6 +121,11 @@ function Level:handleContact(a, b)
     local obstacleFixture = getFixtureByType(a, b, 'Obstacle')
     local alienFixture = getFixtureByType(a, b, 'Alien')
     local groundFixture = getFixtureByType(a, b, 'Ground')
+
+    -- flag the that the player has had a collision
+    if playerFixture then
+        self.launchMarker.hasCollided = true
+    end
 
     -- if we collided between both the player and an obstacle...
     if obstacleFixture and playerFixture then
@@ -239,5 +161,106 @@ function Level:handleContact(a, b)
     if playerFixture and groundFixture then
         gSounds['bounce']:stop()
         gSounds['bounce']:play()
+    end
+end
+
+function Level:handleResetCheck()
+    -- replace launch marker if original alien stopped moving
+    if self.launchMarker.launched then
+        local xPos, yPos = self.launchMarker.alien.body:getPosition()
+        local xVel, yVel = self.launchMarker.alien.body:getLinearVelocity()
+
+        -- if we fired our alien to the left or it's almost done rolling, respawn
+        if xPos < 0 or (math.abs(xVel) + math.abs(yVel) < 1.5) then
+            self.launchMarker.alien.body:destroy()
+            self.launchMarker = AlienLaunchMarker(self.world)
+
+            -- re-initialize level if we have no more aliens
+            if #self.aliens == 0 then
+                gStateMachine:change('start')
+            end
+        end
+    end
+end
+
+function Level:generateLevel()
+    -- shows alien before being launched and its trajectory arrow
+    self.launchMarker = AlienLaunchMarker(self.world)
+
+    -- aliens in our scene
+    self.aliens = {}
+
+    -- obstacles guarding aliens that we can destroy
+    self.obstacles = {}
+
+    -- simple edge shape to represent collision for ground
+    self.edgeShape = love.physics.newEdgeShape(0, 0, VIRTUAL_WIDTH * 3, 0)
+
+    -- spawn an alien to try and destroy
+    table.insert(self.aliens,
+        Alien(self.world, 'square', VIRTUAL_WIDTH - 80, VIRTUAL_HEIGHT - TILE_SIZE - ALIEN_SIZE / 2, 'Alien'))
+
+    self:generateObstacleFeature(VIRTUAL_WIDTH - 100, VIRTUAL_HEIGHT - TILE_SIZE, true)
+    self:generateObstacleFeature(VIRTUAL_WIDTH - 100, VIRTUAL_HEIGHT - TILE_SIZE - 110 - 35, true)
+
+    -- ground data
+    self.groundBody = love.physics.newBody(self.world, -VIRTUAL_WIDTH, VIRTUAL_HEIGHT - 35, 'static')
+    self.groundFixture = love.physics.newFixture(self.groundBody, self.edgeShape)
+    self.groundFixture:setFriction(0.5)
+    self.groundFixture:setUserData('Ground')
+
+    -- background graphics
+    self.background = Background()
+end
+
+function Level:handleDestroyedBodies()
+    -- destroy all bodies we calculated to destroy during the update call
+    for k, body in pairs(self.destroyedBodies) do
+        if not body:isDestroyed() then
+            body:destroy()
+        end
+    end
+
+    -- reset destroyed bodies to empty table for next update phase
+    self.destroyedBodies = {}
+
+    -- remove all destroyed obstacles from level
+    for i = #self.obstacles, 1, -1 do
+        if self.obstacles[i].body:isDestroyed() then
+            table.remove(self.obstacles, i)
+
+            -- play random wood sound effect
+            local soundNum = math.random(5)
+            gSounds['break' .. tostring(soundNum)]:stop()
+            gSounds['break' .. tostring(soundNum)]:play()
+        end
+    end
+
+    -- remove all destroyed aliens from level
+    for i = #self.aliens, 1, -1 do
+        if self.aliens[i].body:isDestroyed() then
+            table.remove(self.aliens, i)
+            gSounds['kill']:stop()
+            gSounds['kill']:play()
+        end
+    end
+end
+
+-- Generates a henge like |-| shaped obstacle with possibility for alien in the middle
+function Level:generateObstacleFeature(x, y, hasAlien)
+    -- spawn a few obstacles
+    local vertW, vertH = 35, 110
+    local horizW, horizH = 110, 35
+    local paddingX = 10
+    table.insert(self.obstacles, Obstacle(self.world, 'vertical',
+        x - horizW + (vertW / 2), y - vertH / 2))
+    table.insert(self.obstacles, Obstacle(self.world, 'vertical',
+        x, y - vertH / 2))
+    table.insert(self.obstacles, Obstacle(self.world, 'horizontal',
+        x - horizW / 2 + paddingX, y - vertH - horizH / 2))
+
+    if hasAlien then
+        table.insert(self.aliens,
+            Alien(self.world, 'square', x - horizW / 2 + paddingX, y - ALIEN_SIZE / 2, 'Alien'))
     end
 end
