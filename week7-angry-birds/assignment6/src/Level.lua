@@ -176,6 +176,13 @@ function Level:handleContact(a, b)
     local types = {}
     types[a:getUserData()] = true
     types[b:getUserData()] = true
+
+
+    local function getSumOfAbsVelocities(body)
+        local velX, velY = body:getLinearVelocity()
+        return math.abs(velX) + math.abs(velY)
+    end
+
     -- if we collided between both the player and an obstacle...
     if types['Obstacle'] and types['Player'] then
         -- grab the body that belongs to the player
@@ -183,8 +190,8 @@ function Level:handleContact(a, b)
         local obstacleFixture = a:getUserData() == 'Obstacle' and a or b
 
         -- destroy the obstacle if player's combined X/Y velocity is high enough
-        local velX, velY = playerFixture:getBody():getLinearVelocity()
-        local sumVel = math.abs(velX) + math.abs(velY)
+
+        local sumVel = getSumOfAbsVelocities(playerFixture:getBody())
 
         if sumVel > 20 then
             table.insert(self.destroyedBodies, obstacleFixture:getBody())
