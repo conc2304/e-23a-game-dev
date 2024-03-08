@@ -39,42 +39,16 @@ function Level:init()
 end
 
 function Level:update(dt)
+    if love.keyboard.wasPressed('space') then
+        print("split it")
+    end
     -- update launch marker, which shows trajectory
     self.launchMarker:update(dt)
 
     -- Box2D world update code; resolves collisions and processes callbacks
     self.world:update(dt)
 
-    -- destroy all bodies we calculated to destroy during the update call
-    for k, body in pairs(self.destroyedBodies) do
-        if not body:isDestroyed() then
-            body:destroy()
-        end
-    end
-
-    -- reset destroyed bodies to empty table for next update phase
-    self.destroyedBodies = {}
-
-    -- remove all destroyed obstacles from level
-    for i = #self.obstacles, 1, -1 do
-        if self.obstacles[i].body:isDestroyed() then
-            table.remove(self.obstacles, i)
-
-            -- play random wood sound effect
-            local soundNum = math.random(5)
-            gSounds['break' .. tostring(soundNum)]:stop()
-            gSounds['break' .. tostring(soundNum)]:play()
-        end
-    end
-
-    -- remove all destroyed aliens from level
-    for i = #self.aliens, 1, -1 do
-        if self.aliens[i].body:isDestroyed() then
-            table.remove(self.aliens, i)
-            gSounds['kill']:stop()
-            gSounds['kill']:play()
-        end
-    end
+    self:cleanupDestroyedBodies()
 
     -- replace launch marker if original alien stopped moving
     if self.launchMarker.launched then
@@ -158,6 +132,39 @@ function Level:generateLevel()
     self.background = Background()
 end
 
+function Level:cleanupDestroyedBodies()
+    -- destroy all bodies we calculated to destroy during the update call
+    for k, body in pairs(self.destroyedBodies) do
+        if not body:isDestroyed() then
+            body:destroy()
+        end
+    end
+
+    -- reset destroyed bodies to empty table for next update phase
+    self.destroyedBodies = {}
+
+    -- remove all destroyed obstacles from level
+    for i = #self.obstacles, 1, -1 do
+        if self.obstacles[i].body:isDestroyed() then
+            table.remove(self.obstacles, i)
+
+            -- play random wood sound effect
+            local soundNum = math.random(5)
+            gSounds['break' .. tostring(soundNum)]:stop()
+            gSounds['break' .. tostring(soundNum)]:play()
+        end
+    end
+
+    -- remove all destroyed aliens from level
+    for i = #self.aliens, 1, -1 do
+        if self.aliens[i].body:isDestroyed() then
+            table.remove(self.aliens, i)
+            gSounds['kill']:stop()
+            gSounds['kill']:play()
+        end
+    end
+end
+
 function Level:generateObstacleFeature(x, y, hasAlien)
     -- spawn a few obstacles
     local vertW, vertH = 35, 110
@@ -187,12 +194,22 @@ function Level:handleContact(a, b)
         return math.abs(velX) + math.abs(velY)
     end
 
-    -- if we collided between both the player and an obstacle...
-    if types['Obstacle'] and types['Player'] then
-        -- grab the body that belongs to the player
-        local playerFixture = a:getUserData() == 'Player' and a or b
-        local obstacleFixture = a:getUserData() == 'Obstacle' and a or b
+    local function getFixtureByType(a, b, type)
+        if a:getUserData() == type then
+            return a
+        elseif b:getUserData() == type then
+            return b
+        end
+        return nil
+    end
 
+    -- grab the body that belongs to the entities
+    local playerFixture = getFixtureByType(a, b, 'Player')
+    local obstacleFixture = getFixtureByType(a, b, 'Obstacle')
+    local alienFixture = getFixtureByType(a, b, 'Alien')
+
+    -- if we collided between both the player and an obstacle...
+    if obstacleFixture and playerFixture then
         -- destroy the obstacle if player's combined X/Y velocity is high enough
         local sumVel = getSumOfAbsVelocities(playerFixture:getBody())
 
@@ -202,11 +219,7 @@ function Level:handleContact(a, b)
     end
 
     -- if we collided between an obstacle and an alien, as by debris falling...
-    if types['Obstacle'] and types['Alien'] then
-        -- grab the body that belongs to the player
-        local obstacleFixture = a:getUserData() == 'Obstacle' and a or b
-        local alienFixture = a:getUserData() == 'Alien' and a or b
-
+    if obstacleFixture and alienFixture then
         -- destroy the alien if falling debris is falling fast enough
         local sumVel = getSumOfAbsVelocities(obstacleFixture:getBody())
 
@@ -216,12 +229,7 @@ function Level:handleContact(a, b)
     end
 
     -- if we collided between the player and the alien...
-    if types['Player'] and types['Alien'] then
-        -- grab the bodies that belong to the player and alien
-        local playerFixture = a:getUserData() == 'Player' and a or b
-        local alienFixture = a:getUserData() == 'Alien' and a or b
-        playerFixture.hasCollided = true
-
+    if playerFixture and alienFixture then
         -- destroy the alien if player is traveling fast enough
         local sumVel = getSumOfAbsVelocities(playerFixture:getBody())
 
