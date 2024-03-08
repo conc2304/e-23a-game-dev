@@ -6,6 +6,20 @@
     cogden@cs50.harvard.edu
 ]]
 
+local function getSumOfAbsVelocities(body)
+    local velX, velY = body:getLinearVelocity()
+    return math.abs(velX) + math.abs(velY)
+end
+
+local function getFixtureByType(a, b, type)
+    if a:getUserData() == type then
+        return a
+    elseif b:getUserData() == type then
+        return b
+    end
+    return nil
+end
+
 Level = Class {}
 
 function Level:init()
@@ -184,29 +198,12 @@ function Level:generateObstacleFeature(x, y, hasAlien)
 end
 
 function Level:handleContact(a, b)
-    local types = {}
-    types[a:getUserData()] = true
-    types[b:getUserData()] = true
-
-
-    local function getSumOfAbsVelocities(body)
-        local velX, velY = body:getLinearVelocity()
-        return math.abs(velX) + math.abs(velY)
-    end
-
-    local function getFixtureByType(a, b, type)
-        if a:getUserData() == type then
-            return a
-        elseif b:getUserData() == type then
-            return b
-        end
-        return nil
-    end
-
-    -- grab the body that belongs to the entities
+    -- grab the body that belongs to the entities,
+    -- getfixture() will return nil if not found
     local playerFixture = getFixtureByType(a, b, 'Player')
     local obstacleFixture = getFixtureByType(a, b, 'Obstacle')
     local alienFixture = getFixtureByType(a, b, 'Alien')
+    local groundFixture = getFixtureByType(a, b, 'Ground')
 
     -- if we collided between both the player and an obstacle...
     if obstacleFixture and playerFixture then
@@ -239,7 +236,7 @@ function Level:handleContact(a, b)
     end
 
     -- if we hit the ground, play a bounce sound
-    if types['Player'] and types['Ground'] then
+    if playerFixture and groundFixture then
         gSounds['bounce']:stop()
         gSounds['bounce']:play()
     end
