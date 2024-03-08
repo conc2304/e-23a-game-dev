@@ -34,6 +34,7 @@ function AlienLaunchMarker:init(world)
 end
 
 function AlienLaunchMarker:update(dt)
+    -- print("hasCollided", self.hasCollided)
     -- perform everything here as long as we haven't launched yet
     if not self.launched then
         -- if we click the mouse and haven't launched, show arrow preview

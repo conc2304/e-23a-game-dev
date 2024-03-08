@@ -145,7 +145,8 @@ function Level:generateLevel()
     table.insert(self.aliens,
         Alien(self.world, 'square', VIRTUAL_WIDTH - 80, VIRTUAL_HEIGHT - TILE_SIZE - ALIEN_SIZE / 2, 'Alien'))
 
-    self:generateHengeObstacle(VIRTUAL_WIDTH, VIRTUAL_HEIGHT)
+    self:generateObstacleFeature(VIRTUAL_WIDTH - 100, VIRTUAL_HEIGHT - TILE_SIZE, true)
+    self:generateObstacleFeature(VIRTUAL_WIDTH - 100, VIRTUAL_HEIGHT - TILE_SIZE - 110 - 35, true)
 
     -- ground data
     self.groundBody = love.physics.newBody(self.world, -VIRTUAL_WIDTH, VIRTUAL_HEIGHT - 35, 'static')
@@ -157,19 +158,22 @@ function Level:generateLevel()
     self.background = Background()
 end
 
-function Level:generateHengeObstacle(x, y)
+function Level:generateObstacleFeature(x, y, hasAlien)
     -- spawn a few obstacles
-    x, y = VIRTUAL_WIDTH, VIRTUAL_HEIGHT
-    local floorHeight = 35
     local vertW, vertH = 35, 110
     local horizW, horizH = 110, 35
     local paddingX = 10
     table.insert(self.obstacles, Obstacle(self.world, 'vertical',
-        x - horizW + paddingX, y - floorHeight - vertH / 2))
+        x - horizW + (vertW / 2), y - vertH / 2))
     table.insert(self.obstacles, Obstacle(self.world, 'vertical',
-        x - vertW, y - floorHeight - vertH / 2))
+        x, y - vertH / 2))
     table.insert(self.obstacles, Obstacle(self.world, 'horizontal',
-        x - 80, y - floorHeight - vertH - horizH / 2))
+        x - horizW / 2 + paddingX, y - vertH - horizH / 2))
+
+    if hasAlien then
+        table.insert(self.aliens,
+            Alien(self.world, 'square', x - horizW / 2 + paddingX, y - ALIEN_SIZE / 2, 'Alien'))
+    end
 end
 
 function Level:handleContact(a, b)
@@ -190,7 +194,6 @@ function Level:handleContact(a, b)
         local obstacleFixture = a:getUserData() == 'Obstacle' and a or b
 
         -- destroy the obstacle if player's combined X/Y velocity is high enough
-
         local sumVel = getSumOfAbsVelocities(playerFixture:getBody())
 
         if sumVel > 20 then
@@ -205,8 +208,7 @@ function Level:handleContact(a, b)
         local alienFixture = a:getUserData() == 'Alien' and a or b
 
         -- destroy the alien if falling debris is falling fast enough
-        local velX, velY = obstacleFixture:getBody():getLinearVelocity()
-        local sumVel = math.abs(velX) + math.abs(velY)
+        local sumVel = getSumOfAbsVelocities(obstacleFixture:getBody())
 
         if sumVel > 20 then
             table.insert(self.destroyedBodies, alienFixture:getBody())
@@ -218,10 +220,10 @@ function Level:handleContact(a, b)
         -- grab the bodies that belong to the player and alien
         local playerFixture = a:getUserData() == 'Player' and a or b
         local alienFixture = a:getUserData() == 'Alien' and a or b
+        playerFixture.hasCollided = true
 
         -- destroy the alien if player is traveling fast enough
-        local velX, velY = playerFixture:getBody():getLinearVelocity()
-        local sumVel = math.abs(velX) + math.abs(velY)
+        local sumVel = getSumOfAbsVelocities(playerFixture:getBody())
 
         if sumVel > 20 then
             table.insert(self.destroyedBodies, alienFixture:getBody())
