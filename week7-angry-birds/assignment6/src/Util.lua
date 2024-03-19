@@ -17,6 +17,21 @@ function GenerateQuads(atlas, tilewidth, tileheight)
     return spritesheet
 end
 
+-- local helper functions for
+function GetSumOfAbsVelocities(body)
+    local velX, velY = body:getLinearVelocity()
+    return math.abs(velX) + math.abs(velY)
+end
+
+function GetFixtureByType(a, b, type)
+    if a:getUserData() == type then
+        return a
+    elseif b:getUserData() == type then
+        return b
+    end
+    return nil
+end
+
 function print_r(t, depth)
     local print_r_cache = {}
 

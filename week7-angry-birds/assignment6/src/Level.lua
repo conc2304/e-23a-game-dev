@@ -6,19 +6,7 @@
     cogden@cs50.harvard.edu
 ]]
 
-local function getSumOfAbsVelocities(body)
-    local velX, velY = body:getLinearVelocity()
-    return math.abs(velX) + math.abs(velY)
-end
 
-local function getFixtureByType(a, b, type)
-    if a:getUserData() == type then
-        return a
-    elseif b:getUserData() == type then
-        return b
-    end
-    return nil
-end
 
 Level = Class {}
 
@@ -81,6 +69,10 @@ function Level:render()
         obstacle:render()
     end
 
+    for _, projectile in pairs(self.playerProjectiles) do
+        projectile:render()
+    end
+
     -- render instruction text if we haven't launched bird
     if not self.launchMarker.launched then
         love.graphics.setFont(gFonts['medium'])
@@ -103,24 +95,18 @@ end
 -- HELPER FUNCTIONS
 --
 
-function Level:handleUserInput()
-    -- if space was pressed and our launched guy has not collided or split
-    -- then split the alien
-    if love.keyboard.wasPressed('space') then
-        print("has collided/split: ", self.launchMarker.hasCollided, self.launchMarker.hasSplit)
-        if not self.launchMarker.hasCollided and not self.hasSplit then
-            print("split it")
-        end
-    end
-end
+
+
 
 function Level:handleContact(a, b)
-    -- grab the body that belongs to the entities,
+    -- grab the body (or nil) that belongs to the all entities,
     -- getfixture() will return nil if not found
-    local playerFixture = getFixtureByType(a, b, 'Player')
-    local obstacleFixture = getFixtureByType(a, b, 'Obstacle')
-    local alienFixture = getFixtureByType(a, b, 'Alien')
-    local groundFixture = getFixtureByType(a, b, 'Ground')
+    local playerFixture = GetFixtureByType(a, b, 'Player')
+    local obstacleFixture = GetFixtureByType(a, b, 'Obstacle')
+    local alienFixture = GetFixtureByType(a, b, 'Alien')
+    local groundFixture = GetFixtureByType(a, b, 'Ground')
+
+    local destoryThreshold = 20
 
     -- flag the that the player has had a collision
     if playerFixture then
@@ -130,9 +116,9 @@ function Level:handleContact(a, b)
     -- if we collided between both the player and an obstacle...
     if obstacleFixture and playerFixture then
         -- destroy the obstacle if player's combined X/Y velocity is high enough
-        local sumVel = getSumOfAbsVelocities(playerFixture:getBody())
+        local sumVel = GetSumOfAbsVelocities(playerFixture:getBody())
 
-        if sumVel > 20 then
+        if sumVel > destoryThreshold then
             table.insert(self.destroyedBodies, obstacleFixture:getBody())
         end
     end
@@ -140,9 +126,9 @@ function Level:handleContact(a, b)
     -- if we collided between an obstacle and an alien, as by debris falling...
     if obstacleFixture and alienFixture then
         -- destroy the alien if falling debris is falling fast enough
-        local sumVel = getSumOfAbsVelocities(obstacleFixture:getBody())
+        local sumVel = GetSumOfAbsVelocities(obstacleFixture:getBody())
 
-        if sumVel > 20 then
+        if sumVel > destoryThreshold then
             table.insert(self.destroyedBodies, alienFixture:getBody())
         end
     end
@@ -150,9 +136,9 @@ function Level:handleContact(a, b)
     -- if we collided between the player and the alien...
     if playerFixture and alienFixture then
         -- destroy the alien if player is traveling fast enough
-        local sumVel = getSumOfAbsVelocities(playerFixture:getBody())
+        local sumVel = GetSumOfAbsVelocities(playerFixture:getBody())
 
-        if sumVel > 20 then
+        if sumVel > destoryThreshold then
             table.insert(self.destroyedBodies, alienFixture:getBody())
         end
     end
@@ -167,13 +153,19 @@ end
 function Level:handleResetCheck()
     -- replace launch marker if original alien stopped moving
     if self.launchMarker.launched then
-        local xPos, yPos = self.launchMarker.alien.body:getPosition()
-        local xVel, yVel = self.launchMarker.alien.body:getLinearVelocity()
+        -- check if all projectiles are done moving
+        local projectilesStillMoving = self:areProjectilesMoving()
 
-        -- if we fired our alien to the left or it's almost done rolling, respawn
-        if xPos < 0 or (math.abs(xVel) + math.abs(yVel) < 1.5) then
+        -- when done moving, reset the launcher and extra projectiles
+        if not projectilesStillMoving then
             self.launchMarker.alien.body:destroy()
             self.launchMarker = AlienLaunchMarker(self.world)
+
+            for _, projectile in pairs(self.playerProjectiles) do
+                projectile.body:destroy()
+            end
+
+            self.playerProjectiles = {}
 
             -- re-initialize level if we have no more aliens
             if #self.aliens == 0 then
@@ -183,9 +175,41 @@ function Level:handleResetCheck()
     end
 end
 
+function Level:areProjectilesMoving()
+    -- if all projectiles are off screen return false
+    -- if any projectiles velocity is above 1.5, return false
+    local function isProjectileMoving(projectile)
+        local xPos, _ = projectile.body:getPosition()
+        local xVel, yVel = projectile.body:getLinearVelocity()
+        local velocityThreshold = 1.5
+
+        -- if we fired our alien offscreen or it's almost done rolling, respawn
+        local isOffScreen = xPos < 0 or xPos > VIRTUAL_WIDTH + PLAYER_ENTITY_RADIUS
+        local isNotMoving = math.abs(xVel) + math.abs(yVel) < velocityThreshold
+        local isFinishedMoving = isOffScreen or isNotMoving
+
+        -- return that i
+        return not isFinishedMoving
+    end
+
+    -- check principal projectile
+    if isProjectileMoving(self.launchMarker.alien) then return true end
+
+    -- check supplemental projectiles
+    for _, projectile in pairs(self.playerProjectiles) do
+        if isProjectileMoving(projectile) then return true end
+    end
+
+    -- if nothing has returned true that they are still moving, then return false
+    return false
+end
+
 function Level:generateLevel()
     -- shows alien before being launched and its trajectory arrow
     self.launchMarker = AlienLaunchMarker(self.world)
+
+    -- store any extra projectiles that the player may use
+    self.playerProjectiles = {}
 
     -- aliens in our scene
     self.aliens = {}
@@ -262,5 +286,69 @@ function Level:generateObstacleFeature(x, y, hasAlien)
     if hasAlien then
         table.insert(self.aliens,
             Alien(self.world, 'square', x - horizW / 2 + paddingX, y - ALIEN_SIZE / 2, 'Alien'))
+    end
+end
+
+--[[
+
+    Mapping of Powerups to their functions
+    -- NOTE Dependencies --
+        all powerup functions should be defined before the fn map
+        the powerupFnMap needs to be defined before its use in handleUserInput
+]]
+
+-- create a buckshot like power up in which we spawn extra projectiles around the original projectile
+function Level:handleScatterShot()
+    local alienRef = self.launchMarker.alien
+
+    -- get physics settings from our original projectile
+    local velocityX, velocityY = alienRef.body:getLinearVelocity()
+    local originalX, originalY = alienRef.body:getPosition()
+
+    local projectileRadius = PLAYER_ENTITY_RADIUS
+    local projectileSpacing = PLAYER_ENTITY_RADIUS
+    local projectileOffsetY = projectileRadius + projectileSpacing
+    -- for reference, it seems like our current max velocity x is around 300
+    local velocityYScatter = 75 -- amount to offset the y velocity by to create a different angle
+
+    -- allow programmatic adjustments
+    local scatterShotsPerSide = 1 -- number of projectiles on each side of the base projectil
+    local sides = 2               -- this really shouldnt change, unless we want to create a circle of projectiles instead of a line
+    local totalExtraProjectiles = scatterShotsPerSide * sides
+
+    -- generate scatter shots on each side of the base projectile
+    for i = 1, totalExtraProjectiles, 1 do
+        local isPastHalfway = i > totalExtraProjectiles / sides
+        local offsetYShift = isPastHalfway and 1 or
+            -1 -- put the projectiles either above or below the original based on am
+        local offsetY = projectileOffsetY * offsetYShift
+        -- local yPos = originalY + offsetY
+        local yPos = math.min(originalY + offsetY, VIRTUAL_HEIGHT - TILE_SIZE - projectileRadius) -- don't put the new projectile in the ground
+
+        -- add new projectile with adjusted y velocity
+        local newProjectile = Alien(self.world, 'round', originalX, yPos, 'Player')
+        newProjectile.body:setLinearVelocity(velocityX, velocityY + (offsetYShift * velocityYScatter))
+        table.insert(self.playerProjectiles, newProjectile)
+    end
+
+    gSounds['scatter-shot']:stop()
+    gSounds['scatter-shot']:play()
+end
+
+local PowerUpFnMap = {
+    [POWERUP_TYPE_SCATTER_SHOT] = Level.handleScatterShot
+}
+
+function Level:handleUserInput()
+    -- only allow power up before collision, and only if the powerup has not been used
+    local powerUpAvailable = not self.launchMarker.hasCollided and not self.powerupUsed
+
+    -- handle various powerups if they are available, but not before launching duh
+    if love.keyboard.wasPressed('space') and powerUpAvailable and self.launchMarker.launched then
+        -- allow for various power ups and handle them accordingly
+        local powerupFn = PowerUpFnMap[self.launchMarker.powerupType]
+        if powerupFn ~= nil then
+            powerupFn(self)
+        end
     end
 end

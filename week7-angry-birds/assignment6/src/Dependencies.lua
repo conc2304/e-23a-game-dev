@@ -1,7 +1,7 @@
 --[[
     GD50
     Angry Birds
-    
+
     Author: Colton Ogden
     cogden@cs50.harvard.edu
 ]]
@@ -67,6 +67,7 @@ gSounds = {
     ['break5'] = love.audio.newSource('sounds/break5.wav', 'static'),
     ['bounce'] = love.audio.newSource('sounds/bounce.wav', 'static'),
     ['kill'] = love.audio.newSource('sounds/kill.wav', 'static'),
+    ['scatter-shot'] = love.audio.newSource('sounds/Bird_Flying_Sound_FX.mp3', 'static'),
 
     ['music'] = love.audio.newSource('sounds/music.wav', 'static')
 }

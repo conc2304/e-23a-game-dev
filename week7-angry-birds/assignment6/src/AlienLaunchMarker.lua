@@ -6,6 +6,8 @@
     cogden@cs50.harvard.edu
 ]]
 
+POWERUP_TYPE_SCATTER_SHOT = 'POWERUP_TYPE_SCATTER_SHOT'
+
 AlienLaunchMarker = Class {}
 
 function AlienLaunchMarker:init(world)
@@ -28,9 +30,10 @@ function AlienLaunchMarker:init(world)
     -- our alien we will eventually spawn
     self.alien = nil
 
-    self.hasSplit = false
-    self.hasCollided = false
-    -- self.
+    -- currently there is only one power up type, but allow for various types like in Angry Birds
+    self.powerupType = POWERUP_TYPE_SCATTER_SHOT
+    self.powerupUsed = false -- flag for if player has already used power up, so that they can only use once per shot
+    self.hasCollided = false -- flag for if launched projectil has collided with anything, currently used to mark whether or not we can use a power up
 end
 
 function AlienLaunchMarker:update(dt)
@@ -48,12 +51,6 @@ function AlienLaunchMarker:update(dt)
         elseif self.aiming then
             self:handleAim()
         end
-        -- if we have launched and not yet collided with anything,
-        -- allow alien projectile to split into multiple projectiles
-    elseif self.launched and not self.hasCollided and not self.hasSplit then
-        -- if love.keyboard.keypressed['space'] then
-        --     self.handleProjectileSplit()
-        -- end
     end
 end
 
@@ -119,16 +116,5 @@ function AlienLaunchMarker:renderTrajectory()
         if i % 5 == 0 then
             love.graphics.circle('fill', trajX, trajY, 3)
         end
-    end
-end
-
-function AlienLaunchMarker:handleProjectileSplit()
-    print("handleProjectileSplit")
-
-    local numExtraProjectiles = 2
-
-    self.hasSplit = true
-    for i = 1, numExtraProjectiles do
-
     end
 end
