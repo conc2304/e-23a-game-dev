@@ -11,10 +11,11 @@
     grid-like selection, as seen in many kinds of interfaces and games.
 ]]
 
-Selection = Class{}
+Selection = Class {}
 
 function Selection:init(def)
     self.items = def.items
+    self.canSelect = def.canSelect == nil and true or def.canSelect
     self.x = def.x
     self.y = def.y
 
@@ -28,13 +29,20 @@ function Selection:init(def)
 end
 
 function Selection:update(dt)
+    if not self.canSelect then
+        if love.keyboard.wasPressed('return') or love.keyboard.wasPressed('enter') then
+            print("end state")
+        end
+        return
+    end
+
     if love.keyboard.wasPressed('up') then
         if self.currentSelection == 1 then
             self.currentSelection = #self.items
         else
             self.currentSelection = self.currentSelection - 1
         end
-        
+
         gSounds['blip']:stop()
         gSounds['blip']:play()
     elseif love.keyboard.wasPressed('down') then
@@ -43,12 +51,12 @@ function Selection:update(dt)
         else
             self.currentSelection = self.currentSelection + 1
         end
-        
+
         gSounds['blip']:stop()
         gSounds['blip']:play()
     elseif love.keyboard.wasPressed('return') or love.keyboard.wasPressed('enter') then
-        self.items[self.currentSelection].onSelect()
-        
+        if self.items[self.currentSelection].onSelect then self.items[self.currentSelection].onSelect() end
+
         gSounds['blip']:stop()
         gSounds['blip']:play()
     end
@@ -56,17 +64,27 @@ end
 
 function Selection:render()
     local currentY = self.y
+    local currFont = love.graphics.getFont()
 
     for i = 1, #self.items do
-        local paddedY = currentY + (self.gapHeight / 2) - self.font:getHeight() / 2
+        -- local paddedY = currentY + (self.gapHeight / 2) - self.font:getHeight() / 2
+        local paddedY = currentY + (self.gapHeight / 2) - love.graphics.getFont():getHeight() / 2
+        local align = self.items[i].align or 'center'
+        local padX = 0
+        if align == 'left' then padX = 8 end
+        if align == 'right' then padX = -8 end
 
         -- draw selection marker if we're at the right index
-        if i == self.currentSelection then
+        if i == self.currentSelection and self.canSelect then
             love.graphics.draw(gTextures['cursor'], self.x - 8, paddedY)
         end
+        if self.items[i].font then
+            love.graphics.setFont(self.items[i].font)
+        end
 
-        love.graphics.printf(self.items[i].text, self.x, paddedY, self.width, 'center')
+        love.graphics.printf(self.items[i].text, self.x + padX, paddedY, self.width, align)
 
         currentY = currentY + self.gapHeight
     end
+    love.graphics.setFont(currFont)
 end

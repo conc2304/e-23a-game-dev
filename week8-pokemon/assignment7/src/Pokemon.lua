@@ -6,7 +6,7 @@
     cogden@cs50.harvard.edu
 ]]
 
-Pokemon = Class{}
+Pokemon = Class {}
 
 function Pokemon:init(def, level)
     self.name = def.name
@@ -25,13 +25,16 @@ function Pokemon:init(def, level)
     self.speedIV = def.speedIV
 
     self.HP = self.baseHP
-    self.attack = self.baseAttack
-    self.defense = self.baseDefense
-    self.speed = self.baseSpeed
+    -- todo - revert to no multipliery
+    self.attack = self.baseAttack * 10
+    self.defense = self.baseDefense * 10
+    self.speed = self.baseSpeed + 5
 
     self.level = level
-    self.currentExp = 0
+    -- TODO SWITCH AFTER TESTING
+    -- self.currentExp = 0
     self.expToLevel = self.level * self.level * 5 * 0.75
+    self.currentExp = self.expToLevel - 5
 
     self:calculateStats()
 

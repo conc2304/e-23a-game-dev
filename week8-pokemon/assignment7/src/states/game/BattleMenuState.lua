@@ -6,11 +6,11 @@
     cogden@cs50.harvard.edu
 ]]
 
-BattleMenuState = Class{__includes = BaseState}
+BattleMenuState = Class { __includes = BaseState }
 
 function BattleMenuState:init(battleState)
     self.battleState = battleState
-    
+
     self.battleMenu = Menu {
         x = VIRTUAL_WIDTH - 64,
         y = VIRTUAL_HEIGHT - 64,
@@ -28,7 +28,7 @@ function BattleMenuState:init(battleState)
                 text = 'Run',
                 onSelect = function()
                     gSounds['run']:play()
-                    
+
                     -- pop battle menu
                     gStateStack:pop()
 
@@ -38,27 +38,28 @@ function BattleMenuState:init(battleState)
                         function() end), false)
                     Timer.after(0.5, function()
                         gStateStack:push(FadeInState({
-                            r = 1, g = 1, b = 1
-                        }, 1,
-                        
-                        -- pop message and battle state and add a fade to blend in the field
-                        function()
-
-                            -- resume field music
-                            gSounds['field-music']:play()
-
-                            -- pop message state
-                            gStateStack:pop()
-
-                            -- pop battle state
-                            gStateStack:pop()
-
-                            gStateStack:push(FadeOutState({
                                 r = 1, g = 1, b = 1
-                            }, 1, function()
-                                -- do nothing after fade out ends
+                            }, 1,
+
+                            -- pop message and battle state and add a fade to blend in the field
+                            function()
+                                -- resume field music
+
+                                -- TODO COMMENT BACK IN
+                                -- gSounds['field-music']:play()
+
+                                -- pop message state
+                                gStateStack:pop()
+
+                                -- pop battle state
+                                gStateStack:pop()
+
+                                gStateStack:push(FadeOutState({
+                                    r = 1, g = 1, b = 1
+                                }, 1, function()
+                                    -- do nothing after fade out ends
+                                end))
                             end))
-                        end))
                     end)
                 end
             }

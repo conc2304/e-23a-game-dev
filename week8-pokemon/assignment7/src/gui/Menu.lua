@@ -10,17 +10,19 @@
     form a greater whole.
 ]]
 
-Menu = Class{}
+Menu = Class {}
 
 function Menu:init(def)
     self.panel = Panel(def.x, def.y, def.width, def.height)
-    
+    local canSelect = def.canSelect == nil and true or def.canSelect
+
     self.selection = Selection {
         items = def.items,
         x = def.x,
         y = def.y,
         width = def.width,
-        height = def.height
+        height = def.height,
+        canSelect = canSelect
     }
 end
 
