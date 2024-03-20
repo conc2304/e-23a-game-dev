@@ -1,19 +1,15 @@
 LevelUpMenuState = Class { __includes = BaseState }
 
-function LevelUpMenuState:init(stats, onClose, canInput)
+function LevelUpMenuState:init(stats, onClose)
   self.stats = stats
 
   -- function to be called once this message is popped
   self.onClose = onClose or function() end
-  -- whether we can detect input with this or not; true by default
-  self.canInput = canInput
 
-  -- default input to true if nothing was passed in
-  if self.canInput == nil then self.canInput = true end
 
   local items = {}
-
   local heightCalc = 0
+
   for key, value in pairs(stats) do
     local prev = value.curr - value.inc
     local gained = value.inc
@@ -52,6 +48,11 @@ end
 
 function LevelUpMenuState:update(dt)
   self.levelUpMenu:update(dt)
+
+  if love.keyboard.wasPressed('return') or love.keyboard.wasPressed('enter') then
+    print("end state")
+    self.onClose()
+  end
 end
 
 function LevelUpMenuState:render()

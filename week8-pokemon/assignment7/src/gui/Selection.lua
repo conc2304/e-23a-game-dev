@@ -30,9 +30,6 @@ end
 
 function Selection:update(dt)
     if not self.canSelect then
-        if love.keyboard.wasPressed('return') or love.keyboard.wasPressed('enter') then
-            print("end state")
-        end
         return
     end
 

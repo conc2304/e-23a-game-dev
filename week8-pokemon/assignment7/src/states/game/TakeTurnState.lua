@@ -198,46 +198,7 @@ function TakeTurnState:victory()
 
                                 -- level up if we've gone over the needed amount
                                 if self.playerPokemon.currentExp > self.playerPokemon.expToLevel then
-                                    gSounds['levelup']:play()
-
-                                    -- set our exp to whatever the overlap is
-                                    self.playerPokemon.currentExp = self.playerPokemon.currentExp -
-                                        self.playerPokemon.expToLevel
-
-                                    local HPIncrease, attackIncrease, defenseIncrease, speedIncrease = self
-                                        .playerPokemon:levelUp()
-
-                                    -- at this point our player's pokemon has already had its stats increased
-                                    -- so we will subtract what has been added to show the change in
-
-                                    -- create a menu of levelled up stats
-                                    local stats = {
-                                        ['hp'] = {
-                                            curr = self.playerPokemon.HP,
-                                            inc = HPIncrease
-                                        },
-                                        ['attack'] = {
-                                            curr = self.playerPokemon.attack,
-                                            inc = attackIncrease
-                                        },
-                                        ['defense'] = {
-                                            curr = self.playerPokemon.defense,
-                                            inc = defenseIncrease
-                                        },
-                                        ['speed'] = {
-                                            curr = self.playerPokemon.speed,
-                                            inc = speedIncrease
-                                        },
-                                    }
-
-
-                                    gStateStack:push(BattleMessageState('Congratulations! Level Up!',
-                                        function()
-                                            self:fadeOutWhite()
-                                        end))
-                                    gStateStack:push(LevelUpMenuState(stats), function()
-                                        print("close levelup menu ")
-                                    end)
+                                    self:handleLevelUp()
                                 else
                                     self:fadeOutWhite()
                                 end
@@ -264,4 +225,55 @@ function TakeTurnState:fadeOutWhite()
                 r = 1, g = 1, b = 1
             }, 1, function() end))
         end))
+end
+
+function TakeTurnState:handleLevelUp()
+    gSounds['levelup']:play()
+
+    -- set our exp to whatever the overlap is
+    self.playerPokemon.currentExp = self.playerPokemon.currentExp -
+        self.playerPokemon.expToLevel
+
+    local HPIncrease, attackIncrease, defenseIncrease, speedIncrease = self
+        .playerPokemon:levelUp()
+
+    -- at this point our player's pokemon has already had its stats increased
+    -- so we will subtract what has been added to show the change in
+
+    -- create a menu of levelled up stats
+    local stats = {
+        ['hp'] = {
+            curr = self.playerPokemon.HP,
+            inc = HPIncrease
+        },
+        ['attack'] = {
+            curr = self.playerPokemon.attack,
+            inc = attackIncrease
+        },
+        ['defense'] = {
+            curr = self.playerPokemon.defense,
+            inc = defenseIncrease
+        },
+        ['speed'] = {
+            curr = self.playerPokemon.speed,
+            inc = speedIncrease
+        },
+    }
+
+
+    gStateStack:push(BattleMessageState('Congratulations! Level Up!',
+        function()
+            -- do nothing
+        end))
+
+    gStateStack:push(LevelUpMenuState(stats,
+        function()
+            print("close levelup menu")
+            -- bop the LevelUpMenuState state
+            gStateStack:pop()
+            -- bop the BattleMessageState state
+            gStateStack:pop()
+            self:fadeOutWhite()
+        end)
+    )
 end
