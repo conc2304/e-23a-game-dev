@@ -25,10 +25,9 @@ function Pokemon:init(def, level)
     self.speedIV = def.speedIV
 
     self.HP = self.baseHP
-    -- todo - revert to no multipliery
-    self.attack = self.baseAttack * 10
-    self.defense = self.baseDefense * 10
-    self.speed = self.baseSpeed + 5
+    self.attack = self.baseAttack
+    self.defense = self.baseDefense
+    self.speed = self.baseSpeed
 
     self.level = level
     -- TODO SWITCH AFTER TESTING
