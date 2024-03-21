@@ -30,10 +30,8 @@ function Pokemon:init(def, level)
     self.speed = self.baseSpeed
 
     self.level = level
-    -- TODO SWITCH AFTER TESTING
-    -- self.currentExp = 0
+    self.currentExp = 0
     self.expToLevel = self.level * self.level * 5 * 0.75
-    self.currentExp = self.expToLevel - 5
 
     self:calculateStats()
 

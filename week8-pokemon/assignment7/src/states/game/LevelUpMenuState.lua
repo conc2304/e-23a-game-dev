@@ -1,41 +1,47 @@
 LevelUpMenuState = Class { __includes = BaseState }
 
+
 function LevelUpMenuState:init(stats, onClose)
+  -- this holds our levelling up states
   self.stats = stats
 
-  -- function to be called once this message is popped
+  -- function to be called once this dialog box is done
   self.onClose = onClose or function() end
 
+  local items = {}     -- menu items
+  local heightCalc = 0 -- make menu size dynamic
 
-  local items = {}
-  local heightCalc = 0
-
-  for key, value in pairs(stats) do
+  for attributeName, value in pairs(stats) do
+    -- we infer pre-levelled up state based on user's current state,
+    -- and how much we increased it that attribute by
     local prev = value.curr - value.inc
     local gained = value.inc
     local next = value.curr
-    -- one line itemfor the attribute name, the other for the stat change
+
+    -- one line item for the attribute name,
+    -- the other for the stat change
     table.insert(items, {
-      text = string.upper(key),
+      text = string.upper(attributeName),
       align = 'left',
       font = gFonts['medium']
     })
     table.insert(items, {
-      text = string.format("%d+%d=%d", prev, gained, next),
+      -- the stats as prev+gained=next
+      text = string.format("%d+%d = %d", prev, gained, next),
       align = 'right',
       font = gFonts['small']
     })
-    heightCalc = heightCalc + (2 * gFonts['medium']:getHeight() + 2)
+
+    -- use the larger of the two fonts to dynamically size our container
+    heightCalc = heightCalc + (2 * gFonts['medium']:getHeight())
   end
 
   local width = 96
-  local height = math.max(128, heightCalc)
-  local offsetY = 64 -- 64 is the height of the battle dialog box,
   local spacingY = 8 -- space it away from the bottom dialog
+  local height = math.max(128, heightCalc) + spacingY
+  local offsetY = 64 -- 64 is the height of the battle dialog box,
 
-  print("LEVEL UP MENU")
-
-
+  -- make the menu
   self.levelUpMenu = Menu {
     x = VIRTUAL_WIDTH - width,
     y = VIRTUAL_HEIGHT - offsetY - spacingY - height,
@@ -49,8 +55,8 @@ end
 function LevelUpMenuState:update(dt)
   self.levelUpMenu:update(dt)
 
+  -- on enter close up shop
   if love.keyboard.wasPressed('return') or love.keyboard.wasPressed('enter') then
-    print("end state")
     self.onClose()
   end
 end

@@ -44,9 +44,7 @@ function BattleMenuState:init(battleState)
                             -- pop message and battle state and add a fade to blend in the field
                             function()
                                 -- resume field music
-
-                                -- TODO COMMENT BACK IN
-                                -- gSounds['field-music']:play()
+                                gSounds['field-music']:play()
 
                                 -- pop message state
                                 gStateStack:pop()

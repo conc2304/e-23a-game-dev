@@ -11,9 +11,8 @@ PlayState = Class { __includes = BaseState }
 function PlayState:init()
     self.level = Level()
 
-    -- TODO comment back in
-    -- gSounds['field-music']:setLooping(true)
-    -- gSounds['field-music']:play()
+    gSounds['field-music']:setLooping(true)
+    gSounds['field-music']:play()
 
     self.dialogueOpened = false
 end

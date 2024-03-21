@@ -30,8 +30,7 @@ function PlayerWalkState:checkForEncounter()
 
         -- trigger music changes
         gSounds['field-music']:pause()
-        -- TODO COMMENT BACK IN
-        -- gSounds['battle-music']:play()
+        gSounds['battle-music']:play()
 
         -- first, push a fade in; when that's done, push a battle state and a fade
         -- out, which will fall back to the battle state once it pushes itself off

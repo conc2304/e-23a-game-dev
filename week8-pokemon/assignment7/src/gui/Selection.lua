@@ -15,7 +15,9 @@ Selection = Class {}
 
 function Selection:init(def)
     self.items = def.items
+    -- default to canSelect is true if not passed in
     self.canSelect = def.canSelect == nil and true or def.canSelect
+
     self.x = def.x
     self.y = def.y
 
@@ -64,24 +66,29 @@ function Selection:render()
     local currFont = love.graphics.getFont()
 
     for i = 1, #self.items do
-        -- local paddedY = currentY + (self.gapHeight / 2) - self.font:getHeight() / 2
+        -- allow items to use different fonts if they are set
+        if self.items[i].font then
+            love.graphics.setFont(self.items[i].font)
+        end
+
         local paddedY = currentY + (self.gapHeight / 2) - love.graphics.getFont():getHeight() / 2
+        -- allow different alignments of text
         local align = self.items[i].align or 'center'
         local padX = 0
+        -- pad our left/right aligned text so its not on top of the menu border
         if align == 'left' then padX = 8 end
         if align == 'right' then padX = -8 end
 
-        -- draw selection marker if we're at the right index
+        -- draw selection marker if we're at the right index, if we need one
         if i == self.currentSelection and self.canSelect then
             love.graphics.draw(gTextures['cursor'], self.x - 8, paddedY)
-        end
-        if self.items[i].font then
-            love.graphics.setFont(self.items[i].font)
         end
 
         love.graphics.printf(self.items[i].text, self.x + padX, paddedY, self.width, align)
 
         currentY = currentY + self.gapHeight
     end
+
+    -- reset the font to what it was before
     love.graphics.setFont(currFont)
 end

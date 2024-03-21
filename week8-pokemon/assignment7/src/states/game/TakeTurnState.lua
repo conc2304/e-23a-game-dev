@@ -144,8 +144,7 @@ function TakeTurnState:faint()
 
                             -- resume field music
                             gSounds['battle-music']:stop()
-                            -- TODO COMMENT BACK IN
-                            -- gSounds['field-music']:play()
+                            gSounds['field-music']:play()
 
                             -- pop off the battle state and back into the field
                             gStateStack:pop()
@@ -215,9 +214,8 @@ function TakeTurnState:fadeOutWhite()
         }, 1,
         function()
             -- resume field music
-            -- TODO COMMENT BACK IN
-            -- gSounds['victory-music']:stop()
-            -- gSounds['field-music']:play()
+            gSounds['victory-music']:stop()
+            gSounds['field-music']:play()
 
             -- pop off the battle state
             gStateStack:pop()
@@ -238,11 +236,11 @@ function TakeTurnState:handleLevelUp()
         .playerPokemon:levelUp()
 
     -- at this point our player's pokemon has already had its stats increased
-    -- so we will subtract what has been added to show the change in
+    -- so we will infer the player's previous state based on curr - inc
 
-    -- create a menu of levelled up stats
+    -- struct for our levelling up
     local stats = {
-        ['hp'] = {
+        ['health'] = {
             curr = self.playerPokemon.HP,
             inc = HPIncrease
         },
@@ -266,14 +264,14 @@ function TakeTurnState:handleLevelUp()
             -- do nothing
         end))
 
+    -- upon leveling up display the levelling up stats as a new state
     gStateStack:push(LevelUpMenuState(stats,
         function()
-            print("close levelup menu")
             -- bop the LevelUpMenuState state
             gStateStack:pop()
             -- bop the BattleMessageState state
             gStateStack:pop()
-            self:fadeOutWhite()
+            self:fadeOutWhite() -- which does its on bopping
         end)
     )
 end
