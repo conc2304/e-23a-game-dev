@@ -31,7 +31,10 @@ public class GemSpawner : MonoBehaviour
 			// instantiate all Gems in this row separated by some random amount of space
 			for (int i = 0; i < GemsThisRow; i++)
 			{
-				Instantiate(prefabs[Random.Range(0, prefabs.Length)], new Vector3(26, Random.Range(-10, 10), 10), Quaternion.identity);
+				Vector3 position = new Vector3(26, Random.Range(-10, 10), 10);
+				Quaternion rotation = Quaternion.Euler(90, 0, 0);
+				Instantiate(prefabs[Random.Range(0, prefabs.Length)], position, rotation);
+
 			}
 
 			// pause 1-5 seconds until the next Gem spawns

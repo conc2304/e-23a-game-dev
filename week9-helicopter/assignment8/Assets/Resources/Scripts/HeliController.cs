@@ -7,6 +7,7 @@ public class HeliController : MonoBehaviour
 	public float speed = 10.0f;
 	public int coinTotal = 0;
 	private Rigidbody rb;
+	private ParticleSystem.MainModule ps;
 	private float vertical, horizontal;
 	public ParticleSystem explosion;
 	public AudioSource explosionSound;
@@ -15,6 +16,7 @@ public class HeliController : MonoBehaviour
 	void Start()
 	{
 		rb = GetComponent<Rigidbody>();
+		ps = GetComponent<ParticleSystem>().main;
 	}
 
 	// Update is called once per frame
@@ -80,6 +82,9 @@ public class HeliController : MonoBehaviour
 
 		// trigger audio playback and emit particles from particle system
 		GetComponents<AudioSource>()[0].Play();
+		print(ps.main.startColor);
+		float[] rgba = { 0.0f, 1.0f, 0.0f, 1.0f };
+		ps.startColor = new Color(rgba[0], rgba[1], rgba[2], rgba[3]);
 		GetComponent<ParticleSystem>().Play();
 	}
 
